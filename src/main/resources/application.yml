@@ -1,0 +1,39 @@
+# 아래의 설정은 예시입니다. 프로젝트 환경에 맞춰 자유롭게 수정하세요.
+spring:
+  profiles:
+    active: local # 기본 프로필 설정
+
+  datasource:
+    # 환경 변수를 사용하고, 없을 경우 뒤의 기본값 사용 (컨벤션 준수)
+    url: ${DB_URL:jdbc:mysql://localhost:3306/aibe_db?useSSL=false&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update # 개발 환경용, 운영은 none 또는 validate 권장
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        # 컨벤션: DB 컬럼을 snake_case로 자동 변환하여 매핑
+        physical_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+
+  # Security 설정 (JWT 세팅 시 필요)
+  security:
+    user:
+      name: ${ADMIN_NAME:admin}
+      password: ${ADMIN_PASS:admin123}
+
+# AI API 관련 설정 (OpenAI 등 사용 시 활용)
+ai:
+  api:
+    key: ${AI_API_KEY:your-placeholder-key}
+    url: https://api.openai.com/v1
+
+logging:
+  level:
+    # 컨벤션: @Slf4j 로그 레벨 제어
+    com.aibe.team2: DEBUG
+    org.hibernate.SQL: DEBUG
