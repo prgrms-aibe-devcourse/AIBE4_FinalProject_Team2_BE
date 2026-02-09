@@ -1,3 +1,23 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.2.2'
+    id 'io.spring.dependency-management' version '1.1.4'
+}
+
+group = 'com.aibe'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     // Web & Validation
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -12,20 +32,22 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    runtimeOnly 'com.h2database:h2' // 추가
 
-    // Lombok (컨벤션 준수: 필수)
+    // Lombok (필수)
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
 
-    // Logging & Test
+    // Swagger UI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+}
 
-    // AI Integration (OpenAI 등을 호출하기 위한 HTTP 클라이언트)
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-
-    // Swagger UI (OpenAPI 3)
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+tasks.named('test') {
+    useJUnitPlatform()
 }
