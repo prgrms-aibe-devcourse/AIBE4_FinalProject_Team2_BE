@@ -1,0 +1,17 @@
+# Java & Gradle
+.gradle/
+build/
+out/
+
+# IDE (IntelliJ)
+.idea/
+*.iml
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database (H2 사용 시 생성되는 파일)
+*.mv.db
+*.trace.db
