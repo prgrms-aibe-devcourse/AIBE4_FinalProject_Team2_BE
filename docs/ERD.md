@@ -1,3 +1,4 @@
+### 1. user (회원 & 지갑)
 | **컬럼명** | **타입** | **제약조건** | **설명** |
 | --- | --- | --- | --- |
 | **id** | `BIGINT` | **PK**, AUTO_INCREMENT | 사용자 고유 ID |
@@ -14,3 +15,23 @@
 | created_at | `DATETIME` | DEFAULT NOW() | 가입 일시 |
 | updated_at | `DATETIME` | ON UPDATE NOW() | 수정 일시 |
 | deleted_at | `DATETIME` | NULLABLE | 탈퇴 일시 (Soft Delete) |
+
+### 2. social_auth (소셜 연동)
+
+### 3. resume (이력서)
+
+### 4. job_posting (채용 공고)
+
+### 5. resume_analysis_report (이력서 분석 리포트)
+
+### 6. interview_session (면접 세션)
+
+### 7. interview_record (면접 상세 기록)
+
+### 8. question_archive (질문 보관함)
+
+### 9. notification (알림)
+
+### 10. usage_log (크레딧 원장 & 활동 로그)
+
+### 11. admin_action_log (관리자 감사 로그)
