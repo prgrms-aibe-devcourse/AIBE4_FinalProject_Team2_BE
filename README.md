@@ -3,6 +3,18 @@
 
 ## Local Dev (Docker Compose)
 
+### 1. Create .env
+
+#### macOS / Linux
+```bash
+cp .env.example .env
+```
+
+#### Windows (PowerShell)
+```
+Copy-Item .env.example .env
+```
+
 ### Run
 ```bash
 docker compose up -d
