@@ -36,10 +36,10 @@
 
   동사로 시작
 
-    - `createUser()` ⭕ / userCreate() ❌
-    - 조회 : `findBy…`, `getBy…`, `searchBy…`
-    - 검사: `existsBy...`
-    - 삭제: `deleteBy...`, `removeBy...`
+  - `createUser()` ⭕ / userCreate() ❌
+  - 조회 : `findBy…`, `getBy…`, `searchBy…`
+  - 검사: `existsBy...`
+  - 삭제: `deleteBy...`, `removeBy...`
 - **Boolean 변수**
 
   is, has 등으로 시작해 의미를 명확히 함 - `isDeleted`, `hasToken`
@@ -52,11 +52,11 @@
 ### 롬복 사용 규칙
 
 - **@Setter** 사용 지양
-    - 객체의 무분별한 변경을 막기 위해 Entity에는 절대 `@Setter` 를 사용하지 않음
-    - 명확한 비즈니스 메서드를 생성(ex. changePassword()) or `Builder` 패턴 사용
+  - 객체의 무분별한 변경을 막기 위해 Entity에는 절대 `@Setter` 를 사용하지 않음
+  - 명확한 비즈니스 메서드를 생성(ex. changePassword()) or `Builder` 패턴 사용
 - **@Data** 사용 금지
-    - `@ToString`, `@EqualsAndHashCode` 등이 포함되어 무한 참조 등 예상치 못한 오류 유발
-    - 필요한 어노테이션만 명시
+  - `@ToString`, `@EqualsAndHashCode` 등이 포함되어 무한 참조 등 예상치 못한 오류 유발
+  - 필요한 어노테이션만 명시
 - **생성자 주입 사용**
 
   : `@Authwired` 대신 `@RequiredArgsConstructor`와 `final` 필드를 사용해 의존성 주입받기
@@ -203,25 +203,80 @@ Implementation
 
 ```
 global
- └─ error
-     ├─ GlobalExceptionHandler.java  (전역 예외 처리기)
-     ├─ ErrorResponse.java           (공통 응답 DTO)
-     └─ ErrorCode.java               (에러 코드 Enum)
- └─ exception
-     └─ BusinessException.java       (커스텀 예외 상위 클래스)
+ │
+ ├─ common
+ │   └─ response                  // [DTO] API 응답 포맷 (성공/실패 공통)
+ │       ├─ ApiResponse.java      // 성공 시 반환 객체
+ │       └─ ErrorResponse.java    // 실패 시 반환 객체
+ │
+ ├─ error                         // [Logic] 에러 핸들링 로직
+ │   ├─ ErrorCode.java            // [Enum] 에러 코드 및 메시지 정의
+ │   └─ GlobalExceptionHandler.java // 전역 예외 처리기 (@RestControllerAdvice)
+ │
+ └─ exception                     // [Class] 실제 발생시킬 예외 클래스들
+     ├─ BusinessException.java    // [Base] 모든 커스텀 예외의 부모 클래스
+     │
+     └─ custom                    // 상황별 구체적 예외
+         ├─ BadRequestException.java   // 400: 잘못된 요청
+         ├─ UnauthorizedException.java // 401: 인증 실패
+         ├─ ForbiddenException.java    // 403: 권한 없음
+         ├─ NotFoundException.java     // 404: 리소스 없음
+         └─ FileException.java         // 400/500: 파일 처리 관련 오류
 ```
 
 ### 핵심 규칙
 
-1. Unchecked Exception 지향
+## 1.Unchecked Exception 지향
 
-   : 모든 커스텀 예외는 `RuntimeException`을 상속받아 트랜잭션 롤백이 가능하게 함
+> **모든 커스텀 예외는 `RuntimeException`을 상속받습니다.**
+>
+- **Why?**
+  - Java의 `Checked Exception`(Exception 상속)은 트랜잭션 롤백이 기본적으로 수행되지 않습니다.
+  - `Unchecked Exception`(`RuntimeException` 상속)을 사용해야 `@Transactional` 안에서 예외 발생 시 **자동으로 트랜잭션이 롤백**되어 데이터 무결성을 지킬 수 있습니다.
+- **How?**
+  - 우리의 최상위 예외 클래스인 `BusinessException`은 `RuntimeException`을 상속받습니다.
 
-2. 중앙 집중 관리
+```java
+public class BusinessException extends RuntimeException { ... }
+```
 
-   : 에러 메시지와 HTTP 상태 코드는 `ErrorCode` Enum에서 통합 관리(하드코딩 금지)
+## 2. 중앙 집중 관리 (Centralized Management)
 
-3. 일관된 응답 포맷 : 클라이언트는 항상 JSON 구조로 에러를 수신해야 한다
+> **에러 메시지와 HTTP 상태 코드는 `ErrorCode` Enum에서 통합 관리합니다.**
+>
+- **Why?**
+  - 코드 곳곳에 에러 메시지가 문자열("회원을 찾을 수 없습니다")로 하드코딩되어 있으면, 수정 시 유지보수가 어렵습니다.
+  - 한곳에서 관리해야 메시지 통일성을 유지하고 변경이 쉽습니다.
+- **How?**
+  - 서비스 로직에서 직접 메시지를 작성하지 말고, **ErrorCode**를 호출하세요.
+
+```java
+// ❌ 
+throw new RuntimeException("존재하지 않는 회원입니다.");
+
+// ✅ (Enum 사용)
+throw new NotFoundException(ErrorCode.USER_NOT_FOUND);
+```
+
+## 3.  일관된 응답 포맷 (Consistent Response Format)
+
+> **클라이언트는 항상 동일한 JSON 구조로 에러를 수신해야 합니다.**
+>
+- **Why?**
+  - 프론트엔드에서 에러 처리를 할 때, API마다 에러 형식이 다르면 예외 처리 로직이 복잡해집니다.
+  - 성공이든 실패든 약속된 규격(`ErrorResponse`)을 지켜야 합니다.
+- **How?**
+  - `GlobalExceptionHandler`가 모든 예외를 잡아 아래 JSON 포맷으로 변환하여 반환합니다.
+
+```json
+// ✅ Error Response Example
+{
+  "success": false,
+  "code": "USER_001",
+  "message": "존재하지 않는 사용자입니다.",
+  "errors": []
+}
+```
 
 ---
 

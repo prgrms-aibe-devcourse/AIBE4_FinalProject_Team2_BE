@@ -3,7 +3,7 @@ package com.aibe.team2.domain.resume.controller;
 import com.aibe.team2.domain.resume.dto.ResumeRequest;
 import com.aibe.team2.domain.resume.dto.ResumeResponse;
 import com.aibe.team2.domain.resume.service.ResumeService;
-import com.aibe.team2.global.common.ApiResponse;
+import com.aibe.team2.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
