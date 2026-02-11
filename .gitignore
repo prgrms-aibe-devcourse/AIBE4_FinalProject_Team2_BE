@@ -16,5 +16,11 @@ Thumbs.db
 *.mv.db
 *.trace.db
 
+# Env
+.env
+.env.*
+# allow example template
+!.env.example
+
 ### dev ###
 application-dev.yml
