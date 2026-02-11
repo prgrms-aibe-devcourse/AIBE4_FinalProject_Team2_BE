@@ -1,7 +1,7 @@
 # 아래의 설정은 예시입니다. 프로젝트 환경에 맞춰 자유롭게 수정하세요.
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
+    url: jdbc:h2:mem:test
     driver-class-name: org.h2.Driver
     username: sa
     password:
@@ -12,6 +12,10 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
   # Security 설정 (JWT 세팅 시 필요)
   security:
@@ -40,3 +44,4 @@ springdoc:
     operations-sorter: alpha
   api-docs:
     path: /api-docs # API 설계 문서(JSON) 경로
+
