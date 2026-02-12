@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
-    // JpaRepository를 상속받으면 기본적인 save, findById, delete 등의 메서드를 바로 사용할 수 있습니다.
+
 }

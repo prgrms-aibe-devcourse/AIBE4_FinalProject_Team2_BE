@@ -15,3 +15,12 @@ Thumbs.db
 # Database (H2 사용 시 생성되는 파일)
 *.mv.db
 *.trace.db
+
+# Env
+.env
+.env.*
+# allow example template
+!.env.example
+
+### dev ###
+application-dev.yml
