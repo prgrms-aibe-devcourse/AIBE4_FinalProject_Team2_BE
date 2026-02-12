@@ -1,14 +1,14 @@
 package com.aibe.team2.domain.interview.controller;
 
+import com.aibe.team2.domain.interview.dto.UserAnswerRequest;
 import com.aibe.team2.domain.interview.entity.InterviewSession;
 import com.aibe.team2.domain.interview.entity.InterviewStatus;
 import com.aibe.team2.domain.interview.service.InterviewManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
+import org.springframework.web.bind.annotation.*;
 import java.util.concurrent.Executors;
 
 @RestController
@@ -46,5 +46,16 @@ public class InterviewController {
         });
 
         return emitter;
+    }
+
+    @PostMapping("/sessions/{sessionId}/answer")
+    public ResponseEntity<Void> receiveAnswer(
+            @PathVariable Long sessionId,
+            @RequestBody UserAnswerRequest request // 텍스트 또는 음성 파일 경로
+    ) {
+        // 사용자가 대답을 완료하면 이 API가 호출됨
+        // 대화 매니저가 AI 질문 생성을 시작함
+        conversationManager.processAnswerAndGenerateNextQuestion(sessionId, request.getContent());
+        return ResponseEntity.ok().build();
     }
 }
