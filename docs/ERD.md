@@ -49,6 +49,7 @@
 | `member_id` | `BIGINT` | 회원 ID (등록자) |
 | `company_name` | `VARCHAR(100)` | 회사명 |
 | `job_title` | `VARCHAR(100)` | 직무명 (공고 제목) |
+| `posting_url` | `TEXT` | 공고 URL |
 | `job_description` | `TEXT` | 직무 상세 내용 (JD) |
 | `created_at` | `DATETIME` | 생성 일시 |
 | `updated_at` | `DATETIME` | 수정 일시 |
