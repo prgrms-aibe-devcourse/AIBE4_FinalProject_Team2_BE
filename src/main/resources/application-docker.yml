@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:aibe}
+    url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:aibe}
     username: ${MYSQL_USER:aibe}
     password: ${MYSQL_PASSWORD:aibe1234}
 
@@ -12,3 +12,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+
+aws:
+  sqs:
+    endpoint: http://${LOCALSTACK_HOST:localstack}:${LOCALSTACK_PORT:4566}
+    region: ${AWS_REGION:ap-northeast-2}
+

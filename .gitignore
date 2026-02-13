@@ -24,3 +24,6 @@ Thumbs.db
 
 ### dev ###
 application-dev.yml
+
+# localstack local cache
+localstack/
