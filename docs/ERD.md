@@ -6,7 +6,7 @@
 | `email` | `VARCHAR(255)` | 로그인 이메일 |
 | `password_hash` | `VARCHAR(255)` | 비밀번호 (Hash) |
 | `nickname` | `VARCHAR(50)` | 닉네임 |
-| `role` | `ENUM('USER', 'ADMIN')` | 권한 |
+| `role` | `ENUM('MEMBER', 'ADMIN')` | 권한 |
 | `desired_job` | `VARCHAR(100)` | 희망 직무 |
 | `preferred_location` | `VARCHAR(100)` | 선호 근무 지역 |
 | `subscription_plan` | `ENUM('FREE', 'PRO', 'ENTERPRISE')` | 구독 등급 |
@@ -23,10 +23,11 @@
 | :--- | :--- | :--- |
 | `id` | `BIGINT` | 소셜 인증 ID |
 | `member_id` | `BIGINT` | 회원 ID |
-| `provider_user_id` | `VARCHAR(255)` | 제공자 측 유저 ID |
+| `provider_MEMBER_id` | `VARCHAR(255)` | 제공자 측 유저 ID |
 | `provider_type` | `VARCHAR(50)` | 제공자 타입 (Google, Kakao 등) |
 | `created_at` | `DATETIME` | 연동 일시 |
 | `updated_at` | `DATETIME` | 수정 일시 |
+| `deleted_at` | `DATETIME` | 탈퇴 일시 (Soft Delete) |
 
 ### 3. resume (이력서)
 
@@ -35,7 +36,7 @@
 | `id` | `BIGINT` | 이력서 ID |
 | `member_id` | `BIGINT` | 회원 ID |
 | `title` | `VARCHAR(255)` | 이력서 제목 |
-| `file_url` | `VARCHAR(500)` | 이력서 파일 URL |
+| `s3_file_url` | `VARCHAR(500)` | 이력서 파일 URL |
 | `content` | `TEXT` | 이력서 텍스트 추출 내용 |
 | `is_analyzed` | `BOOLEAN` | 분석 완료 여부 |
 | `created_at` | `DATETIME` | 생성 일시 |
@@ -62,7 +63,7 @@
 | `job_posting_id` | `BIGINT` | 채용 공고 ID |
 | `skill_name` | `VARCHAR(50)` | 스킬명 (Java, Python 등) |
 | `created_at` | `DATETIME` | 생성 일시 |
-
+| `updated_at` | `DATETIME` | 수정 일시 |
 ### 5. analysis_report (분석 리포트)
 
 | **컬럼명** | **타입** | **설명** |
@@ -92,7 +93,7 @@
 | `status` | `ENUM('IN_PROGRESS', 'COMPLETED')` | 진행 상태 |
 | `final_score` | `INT` | 최종 점수 |
 | `created_at` | `DATETIME` | 시작 일시 |
-| `updated_at` | `DATETIME` | 종료/수정 일시 |
+| `updated_at` | `DATETIME` | 수정 일시 |
 
 ### 7. interview_record (면접 상세 기록)
 
@@ -105,7 +106,7 @@
 | `question_intent` | `TEXT` | 질문 의도 |
 | `answer_text` | `TEXT` | 답변 내용 |
 | `follow_up_depth` | `INT` | 꼬리질문 깊이 |
-| `audio_file_url` | `VARCHAR(500)` | 답변 음성 파일 URL |
+| `s3_file_url` | `VARCHAR(500)` | 답변 음성 파일 URL |
 | `wpm` | `INT` | 발화 속도 (Words Per Minute) |
 | `stt_accuracy` | `FLOAT` | STT 정확도 |
 | `silence_count` | `INT` | 침묵 횟수 |
@@ -114,7 +115,7 @@
 | `evaluation_score` | `FLOAT` | 답변 평가 점수 |
 | `response_time_ms` | `INT` | 응답 소요 시간 (ms) |
 | `created_at` | `DATETIME` | 생성 일시 |
-
+| `updated_at` | `DATETIME` | 수정 일시 |
 ### 8. question_scrap (질문 스크랩)
 
 | **컬럼명** | **타입** | **설명** |
@@ -136,9 +137,9 @@
 | `notification_type` | `VARCHAR(50)` | 알림 유형 |
 | `is_read` | `BOOLEAN` | 읽음 여부 |
 | `created_at` | `DATETIME` | 생성 일시 |
-| `updated_at` | `DATETIME` | 읽은 일시/수정 |
+| `updated_at` | `DATETIME` | 수정 일시 |
 
-### 10. credit_log (크레딧 로그)
+### 10. usage_log (사용량 로그)
 
 | **컬럼명** | **타입** | **설명** |
 | :--- | :--- | :--- |
@@ -146,12 +147,14 @@
 | `member_id` | `BIGINT` | 회원 ID |
 | `request_trace_id` | `VARCHAR(100)` | 요청 추적 ID |
 | `service_type` | `VARCHAR(50)` | 서비스 유형 |
-| `description` | `VARCHAR(255)` | 상세 내역 |
+| `token_usage` | `INT` | 토큰 사용량 |
 | `amount` | `INT` | 변동량 (+/-) |
 | `balance_after` | `INT` | 변동 후 잔액 |
 | `target_id` | `BIGINT` | 대상 ID (리포트/세션 등) |
 | `target_type` | `VARCHAR(50)` | 대상 타입 |
+| `description` | `VARCHAR(255)` | 상세 내역 |
 | `created_at` | `DATETIME` | 발생 일시 |
+| `updated_at` | `DATETIME` | 수정 일시 |
 
 ### 11. audit_log (감사 로그)
 
@@ -164,9 +167,9 @@
 | `action_type` | `VARCHAR(50)` | 수행 동작 |
 | `action_detail` | `JSON` | 상세 내용 (JSON) |
 | `ip_address` | `VARCHAR(50)` | 접속 IP |
-| `user_agent` | `VARCHAR(255)` | 유저 에이전트 |
+| `member_agent` | `VARCHAR(255)` | 유저 에이전트 |
 | `created_at` | `DATETIME` | 발생 일시 |
-
+| `updated_at` | `DATETIME` | 수정 일시 |
 ### 12. attachment (첨부 파일)
 
 | **컬럼명** | **타입** | **설명** |
