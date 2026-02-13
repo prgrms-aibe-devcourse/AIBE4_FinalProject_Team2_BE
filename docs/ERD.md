@@ -173,8 +173,8 @@
 | :--- | :--- | :--- |
 | `id` | `BIGINT` | 파일 ID |
 | `owner_member_id` | `BIGINT` | 소유자(회원) ID |
-| `storage_key` | `VARCHAR(500)` | 저장소 Key (경로) |
-| `file_type` | `ENUM(...)` | 파일 유형 (이력서/오디오 등) |
+| `s3_key` | `VARCHAR(500)` | 저장소 Key (경로) |
+| `file_type` | `ENUM('RESUME_ORIGINAL','RESUME_REVISED','INTERVIEW_AUDIO')` | 파일 유형 (이력서/오디오 등) |
 | `target_type` | `VARCHAR(50)` | 연결 대상 타입 |
 | `target_id` | `BIGINT` | 연결 대상 ID |
 | `created_at` | `DATETIME` | 업로드 일시 |
