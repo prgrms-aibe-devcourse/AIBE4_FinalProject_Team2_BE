@@ -1,61 +1,39 @@
 package com.aibe.team2.domain.interview.controller;
 
 import com.aibe.team2.domain.interview.dto.UserAnswerRequest;
-import com.aibe.team2.domain.interview.entity.InterviewSession;
-import com.aibe.team2.domain.interview.entity.InterviewStatus;
-import com.aibe.team2.domain.interview.service.InterviewManager;
+import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
+import com.aibe.team2.domain.interview.service.ConversationManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import org.springframework.web.bind.annotation.*;
-import java.util.concurrent.Executors;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/interviews")
+@RequiredArgsConstructor
 public class InterviewController {
 
-    private final InterviewManager interviewManager;
+    private final ConversationManager conversationManager;
 
-    @GetMapping(value = "/start-test", produces = "text/event-stream;charset=UTF-8")
-    public SseEmitter startInterviewWithDb() {
-        // 면접 세션 생성
-        InterviewSession session = interviewManager.startInterview("TEXT");
-
-        SseEmitter emitter = new SseEmitter(120 * 1000L);
-        String fullSentence = "반갑습니다. 면접 세션(" + session.getId() + ")이 생성되었습니다.";
-        String[] characters = fullSentence.split("");
-
-        Executors.newSingleThreadExecutor().execute(() -> {
-            try {
-                // 상태 전이: READY
-                interviewManager.advanceStatus(session.getId(), InterviewStatus.READY);
-
-                for (String character : characters) {
-                    emitter.send(SseEmitter.event().data(character));
-                    Thread.sleep(100);
-                }
-
-                // 상태 전이: ANSWERING
-                interviewManager.advanceStatus(session.getId(), InterviewStatus.ANSWERING);
-                emitter.complete();
-            } catch (Exception e) {
-                emitter.completeWithError(e);
-            }
-        });
-
+    // 1. 텍스트 면접: 사용자의 답변을 받고 AI의 꼬리 질문을 SSE로 스트리밍
+    @GetMapping(value = "/{sessionId}/text/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamTextInterview(
+            @PathVariable Long sessionId,
+            @RequestParam String answer) {
+        SseEmitter emitter = new SseEmitter(120000L); // 2분 타임아웃
+        conversationManager.startTextStreaming(answer, emitter);
         return emitter;
     }
 
-    @PostMapping("/sessions/{sessionId}/answer")
-    public ResponseEntity<Void> receiveAnswer(
-            @PathVariable Long sessionId,
-            @RequestBody UserAnswerRequest request // 텍스트 또는 음성 파일 경로
-    ) {
-        // 사용자가 대답을 완료하면 이 API가 호출됨
-        // 대화 매니저가 AI 질문 생성을 시작함
-        conversationManager.processAnswerAndGenerateNextQuestion(sessionId, request.getContent());
-        return ResponseEntity.ok().build();
+    // 2. 음성 면접: Retell AI 세션을 시작하고 토큰 반환
+    @PostMapping("/{sessionId}/voice/start")
+    public VoiceSessionResponse startVoiceInterview(@PathVariable Long sessionId) {
+        return conversationManager.startVoiceInterview(sessionId);
+    }
+
+    // 서버 정상 작동 확인용
+    @GetMapping("/check")
+    public String checkServer() {
+        return "Server is Running! (Interview Lead: Wonjun)";
     }
 }
