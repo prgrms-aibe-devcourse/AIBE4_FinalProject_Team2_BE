@@ -72,3 +72,13 @@ springdoc:
     path: /swagger-ui.html
   api-docs:
     path: /api-docs
+
+openai:
+  api:
+    key: dummy_key_for_now
+
+retell:
+  api:
+    key: dummy_key_for_now
+  agent:
+    id: dummy_agent_id
