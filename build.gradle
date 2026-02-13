@@ -48,17 +48,14 @@ dependencies {
 
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    
+    implementation 'org.jsoup:jsoup:1.13.1'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-
-    // WebClient
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
-
-    // MVC
-    implementation 'org.springframework.boot:spring-boot-starter-web'
 }
 
 tasks.named('test') {

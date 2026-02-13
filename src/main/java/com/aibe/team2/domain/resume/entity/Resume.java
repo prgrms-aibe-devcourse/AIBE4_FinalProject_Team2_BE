@@ -5,38 +5,57 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * 아래의 코드는 전부 예시입니다. 추후 기능이나 필요에 맞게 자유롭게 수정하면 됩니다.
- */
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "resume") // 컨벤션: snake_case 테이블명
+@Table(name = "resume")
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // 컨벤션: 기본 생성자 지양
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Resume {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 이미지 스펙: FK (user.id), NOT NULL
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
+    @Column(name = "s3_file_url", length = 500)
+    private String s3FileUrl;
+
+    @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "feedback", columnDefinition = "TEXT")
-    private String feedback;
+    @Column(name = "is_analyzed")
+    private Boolean isAnalyzed;
 
-    @Builder // 컨벤션: @Setter 대신 빌더 사용
-    public Resume(String title, String content, String feedback) {
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    @Builder
+    public Resume(Long userId, String title, String s3FileUrl, String content) {
+        this.userId = userId;
         this.title = title;
+        this.s3FileUrl = s3FileUrl;
         this.content = content;
-        this.feedback = feedback;
+        this.isAnalyzed = false;
     }
 
-    // 컨벤션: 의미 있는 비즈니스 메서드 사용 (Why에 집중)
-    public void updateFeedback(String feedback) {
-        this.feedback = feedback;
+    public void updateAnalysisStatus(boolean isAnalyzed) {
+        this.isAnalyzed = isAnalyzed;
     }
 }
