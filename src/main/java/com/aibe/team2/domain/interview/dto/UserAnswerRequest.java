@@ -1,4 +1,4 @@
-gpackage com.aibe.team2.domain.interview.dto;
+package com.aibe.team2.domain.interview.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
