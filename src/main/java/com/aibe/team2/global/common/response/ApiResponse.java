@@ -3,9 +3,6 @@ package com.aibe.team2.global.common.response;
 import lombok.Builder;
 import lombok.Getter;
 
-/**
- * API 성공 응답 공통 포맷
- */
 @Getter
 public class ApiResponse<T> {
     private final boolean success;
