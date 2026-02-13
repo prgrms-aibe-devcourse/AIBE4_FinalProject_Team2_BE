@@ -14,6 +14,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
 
   redis:
     image: redis:7-alpine
@@ -30,6 +35,22 @@ services:
       timeout: 3s
       retries: 10
 
+  localstack:
+    image: localstack/localstack
+    container_name: aibe-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sqs
+      - DEFAULT_REGION=ap-northeast-2
+    volumes:
+      - "./localstack:/var/lib/localstack"
+    healthcheck:
+      test: [ "CMD", "curl", "-s", "http://localhost:4566/_localstack/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
   app:
     build: .
     container_name: aibe-app
@@ -38,12 +59,31 @@ services:
       - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+      LOCALSTACK_HOST: localstack
+      LOCALSTACK_PORT: 4566
+      AWS_REGION: ${AWS_REGION:-ap-northeast-2}
+
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
+
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy_key_for_now}
+      RETELL_API_KEY: ${RETELL_API_KEY:-dummy_key_for_now}
+      RETELL_AGENT_ID: ${RETELL_AGENT_ID:-dummy_agent_id}
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    command: ["sh", "-lc", "sleep 8 && java -jar /app/app.jar"]
 
 volumes:
   mysql_data:
