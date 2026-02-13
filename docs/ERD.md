@@ -59,13 +59,14 @@
 ### 4. job_posting (채용 공고)
 
 | **컬럼명** | **타입** | **제약조건** | **설명** |
-| -- | --- | --- | --- |
+|--| --- | --- |---|
 | id | `BIGINT` | PK, AUTO_INCREMENT | 공고 ID |
 | user_id | `BIGINT` | FK (user.id), NOT NULL | 등록자 ID |
 | company_name | `VARCHAR(100)` | NOT NULL, DEFAULT 'Self-Input' | 기업명 |
 | job_title | `VARCHAR(100)` | NOT NULL | 직무명 |
+| posting_url | `TEXT` | NULLABLE | 채용 공고 URL |
 | job_description | `TEXT` | NULLABLE | 채용 공고 원문 (JD) |
-| required_skills | `JSON` | NULLABLE | 역량 및 기술 태그 목록 |
+| required_skill | `JSON` | NULLABLE | 역량 및 기술 태그 목록 |
 | created_at | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | 생성 일시 |
 | updated_at | `DATETIME` | DEFAULT CURRENT_TIMESTAMP, ON UPDATE CURRENT_TIMESTAMP | 수정 일시 |
 
@@ -74,18 +75,18 @@
 ### 5. resume_analysis_report (이력서 분석 리포트)
 
 | **컬럼명** | **타입** | **제약조건** | **설명** |
-| -- | --- | --- | --- |
+| -- | --- | --- |--------|
 | id | `BIGINT` | PK, AUTO_INCREMENT | 리포트 ID |
 | resume_id | `BIGINT` | FK (resume.id), NOT NULL, ON DELETE CASCADE | 분석 대상 이력서 |
-| job_posting_id | `BIGINT` | FK (job_posting.id), NOT NULL | 타겟 공고 |
+| job_posting_id | `BIGINT` | FK (job_posting.id), NOT NULL | 타겟 공고  |
 | match_score | `INT` | NULLABLE | 직무 적합도 점수 (0~100) |
 | keyword_analysis | `JSON` | NULLABLE | 키워드 분석 결과 |
 | sentence_correction | `JSON` | NULLABLE | 문장 교정 데이터 |
-| generated_subtitle | `JSON` | NULLABLE | (추가) 생성된 요약/서브타이틀 |
+| generated_subtitle | `JSON` | NULLABLE | 요약/소제목 |
 | revised_full_content | `TEXT` | NULLABLE | AI 첨삭 완성본 (After) |
-| status | `ENUM('PENDING','PROCESSING','DELAYED','COMPLETED','FAILED')` | DEFAULT 'PENDING' | 진행 상태 |
-| created_at | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | 생성 일시 |
-| updated_at | `DATETIME` | DEFAULT CURRENT_TIMESTAMP, ON UPDATE CURRENT_TIMESTAMP | 수정 일시 |
+| status | `ENUM('PENDING','PROCESSING','DELAYED','COMPLETED','FAILED')` | DEFAULT 'PENDING' | 진행 상태  |
+| created_at | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | 생성 일시  |
+| updated_at | `DATETIME` | DEFAULT CURRENT_TIMESTAMP, ON UPDATE CURRENT_TIMESTAMP | 수정 일시  |
 
 **인덱스/제약**
 - UNIQUE KEY `unique_analysis` (`resume_id`, `job_posting_id`)
