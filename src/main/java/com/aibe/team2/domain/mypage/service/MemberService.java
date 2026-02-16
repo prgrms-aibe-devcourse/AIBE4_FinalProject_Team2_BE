@@ -25,22 +25,16 @@ public class MemberService {
     // TODO : Security Config에 PasswordEncoder Bean 등록 시 주석 풀기
     // private final PasswordEncoder passwordEncoder;
 
-    // [공통] ID로 멤버 찾기
-    private Member findMemberById(Long memberId){
-        return memberRepository.findById(memberId)
-                .orElseThrow(()->new NotFoundException(ErrorCode.USER_NOT_FOUND));
-    }
-
     // 1. 마이페이지 정보 조회
     public MemberResponseDto getMemberInfo(Long memberId){
-        Member member = findMemberById(memberId);
+        Member member = memberRepository.getByIdThrow(memberId);
         return new MemberResponseDto(member);
     }
 
     // 2. 프로필 수정 (통합 메서드)
     @Transactional
     public MemberUpdateResponseDto updateProfile (Long memberId, ProfileUpdateDto dto) {
-        Member member = findMemberById(memberId);
+        Member member = memberRepository.getByIdThrow(memberId);
 
         // 2-1. 프로필 기본 정보 업데이트
         member.updateProfile(dto.getNickname(), dto.getProfileImageUrl());
@@ -58,7 +52,7 @@ public class MemberService {
     // 3. 비밀번호 변경
     @Transactional
     public void changePassword(Long memberId, PasswordChangeRequestDto dto){
-        Member member = findMemberById(memberId);
+        Member member = memberRepository.getByIdThrow(memberId);
 
         // 3-1. 현재 비밀번호 검증
         // TODO : [삭제] 임시 평문 비교
@@ -86,7 +80,7 @@ public class MemberService {
     // 4. 취업 선호 설정 수정
     @Transactional
     public void updateJobPreferences(Long memberId, JobPreferenceUpdateRequestDto dto){
-        Member member = findMemberById(memberId);
+        Member member = memberRepository.getByIdThrow(memberId);
 
         List<String> rolesList = dto.getTargetJobRoles();
         String joinedRoles = (rolesList != null && !rolesList.isEmpty())
