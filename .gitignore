@@ -27,3 +27,10 @@ application-dev.yml
 
 # localstack local cache
 localstack/
+
+### QueryDSL ###
+# Gradle 기본 빌드 디렉토리 하위 generated 폴더 제외
+/build/generated
+
+# IDE의 자체 빌더가 src/main/generated에 생성할 경우 대비
+/src/main/generated
