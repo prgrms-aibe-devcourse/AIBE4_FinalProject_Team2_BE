@@ -1,7 +1,8 @@
 spring:
   application:
     name: aibe-team2-api
-
+  profiles:
+    active: dev
   servlet:
     multipart:
       max-file-size: 10MB
