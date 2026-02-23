@@ -59,7 +59,7 @@ public class InterviewRecord {
 
     // 감정 분석 결과 JSON 데이터 (컨버터 재사용)
     @Convert(converter = JsonAttributeConverter.class)
-    @Column(name = "emotion_analysis", columnDefinition = "json")
+    @Column(name = "emotion_analysis", columnDefinition = "TEXT")
     private Map<String, Object> emotionAnalysis;
 
     @Column(name = "feedback_text", columnDefinition = "TEXT")
