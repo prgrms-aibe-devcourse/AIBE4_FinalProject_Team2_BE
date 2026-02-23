@@ -5,7 +5,11 @@
 
 ---
 
-## 1. Custom 인터페이스 (명세서)
+## 1. QueryDSL 도입 배경
+- 자바 코드 기반으로 쿼리를 작성해 컴파일 타임에 문법 오류를 사전에 차단하는 타입 안정성 확보 목적
+- 서비스 전반에서 발생하는 복잡한 테이블 조인과 동적 쿼리를 직관적인 객체 지향 코드로 해결해 **코드 재사용성**과 **유지보수성 극대화**
+
+## 2. Custom 인터페이스 (명세서)
 - **파일 이름:** `[Domain]RepositoryCustom.java`
 - **역할:** QueryDSL로 구현할 동적 쿼리 메서드의 이름과 반환 타입을 선언합니다.
 
@@ -18,7 +22,7 @@ public interface [Domain]RepositoryCustom {
 }
 ```
 
-## 2. Impl 구현체 (실제 쿼리 작성)
+## 3. Impl 구현체 (실제 쿼리 작성)
 - **파일 이름:** `[Domain]RepositoryImpl.java`
 - **역할:** Custom 인터페이스를 상속받아 `JPAQueryFactory`를 이용해 실제 QueryDSL 코드를 작성합니다.
 - ⚠️ **주의:** 파일 이름은 반드시 `인터페이스명 + Impl` 형태를 지켜야 합니다.
@@ -62,7 +66,7 @@ public class [Domain]RepositoryImpl implements [Domain]RepositoryCustom {
 }
 ```
 
-## 3. 기본 Repository (통합 인터페이스)
+## 4. 기본 Repository (통합 인터페이스)
 - **파일 이름:** `[Domain]Repository.java`
 - **역할:** `JpaRepository`와 우리가 만든 `Custom` 인터페이스를 다중 상속받아 최종적으로 서비스(Service) 계층에서 호출하는 인터페이스입니다.
 
