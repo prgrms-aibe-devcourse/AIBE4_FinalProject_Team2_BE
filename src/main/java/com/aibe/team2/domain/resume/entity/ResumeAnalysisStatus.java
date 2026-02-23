@@ -1,6 +1,6 @@
-package com.aibe.team2.global.common.constant;
+package com.aibe.team2.domain.resume.entity;
 
-public enum AnalysisStatus {
+public enum ResumeAnalysisStatus {
     PENDING,      // 대기
     PROCESSING,   // 처리
     DELAYED,      // 지연

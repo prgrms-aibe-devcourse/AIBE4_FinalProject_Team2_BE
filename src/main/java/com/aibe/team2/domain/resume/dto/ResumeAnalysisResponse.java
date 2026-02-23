@@ -1,7 +1,7 @@
 package com.aibe.team2.domain.resume.dto;
 
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
-import com.aibe.team2.global.common.constant.AnalysisStatus;
+import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
@@ -26,7 +26,7 @@ public record ResumeAnalysisResponse(
         // 추후 json 형식의 String은 FE에서 json.parse() 할 것. -> Spring Boot(Jackson)가 자동으로 JSON 변환을 해주므로 FE에서 json.parse() 할 필요없음
 
         String revisedFullContent,
-        AnalysisStatus status,
+        ResumeAnalysisStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
