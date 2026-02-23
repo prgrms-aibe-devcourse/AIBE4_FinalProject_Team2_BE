@@ -6,7 +6,7 @@ import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.CorrectionDetail;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.EvaluationSummary;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.KeywordStats;
-import com.aibe.team2.global.common.constant.AnalysisStatus;
+import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
@@ -41,7 +41,7 @@ public class ResumeStatisticsService {
         }
 
         // 3. 비즈니스 룰 처리
-        boolean isProcessing = report.getStatus() == AnalysisStatus.PROCESSING;
+        boolean isProcessing = report.getStatus() == ResumeAnalysisStatus.PROCESSING;
 
         // 4. JSON 데이터 파싱 및 내부 Record 조립
         List<String> goodKeywords = isProcessing ? Collections.emptyList() : extractGoodKeywords(report.getKeywordAnalysis());
