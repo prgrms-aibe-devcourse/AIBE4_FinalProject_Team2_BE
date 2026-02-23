@@ -22,10 +22,12 @@ public class SecurityConfig {
                                 "/api/interviews/**",
                                 "/actuator/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/h2-console/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .httpBasic(basic -> basic.disable())
                 .formLogin(login -> login.disable());
 

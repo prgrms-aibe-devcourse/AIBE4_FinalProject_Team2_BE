@@ -3,142 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIBE Team2 - AI 하이브리드 실전 면접</title>
+    <title>AIBE Team2 - 하이브리드 AI 면접 시스템</title>
     <style>
-        body { font-family: 'Pretendard', sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; }
+        body { font-family: 'Pretendard', sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
 
-        /* 모드 선택 스위치 */
-        .mode-switch { margin: 20px 0; display: flex; justify-content: center; gap: 10px; }
-        .mode-btn { padding: 10px 20px; border: 1px solid #007bff; background: white; color: #007bff; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-        .mode-btn.active { background: #007bff; color: white; }
+        .selector-group { margin: 20px 0; padding: 15px; background: #f1f3f5; border-radius: 8px; }
+        .mode-switch { display: flex; justify-content: center; gap: 10px; }
+        .btn-opt { padding: 10px 20px; border: 1px solid #dee2e6; background: white; border-radius: 20px; cursor: pointer; transition: 0.2s; font-size: 14px; }
+        .btn-opt.active { background: #007bff; color: white; border-color: #007bff; font-weight: bold; }
 
-        /* 공통 버튼 */
-        .action-btn { padding: 12px 24px; font-size: 16px; cursor: pointer; background-color: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; }
-        .action-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        .chat-box { height: 350px; border: 1px solid #eee; border-radius: 8px; padding: 15px; overflow-y: auto; background: #fff; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 15px; line-height: 1.5; text-align: left; }
+        .msg.ai { align-self: flex-start; background: #e9ecef; color: #212529; border-bottom-left-radius: 2px; }
+        .msg.user { align-self: flex-end; background: #007bff; color: white; border-bottom-right-radius: 2px; }
 
-        /* 음성 면접 영역 */
-        #voiceSection { display: none; }
-        .visualizer { height: 50px; background-color: #f0f0f0; margin-top: 20px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; }
+        .input-area { display: flex; gap: 8px; }
+        input[type="text"] { flex: 1; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; outline: none; }
+        .action-btn { padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .action-btn:disabled { background: #adb5bd; cursor: not-allowed; }
 
-        /* 텍스트 면접 영역 */
-        #textSection { display: block; }
-        .chat-box { height: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 15px; overflow-y: auto; background: #fafafa; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; line-height: 1.4; text-align: left; word-break: break-word; }
-        .msg.user { align-self: flex-end; background-color: #007bff; color: white; border-bottom-right-radius: 2px; }
-        .msg.ai { align-self: flex-start; background-color: #e9ecef; color: #333; border-bottom-left-radius: 2px; }
-        .input-group { display: flex; gap: 10px; }
-        .input-group input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
+        #voiceArea { display: none; padding: 30px 20px; border: 2px dashed #dee2e6; border-radius: 12px; background: #fdfdfd; }
+        .voice-status { font-weight: bold; margin-bottom: 25px; color: #333; font-size: 16px; }
+        .voice-controls { display: flex; justify-content: center; gap: 10px; }
+        .stop-btn { background: #dc3545; }
+
+        /* [추가] 실시간 자막 화면 스타일 */
+        #voiceSubtitle {
+            margin-top: 25px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 15px;
+            display: none; /* 통화 시작 전에는 숨김 */
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .stt-line { line-height: 1.4; padding: 8px; border-radius: 6px; background: white; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚀 AI 하이브리드 면접</h1>
-    <p>서버 상태: <span id="server-check" style="font-weight:bold; color:green;">확인 중...</span></p>
+    <h2>🎙️ AI 하이브리드 실전 면접</h2>
 
-    <div class="mode-switch">
-        <button class="mode-btn active" id="btnTextMode">💬 텍스트 면접</button>
-        <button class="mode-btn" id="btnVoiceMode">🎙️ 음성 면접</button>
+    <div class="selector-group">
+        <div class="mode-switch">
+            <button class="btn-opt active" id="typeText">💬 텍스트 면접 (OpenAI)</button>
+            <button class="btn-opt" id="typeVoice">🎙️ 음성 면접 (Retell)</button>
+        </div>
     </div>
 
-    <div id="textSection">
+    <div id="textArea">
         <div class="chat-box" id="chatBox">
-            <div class="msg ai">안녕하세요. 자기소개 부탁드립니다. (텍스트로 답변을 입력하세요)</div>
+            <div class="msg ai">반갑습니다! 지원하신 직무에 맞춰 면접을 시작해 볼까요? 먼저 간단한 자기소개 부탁드립니다.</div>
         </div>
-        <div class="input-group">
-            <input type="text" id="answerInput" placeholder="답변을 입력하세요..." autocomplete="off">
-            <button class="action-btn" id="sendTextBtn">전송</button>
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="답변을 입력하세요..." autocomplete="off">
+            <button class="action-btn" id="sendBtn">전송</button>
         </div>
     </div>
 
-    <div id="voiceSection">
-        <div id="status" style="margin-bottom: 15px; font-weight: bold; color: #007bff;">음성 면접 준비 완료</div>
-        <button class="action-btn" id="startVoiceBtn">마이크 켜고 시작하기</button>
-        <div class="visualizer" id="visualizer">🔴 통화 연결 전</div>
+    <div id="voiceArea">
+        <div class="voice-status" id="voiceStatus">아래 '음성 대화 시작' 버튼을 눌러 면접을 시작하세요.</div>
+        <div class="voice-controls">
+            <button class="action-btn" id="startVoiceBtn" style="background: #007bff;">음성 대화 시작</button>
+            <button class="action-btn stop-btn" id="stopVoiceBtn" disabled>대화 종료</button>
+        </div>
+
+        <div id="voiceSubtitle"></div>
     </div>
 </div>
 
 <script type="module">
-    import { RetellWebClient } from 'https://cdn.skypack.dev/retell-client-js-sdk';
+    import { RetellWebClient } from 'https://cdn.jsdelivr.net/npm/retell-client-js-sdk/+esm';
+
     const retellWebClient = new RetellWebClient();
+    let currentType = 'TEXT';
 
-    // UI 요소
-    const btnTextMode = document.getElementById('btnTextMode');
-    const btnVoiceMode = document.getElementById('btnVoiceMode');
-    const textSection = document.getElementById('textSection');
-    const voiceSection = document.getElementById('voiceSection');
-
-    // 서버 상태 확인
-    fetch('/api/interviews/check')
-        .then(res => res.text())
-        .then(text => document.getElementById('server-check').innerText = "✅ " + text)
-        .catch(() => document.getElementById('server-check').innerText = "❌ 서버 오프라인");
-
-    // ===== 모드 전환 로직 =====
-    btnTextMode.addEventListener('click', () => {
-        btnTextMode.classList.add('active');
-        btnVoiceMode.classList.remove('active');
-        textSection.style.display = 'block';
-        voiceSection.style.display = 'none';
-    });
-
-    btnVoiceMode.addEventListener('click', () => {
-        btnVoiceMode.classList.add('active');
-        btnTextMode.classList.remove('active');
-        textSection.style.display = 'none';
-        voiceSection.style.display = 'block';
-    });
-
-    // ===== 텍스트 면접 로직 (SSE) =====
+    const typeTextBtn = document.getElementById('typeText');
+    const typeVoiceBtn = document.getElementById('typeVoice');
+    const textArea = document.getElementById('textArea');
+    const voiceArea = document.getElementById('voiceArea');
     const chatBox = document.getElementById('chatBox');
-    const answerInput = document.getElementById('answerInput');
-    const sendTextBtn = document.getElementById('sendTextBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const startVoiceBtn = document.getElementById('startVoiceBtn');
+    const stopVoiceBtn = document.getElementById('stopVoiceBtn');
+    const voiceSubtitle = document.getElementById('voiceSubtitle'); // 자막 박스
 
-    sendTextBtn.addEventListener('click', () => {
-        const answer = answerInput.value.trim();
-        if (!answer) return;
+    retellWebClient.on("update", (update) => {
+        if (update && update.transcript) {
+            voiceSubtitle.style.display = 'flex'; // 자막창 보이기
+            voiceSubtitle.innerHTML = ''; // 이전 내용 지우고 새로 그리기 (Retell이 누적된 문장을 보내줌)
 
-        // 1. 사용자 메시지 화면에 추가
-        appendMessage('user', answer);
-        answerInput.value = '';
-        sendTextBtn.disabled = true;
+            update.transcript.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'stt-line';
 
-        // 2. AI 메시지 틀(빈 칸) 만들기
-        const aiMsgDiv = appendMessage('ai', '');
-
-        // 3. SSE 연결 (실시간 스트리밍)
-        const sessionId = 1; // 임시 세션 ID
-        const url = `/api/interviews/${sessionId}/text/stream?answer=${encodeURIComponent(answer)}`;
-        const eventSource = new EventSource(url);
-
-        eventSource.addEventListener('message', (event) => {
-            try {
-                // OpenAI의 JSON 응답일 경우 파싱
-                const parsed = JSON.parse(event.data);
-                if (parsed.choices && parsed.choices[0].delta.content) {
-                    aiMsgDiv.innerHTML += parsed.choices[0].delta.content;
+                if (item.role === 'agent') {
+                    div.innerHTML = `<span style="color: #007bff; font-weight: bold;">🤖 면접관:</span> ${item.content}`;
+                } else {
+                    div.innerHTML = `<span style="color: #28a745; font-weight: bold;">🗣️ 나:</span> ${item.content}`;
                 }
-            } catch (e) {
-                // 시뮬레이션 모드처럼 단순 텍스트일 경우
-                aiMsgDiv.innerHTML += event.data;
-            }
-            chatBox.scrollTop = chatBox.scrollHeight; // 스크롤 맨 아래로 유지
-        });
+                voiceSubtitle.appendChild(div);
+            });
 
-        eventSource.addEventListener('error', () => {
-            // 스트리밍이 끝나면 연결 종료
-            eventSource.close();
-            sendTextBtn.disabled = false;
-            answerInput.focus();
-        });
+            // 항상 최신 대화가 보이도록 스크롤 아래로 고정
+            voiceSubtitle.scrollTop = voiceSubtitle.scrollHeight;
+        }
     });
 
-    // 엔터키 전송 지원
-    answerInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendTextBtn.click();
+    retellWebClient.on("call_ended", () => {
+        document.getElementById('voiceStatus').innerText = "🏁 대화가 종료되었습니다.";
+        startVoiceBtn.disabled = false;
+        stopVoiceBtn.disabled = true;
     });
+
+    // 탭 전환 로직
+    typeTextBtn.onclick = () => {
+        currentType = 'TEXT';
+        typeTextBtn.classList.add('active');
+        typeVoiceBtn.classList.remove('active');
+        textArea.style.display = 'block';
+        voiceArea.style.display = 'none';
+    };
+
+    typeVoiceBtn.onclick = () => {
+        currentType = 'VOICE';
+        typeVoiceBtn.classList.add('active');
+        typeTextBtn.classList.remove('active');
+        textArea.style.display = 'none';
+        voiceArea.style.display = 'block';
+    };
+
+    // [TEXT 모드 전용] 메시지 전송
+    sendBtn.onclick = async () => {
+        if (currentType !== 'TEXT') return;
+
+        const text = document.getElementById('userInput').value;
+        if(!text) {
+            alert("내용을 입력해주세요.");
+            return;
+        }
+
+        appendMessage('user', text);
+        document.getElementById('userInput').value = '';
+        sendBtn.disabled = true;
+
+        try {
+            const response = await fetch('/api/interviews/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    memberId: 1,
+                    interviewType: 'TEXT',
+                    aiProvider: 'OPEN_AI',
+                    interviewMode: 'NORMAL'
+                })
+            });
+
+            const session = await response.json();
+            const aiMsgDiv = appendMessage('ai', '');
+            const eventSource = new EventSource(`/api/interviews/${session.id}/text/stream?answer=${encodeURIComponent(text)}`);
+
+            eventSource.onmessage = (event) => {
+                if (event.data === "[DONE]") {
+                    eventSource.close();
+                    sendBtn.disabled = false;
+                    return;
+                }
+                try {
+                    const data = JSON.parse(event.data);
+                    aiMsgDiv.innerText += data.choices[0].delta.content || "";
+                } catch (e) {
+                    aiMsgDiv.innerText += event.data;
+                }
+                chatBox.scrollTop = chatBox.scrollHeight;
+            };
+
+             eventSource.onerror = () => {
+                eventSource.close();
+                sendBtn.disabled = false;
+            };
+
+        } catch (error) {
+            console.error(error);
+            alert("텍스트 서버 연결에 실패했습니다.");
+            sendBtn.disabled = false;
+        }
+    };
+
+    // [VOICE 모드 전용] 음성 대화 원클릭 시작
+    startVoiceBtn.onclick = async () => {
+        try {
+            startVoiceBtn.disabled = true;
+            document.getElementById('voiceStatus').innerText = "서버 연결 및 세션 생성 중...";
+            voiceSubtitle.innerHTML = ''; // 시작할 때 자막 초기화
+            voiceSubtitle.style.display = 'none';
+
+            const response = await fetch('/api/interviews/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    memberId: 1,
+                    interviewType: 'VOICE',
+                    aiProvider: 'RETELL',
+                    interviewMode: 'NORMAL'
+                })
+            });
+            const session = await response.json();
+
+            const voiceRes = await fetch(`/api/interviews/${session.id}/voice/start`, { method: 'POST' });
+            const voiceData = await voiceRes.json();
+            const token = voiceData.accessToken;
+
+            document.getElementById('voiceStatus').innerText = "마이크 권한을 승인해 주세요...";
+
+            await retellWebClient.startCall({ accessToken: token });
+
+            document.getElementById('voiceStatus').innerText = "🔴 면접관과 대화 중입니다... (마이크 켜짐)";
+            stopVoiceBtn.disabled = false;
+
+        } catch (err) {
+            console.error("통화 시작 실패:", err);
+            alert("음성 연결에 실패했습니다: " + err.message);
+            startVoiceBtn.disabled = false;
+            document.getElementById('voiceStatus').innerText = "아래 '음성 대화 시작' 버튼을 눌러 다시 시도하세요.";
+        }
+    };
+
+    stopVoiceBtn.onclick = () => {
+        retellWebClient.stopCall();
+    };
 
     function appendMessage(sender, text) {
         const div = document.createElement('div');
@@ -148,53 +248,6 @@
         chatBox.scrollTop = chatBox.scrollHeight;
         return div;
     }
-
-    // ===== 음성 면접 로직 (기존 코드와 동일) =====
-    const startVoiceBtn = document.getElementById('startVoiceBtn');
-    const statusDiv = document.getElementById('status');
-    const visualizer = document.getElementById('visualizer');
-
-    startVoiceBtn.addEventListener('click', async () => {
-        try {
-            startVoiceBtn.disabled = true;
-            statusDiv.innerText = "서버로부터 토큰 요청 중...";
-
-            const response = await fetch('/api/interviews/1/voice/start', { method: 'POST' });
-            if (!response.ok) throw new Error("토큰 발급 실패!");
-
-            const data = await response.json();
-            statusDiv.innerText = "Retell AI 연결 중...";
-
-            await retellWebClient.startCall({ accessToken: data.accessToken });
-        } catch (error) {
-            statusDiv.innerText = "에러: " + error.message;
-            startVoiceBtn.disabled = false;
-        }
-    });
-
-    retellWebClient.on('call_started', () => {
-        statusDiv.innerText = "🗣️ 면접 진행 중!";
-        visualizer.innerText = "🟢 실시간 대화 연결됨";
-        visualizer.style.backgroundColor = "#e8f5e9";
-    });
-
-    retellWebClient.on('call_ended', () => {
-        statusDiv.innerText = "면접 종료";
-        visualizer.innerText = "🔴 연결 종료";
-        visualizer.style.backgroundColor = "#f0f0f0";
-        startVoiceBtn.disabled = false;
-    });
-
-    retellWebClient.on('user_started_speaking', () => {
-        visualizer.innerText = "🎤 듣고 있습니다...";
-        visualizer.style.border = "2px solid #007bff";
-    });
-
-    retellWebClient.on('user_stopped_speaking', () => {
-        visualizer.innerText = "🤖 AI가 생각 중...";
-        visualizer.style.border = "none";
-    });
-
 </script>
 </body>
 </html>
