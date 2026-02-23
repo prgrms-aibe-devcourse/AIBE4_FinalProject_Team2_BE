@@ -10,13 +10,16 @@ import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.NotFoundException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.weaver.ast.Not;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,15 +30,21 @@ public class ResumeAnalysisService {
 
     private final ResumeRepository resumeRepository;
     private final ResumeAnalysisRepository resumeAnalysisRepository;
-    // [추가] 레포지토리 의존성 주입
     private final JobPostingRepository jobPostingRepository;
-    // [추가] JSON 변환
     private final ObjectMapper objectMapper;
+
+    // 외부 API 비동기/동기 호출을 위한 WebClient
+    private final WebClient.Builder webClientBuilder;
+
+    // Gemini API 키와 URL 주입
+    @Value("${gemini.api.key}")
+    private String geminiApiKey;
+
+    @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent}")
+    private String geminiApiUrl;
 
     /**
      * 이력서 분석 요청 (Upsert Logic)
-     * 유니크 제약조건(resume_id + job_posting_id)을 고려하여
-     * 기존 분석 내역이 있으면 갱신하고, 없으면 새로 생성합니다.
      */
     @Transactional
     public Long analyzeResume(Long resumeId) {
@@ -45,60 +54,42 @@ public class ResumeAnalysisService {
 
         // TODO: 추후 API 파라미터로 jobPostingId를 받아야 함. 현재는 1L(임시) 고정
         Long defaultJobPostingId = 1L;
-
-        // [추가] JobPosting 엔티티 조회
         JobPosting jobPosting = jobPostingRepository.findById(defaultJobPostingId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
 
         // 2. 기존 분석 이력 조회 (유니크 충돌 방지)
-        // Repository에 findByResumeIdAndJobPostingId 메서드가 있다고 가정하거나,
-        // 현재는 findTopBy...를 사용하여 최신건을 가져와 비교합니다.
         Optional<ResumeAnalysisReport> existingReport = resumeAnalysisRepository
                 .findTopByResumeIdOrderByCreatedAtDesc(resumeId);
 
         ResumeAnalysisReport report;
-
         if (existingReport.isPresent() && existingReport.get().getJobPostingId().getId().equals(defaultJobPostingId)) {
-            // 2-1. 이미 존재하는 리포트 -> 재분석 (Update)
             report = existingReport.get();
             report.startAnalysis(); // 상태를 PROCESSING으로 변경 및 갱신
             log.info("Existing report found. Restarting analysis for reportId: {}", report.getId());
         } else {
-            // 2-2. 새로운 리포트 생성 (Create)
             report = ResumeAnalysisReport.builder()
                     .resume(resume)
-                    .jobPostingId(jobPosting) // NOT NULL 제약조건 준수
+                    .jobPostingId(jobPosting)
                     .build();
-            report.startAnalysis(); // PROCESSING
+            report.startAnalysis();
             log.info("New analysis report created for resumeId: {}", resumeId);
         }
 
-        // 3. 저장 (Insert or Update)
         ResumeAnalysisReport savedReport = resumeAnalysisRepository.save(report);
 
-        // 4. AI 분석 실행 (Mock)
+        // 4. 실제 Gemini AI 분석 실행
         try {
-            // 실제 구현 시 @Async 비동기 처리 권장
-            AiAnalysisResult result = mockAiCall(resume.getContent());
-
-            // [추가] String(JSON) -> Map<String, Object> (역직렬화)
-            Map<String, Object> subtitleMap = objectMapper.readValue(result.generatedSubtitle(), new TypeReference<>(){});
-            Map<String, Object> keywordsMap = objectMapper.readValue(result.keywords(), new TypeReference<>(){});
-            Map<String, Object> correctionsMap = objectMapper.readValue(result.corrections(), new TypeReference<>(){});
+            // 이력서 내용과 직무 내용을 모두 넘겨주어 분석 정확도를 높임
+            AiAnalysisResult result = callGeminiApi(resume.getContent(), jobPosting.getJobDescription());
 
             // 5. 분석 성공 처리 (데이터 업데이트)
             savedReport.completeAnalysis(
-                    result.score,
-                    subtitleMap, // [수정]
-                    keywordsMap,          // [수정]
-                    correctionsMap,       // [수정]
-                    result.revisedContent
+                    result.score(),
+                    result.generatedSubtitle(),
+                    result.keywords(),
+                    result.corrections(),
+                    result.revisedContent()
             );
-            // [추가] 역직렬화(JSON 변환) 실패 시
-        } catch(JsonProcessingException e) {
-            log.error("JSON parsing failed for resumeId: {}", resumeId, e);
-            savedReport.failAnalysis();
-
         } catch (Exception e) {
             log.error("AI Analysis failed for resumeId: {}", resumeId, e);
             savedReport.failAnalysis();
@@ -107,87 +98,106 @@ public class ResumeAnalysisService {
         return savedReport.getId();
     }
 
-    /**
-     * 분석 결과 조회
-     */
     @Transactional(readOnly = true)
     public ResumeAnalysisReport getAnalysisResult(Long resumeId) {
         return resumeAnalysisRepository.findTopByResumeIdOrderByCreatedAtDesc(resumeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
     }
 
-    // --- (Internal) AI Mock Method ---
-    // 실제 OpenAI API 연동 전, DB 스키마에 맞는 더미 데이터를 생성합니다.
-    private AiAnalysisResult mockAiCall(String content) {
-        log.info("Calling Mock AI for content length: {}", (content != null ? content.length() : 0));
+    // --- 실전 Gemini API 호출 메서드 ---
+    private AiAnalysisResult callGeminiApi(String resumeContent, String jobDescription) throws JsonProcessingException {
+        log.info("Calling Gemini 3.0 Flash API...");
 
-        // 1. 소제목 (JSON)
-        String mockSubtitleJson = """
+        // Java 15+ Text Block을 활용한 깔끔한 프롬프트 작성
+        // ResumeStatisticsService에서 기대하는 JSON 스펙과 정확히 일치시킵니다.
+        String prompt = String.format("""
+                당신은 10년 차 전문 채용 담당자이자 이력서 첨삭 전문가입니다.
+                아래의 [채용 공고]와 지원자의 [이력서]를 분석하고, 합격률을 높일 수 있도록 이력서를 첨삭해주세요.
+                
+                [채용 공고]
+                %s
+                
+                [이력서]
+                %s
+                
+                응답은 반드시 아래의 JSON 형식으로만 작성해야 하며, 마크다운(```json 등)이나 부가 설명은 절대 포함하지 마세요.
                 {
+                  "score": 85,
+                  "generatedSubtitle": {
                     "title": "데이터 분석 역량을 갖춘 백엔드 개발자",
-                    "reason": "프로젝트 경험에서 데이터 처리 능력이 돋보입니다."
-                }
-                """;
-
-        // 2. 키워드 분석 (JSON)
-        // [수정] JSON 배열에서 객체 형태로 변경
-        // String mockKeywordsJson = """
-        //         [
-        //             {"keyword": "Spring Boot", "count": 5, "importance": "HIGH"},
-        //             {"keyword": "JPA", "count": 3, "importance": "MEDIUM"},
-        //             {"keyword": "AWS", "count": 1, "importance": "LOW"}
-        //         ]
-        //         """;
-        String mockKeywordsJson = """
-                {
-                    "keywords": [
-                        {"keyword": "Spring Boot", "count": 5, "importance": "HIGH"},
-                        {"keyword": "JPA", "count": 3, "importance": "MEDIUM"},
-                        {"keyword": "AWS", "count": 1, "importance": "LOW"}
-                    ]
-                }
-                """;
-
-        // 3. 문장 교정 (JSON)
-        // String mockCorrectionsJson = """
-        //         [
-        //             {
-        //                 "original": "열심히 했습니다.",
-        //                 "corrected": "주도적으로 프로젝트를 리딩하여 성과를 냈습니다.",
-        //                 "reason": "구체적인 성과 위주로 서술하는 것이 좋습니다."
-        //             }
-        //         ]
-        //         """;
-        String mockCorrectionsJson = """
-                {
+                    "reason": "이 소제목을 추천하는 이유"
+                  },
+                  "keywords": {
+                    "goodKeywords": ["분석력", "꾸준함"],
+                    "missingKeywords": ["대규모 트래픽", "시스템 설계"]
+                  },
+                  "corrections": {
                     "corrections": [
-                        {
-                            "original": "열심히 했습니다.",
-                            "corrected": "주도적으로 프로젝트를 리딩하여 성과를 냈습니다.",
-                            "reason": "구체적인 성과 위주로 서술하는 것이 좋습니다."
-                        }
+                      {
+                        "originalSentence": "기존 문장",
+                        "correctedSentence": "교정된 문장",
+                        "reason": "구체적인 성과 위주로 서술하는 것이 좋습니다."
+                      }
                     ]
+                  },
+                  "revisedFullContent": "전체 첨삭이 완료된 이력서의 전체 본문 텍스트"
                 }
-                """;
+                """,
+                jobDescription != null ? jobDescription : "채용 공고 내용 없음",
+                resumeContent != null ? resumeContent : "이력서 내용 없음"
+        );
 
-        // 4. 첨삭 완료 본문
-        String mockRevisedContent = "주도적으로 프로젝트를 리딩하여 성과를 냈습니다... (AI 첨삭 내용)";
+        // Gemini API Request Body 구성
+        Map<String, Object> requestBody = Map.of(
+                "contents", List.of(
+                        Map.of("parts", List.of(
+                                Map.of("text", prompt)
+                        ))
+                ),
+                "generationConfig", Map.of(
+                        // 중요: Gemini가 순수 JSON 포맷으로만 응답하도록 강제
+                        "responseMimeType", "application/json"
+                )
+        );
 
+        WebClient webClient = webClientBuilder.baseUrl(geminiApiUrl).build();
+
+        // API 동기 호출 (비즈니스 로직이 동기식으로 짜여 있으므로 block() 사용)
+        JsonNode responseNode = webClient.post()
+                .uri(uriBuilder -> uriBuilder.queryParam("key", geminiApiKey).build())
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(JsonNode.class)
+                .block();
+
+        if (responseNode == null || !responseNode.has("candidates")) {
+            throw new RuntimeException("Gemini API 응답이 비어있거나 형식이 올바르지 않습니다.");
+        }
+
+        // Gemini가 생성한 JSON 텍스트 추출
+        String responseText = responseNode.get("candidates").get(0)
+                .get("content").get("parts").get(0).get("text").asText();
+
+        // 문자열 형태의 JSON을 JsonNode로 1차 파싱
+        JsonNode parsedResult = objectMapper.readTree(responseText);
+
+        // AiAnalysisResult에 바로 Map 객체로 변환하여 할당 (이중 파싱 방지)
         return new AiAnalysisResult(
-                85,                 // matchScore
-                mockSubtitleJson,   // generatedSubtitle
-                mockKeywordsJson,   // keywords
-                mockCorrectionsJson,// corrections
-                mockRevisedContent  // revisedFullContent
+                parsedResult.get("score").asInt(),
+                objectMapper.convertValue(parsedResult.get("generatedSubtitle"), new TypeReference<Map<String, Object>>() {}),
+                objectMapper.convertValue(parsedResult.get("keywords"), new TypeReference<Map<String, Object>>() {}),
+                objectMapper.convertValue(parsedResult.get("corrections"), new TypeReference<Map<String, Object>>() {}),
+                parsedResult.get("revisedFullContent").asText()
         );
     }
 
-    // 내부 데이터 전달용 DTO (Record)
+    // 내부 데이터 전달용 DTO
+    // 기존 String 타입들을 Map으로 변경하여 코드 복잡도를 낮췄습니다.
     private record AiAnalysisResult(
             Integer score,
-            String generatedSubtitle,
-            String keywords,
-            String corrections,
+            Map<String, Object> generatedSubtitle,
+            Map<String, Object> keywords,
+            Map<String, Object> corrections,
             String revisedContent
     ) {}
 }
