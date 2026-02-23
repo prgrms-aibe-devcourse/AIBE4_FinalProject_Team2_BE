@@ -17,6 +17,7 @@ public enum ErrorCode {
     COMMON_405(HttpStatus.METHOD_NOT_ALLOWED, "COMMON_405", "지원하지 않는 HTTP 메서드입니다."),
     COMMON_409(HttpStatus.CONFLICT, "COMMON_409", "요청이 현재 상태와 충돌합니다."),
     COMMON_500(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_500", "서버 내부 오류가 발생했습니다."),
+    COMMON_JSON_CONVERSION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_501", "JSON 데이터 변환 중 오류가 발생했습니다."),
 
     // Auth(인증)
     AUTH_TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "AUTH_001", "유효하지 않은 토큰입니다."),
