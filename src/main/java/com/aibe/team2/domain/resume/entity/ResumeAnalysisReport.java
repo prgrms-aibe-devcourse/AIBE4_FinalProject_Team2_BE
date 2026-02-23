@@ -1,7 +1,6 @@
 package com.aibe.team2.domain.resume.entity;
 
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
-import com.aibe.team2.global.common.constant.AnalysisStatus;
 import com.aibe.team2.global.converter.JsonAttributeConverter;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -70,7 +69,7 @@ public class ResumeAnalysisReport {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private AnalysisStatus status; // DEFAULT 'PENDING'
+    private ResumeAnalysisStatus status; // DEFAULT 'PENDING'
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -84,13 +83,13 @@ public class ResumeAnalysisReport {
     public ResumeAnalysisReport(Resume resume, JobPosting jobPostingId) {
         this.resume = resume;
         this.jobPostingId = jobPostingId;
-        this.status = AnalysisStatus.PENDING;
+        this.status = ResumeAnalysisStatus.PENDING;
     }
 
 
     // 분석
     public void startAnalysis() {
-        this.status = AnalysisStatus.PROCESSING;
+        this.status = ResumeAnalysisStatus.PROCESSING;
     }
 
     // public void completeAnalysis(Integer matchScore, String generatedSubtitle, String keywordAnalysis, String sentenceCorrection, String revisedFullContent) {
@@ -100,10 +99,10 @@ public class ResumeAnalysisReport {
         this.keywordAnalysis = keywordAnalysis;
         this.sentenceCorrection = sentenceCorrection;
         this.revisedFullContent = revisedFullContent;
-        this.status = AnalysisStatus.COMPLETED;
+        this.status = ResumeAnalysisStatus.COMPLETED;
     }
 
     public void failAnalysis() {
-        this.status = AnalysisStatus.FAILED;
+        this.status = ResumeAnalysisStatus.FAILED;
     }
 }
