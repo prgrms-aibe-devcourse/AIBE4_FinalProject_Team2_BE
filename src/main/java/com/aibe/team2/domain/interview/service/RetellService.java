@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import java.util.Map;
 
 @Service
@@ -19,6 +20,7 @@ public class RetellService {
     @Value("${retell.agent.id}")
     private String agentId;
 
+    // Retell 서버에 '전화 걸기'를 요청하고 토큰을 받아옵니다.
     public VoiceSessionResponse createVoiceCall(Long sessionId) {
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.retellai.com/v2/create-web-call";
@@ -33,6 +35,8 @@ public class RetellService {
         );
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+
+        // 실제 API 호출
         ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
 
         String accessToken = (String) response.getBody().get("access_token");
