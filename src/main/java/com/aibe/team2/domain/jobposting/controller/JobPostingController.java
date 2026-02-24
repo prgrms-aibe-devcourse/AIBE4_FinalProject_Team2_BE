@@ -34,10 +34,10 @@ public class JobPostingController {
         return ApiResponse.success(response);
     }
 
-    // 3. 내 관심 공고 목록 조회 (이름 변경!)
+    // 3. 내 관심 공고 목록 조회
     @GetMapping
-    public ApiResponse<List<JobPostingResponse>> getMySavedJobPostings(@RequestParam Long userId) {
-        List<JobPostingResponse> responses = jobPostingService.getMySavedJobPostings(userId);
+    public ApiResponse<List<JobPostingResponse>> getMySavedJobPostings(@RequestParam Long memberId) {
+        List<JobPostingResponse> responses = jobPostingService.getMySavedJobPostings(memberId);
         return ApiResponse.success(responses);
     }
 }

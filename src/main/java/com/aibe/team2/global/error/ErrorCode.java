@@ -51,7 +51,7 @@ public enum ErrorCode {
     RESUME_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "RESUME_002", "이력서 내용을 분석하는 중 오류가 발생했습니다."),
     RESUME_OWNERSHIP_ERROR(HttpStatus.FORBIDDEN, "RESUME_003", "해당 이력서에 대한 접근 권한이 없습니다."),
 
-    // Resume Analysis (이력서 첨삭/분석 리포트) - 자소서 본체와 별도로 리포트 관련 에러
+    // Resume Analysis (이력서 첨삭/분석 리포트)
     ANALYSIS_REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "ANALYSIS_001", "이력서 분석 리포트를 찾을 수 없습니다."),
     ANALYSIS_IN_PROGRESS(HttpStatus.CONFLICT, "ANALYSIS_002", "현재 이력서 분석이 진행 중입니다. 잠시 후 다시 시도해주세요."),
     ANALYSIS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ANALYSIS_003", "이력서 분석에 실패했습니다."),
@@ -63,7 +63,7 @@ public enum ErrorCode {
     INTERVIEW_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "INTERVIEW_004", "면접 상세 기록(턴)을 찾을 수 없습니다."),
     INTERVIEW_OWNERSHIP_ERROR(HttpStatus.FORBIDDEN, "INTERVIEW_005", "해당 면접 기록에 대한 접근 권한이 없습니다."),
 
-    // Scrap
+    // Scrap (스크랩)
     SCRAP_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAP_001", "스크랩한 질문을 찾을 수 없습니다."),
     SCRAP_ALREADY_EXISTS(HttpStatus.CONFLICT, "SCRAP_002", "이미 스크랩된 질문입니다."),
 

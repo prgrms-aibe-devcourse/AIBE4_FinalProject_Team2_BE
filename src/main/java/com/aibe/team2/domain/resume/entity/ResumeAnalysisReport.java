@@ -92,7 +92,7 @@ public class ResumeAnalysisReport {
         this.status = ResumeAnalysisStatus.PROCESSING;
     }
 
-    // public void completeAnalysis(Integer matchScore, String generatedSubtitle, String keywordAnalysis, String sentenceCorrection, String revisedFullContent) {
+    // 분석 완료
     public void completeAnalysis(Integer matchScore, Map<String, Object> generatedSubtitle, Map<String, Object> keywordAnalysis, Map<String, Object> sentenceCorrection, String revisedFullContent) {
         this.matchScore = matchScore;
         this.generatedSubtitle = generatedSubtitle;
