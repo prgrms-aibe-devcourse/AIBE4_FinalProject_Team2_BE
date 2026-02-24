@@ -14,7 +14,7 @@ public class ConversationManager {
     private final RetellService retellService;
 
     // 텍스트 면접: 무조건 OpenAI 스트리밍 사용
-    public void startTextStreaming(Long sessionId, String answer, SseEmitter emitter) {
+    public void startTextStreaming(String answer, SseEmitter emitter) {
         openAiService.streamQuestion(answer).subscribe(
                 data -> {
                     try {

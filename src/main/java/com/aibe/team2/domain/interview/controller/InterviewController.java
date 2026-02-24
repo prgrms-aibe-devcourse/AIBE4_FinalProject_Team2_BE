@@ -40,7 +40,7 @@ public class InterviewController {
             @RequestParam String answer) {
         SseEmitter emitter = new SseEmitter(120000L); // 2분 타임아웃
 
-        conversationManager.startTextStreaming(sessionId, answer, emitter);
+        conversationManager.startTextStreaming(answer, emitter);
 
         return emitter;
     }
