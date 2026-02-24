@@ -80,7 +80,8 @@ public class InterviewStatisticsService {
                 .toList();
 
         // 8. 최종 응답
-        String overallReview = "";
+        String overallReview = (stats != null && stats.getOverallFeedback() != null)
+                ? stats.getOverallFeedback() : "";
 
         return new InterviewResultDetailResponse(
                 session.getId(),

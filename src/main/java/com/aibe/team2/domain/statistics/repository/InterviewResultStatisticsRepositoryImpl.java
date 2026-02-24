@@ -36,7 +36,10 @@ public class InterviewResultStatisticsRepositoryImpl implements InterviewResultS
     // 동적 쿼리를 위한 BooleanExpression 메서드
     // 1. 회원 ID 일치 여부(필수 조건)
     private BooleanExpression memberIdEq(Long memberId) {
-        return memberId != null ? interviewSession.memberId.eq(memberId) : null;
+        if(memberId == null){
+            throw new IllegalArgumentException("회원 ID는 필수입니다.");
+        }
+        return interviewSession.memberId.eq(memberId);
     }
 
     // 2. 면접 타입 일치 여부(동적 조건)

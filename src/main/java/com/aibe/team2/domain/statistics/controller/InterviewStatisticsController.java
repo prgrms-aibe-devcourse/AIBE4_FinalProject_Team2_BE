@@ -48,8 +48,8 @@ public class InterviewStatisticsController {
     ){
         // TODO : Spring Security 연동
         // Long currentUserId = userDetails.getId();
-        Long currenUserId = 1L;
-        InterviewResultDetailResponse response = interviewStatisticsService.getInterviewStatistics(interviewId, currenUserId);
+        Long currentUserId = 1L;
+        InterviewResultDetailResponse response = interviewStatisticsService.getInterviewStatistics(interviewId, currentUserId);
 
         return ResponseEntity.ok(response);
     }
