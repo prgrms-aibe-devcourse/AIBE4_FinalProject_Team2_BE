@@ -56,7 +56,6 @@ public class JobPostingService {
 
         // 2. Entity 생성 (JobPosting)
         JobPosting jobPosting = JobPosting.builder()
-                .userId(request.userId())
                 .companyName(request.companyName())
                 .jobTitle(finalJobTitle)
                 .postingUrl(request.postingUrl())
@@ -88,8 +87,8 @@ public class JobPostingService {
         return JobPostingResponse.from(jobPosting);
     }
 
-    public List<JobPostingResponse> getMySavedJobPostings(Long userId) {
-        return jobPostingRepository.findAllByUserIdOrderByCreatedAtDesc(userId).stream()
+    public List<JobPostingResponse> getMySavedJobPostings(Long memberId) {
+        return jobPostingRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId).stream()
                 .map(JobPostingResponse::from)
                 .collect(Collectors.toList());
     }

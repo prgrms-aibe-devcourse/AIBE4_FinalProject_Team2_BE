@@ -23,8 +23,6 @@ public record ResumeAnalysisResponse(
 
         @Schema(description = "문장 교정 데이터 (JSON 객체)")
         Map<String, Object> sentenceCorrection,
-        // 추후 json 형식의 String은 FE에서 json.parse() 할 것. -> Spring Boot(Jackson)가 자동으로 JSON 변환을 해주므로 FE에서 json.parse() 할 필요없음
-
         String revisedFullContent,
         ResumeAnalysisStatus status,
         LocalDateTime createdAt,
@@ -34,7 +32,6 @@ public record ResumeAnalysisResponse(
         return new ResumeAnalysisResponse(
                 report.getId(),
                 report.getResume().getId(),
-                // [수정]
                 report.getJobPostingId().getId(),
                 report.getMatchScore(),
                 report.getGeneratedSubtitle(),

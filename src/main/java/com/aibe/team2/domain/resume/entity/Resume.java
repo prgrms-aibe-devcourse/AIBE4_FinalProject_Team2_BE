@@ -22,9 +22,9 @@ public class Resume {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 이미지 스펙: FK (user.id), NOT NULL
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    // 이미지 스펙: FK (member.id), NOT NULL
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -47,8 +47,8 @@ public class Resume {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Resume(Long userId, String title, String s3FileUrl, String content) {
-        this.userId = userId;
+    public Resume(Long memberId, String title, String s3FileUrl, String content) {
+        this.memberId = memberId;
         this.title = title;
         this.s3FileUrl = s3FileUrl;
         this.content = content;

@@ -9,7 +9,7 @@ import java.util.List;
 
 public record JobPostingResponse(
         Long id,
-        Long userId,
+        Long memberId,
         String companyName,
         String jobTitle,
         String postingUrl,
@@ -24,7 +24,7 @@ public record JobPostingResponse(
     public static JobPostingResponse from(JobPosting jobPosting) {
         return new JobPostingResponse(
                 jobPosting.getId(),
-                jobPosting.getUserId(),
+                jobPosting.getMemberId(),
                 jobPosting.getCompanyName(),
                 jobPosting.getJobTitle(),
                 jobPosting.getPostingUrl(),

@@ -24,8 +24,8 @@ public class JobPosting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
 
     @Column(name = "company_name", length = 100)
     private String companyName;
@@ -51,8 +51,8 @@ public class JobPosting {
     private List<JobSkill> jobSkills = new ArrayList<>();
 
     @Builder
-    public JobPosting(Long userId, String companyName, String jobTitle, String postingUrl, String jobDescription, String requiredSkills) {
-        this.userId = userId;
+    public JobPosting(Long memberId, String companyName, String jobTitle, String postingUrl, String jobDescription, String requiredSkills) {
+        this.memberId = memberId;
         this.companyName = (companyName == null || companyName.isEmpty()) ? "Self-Input" : companyName;
         this.jobTitle = jobTitle;
         this.postingUrl = postingUrl;
