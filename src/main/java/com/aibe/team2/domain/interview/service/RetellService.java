@@ -1,6 +1,7 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -8,10 +9,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class RetellService {
+
+    private final RestTemplate restTemplate;
 
     @Value("${retell.api.key}")
     private String apiKey;
@@ -20,7 +26,6 @@ public class RetellService {
     private String agentId;
 
     public VoiceSessionResponse createVoiceCall(Long sessionId) {
-        RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.retellai.com/v2/create-web-call";
 
         HttpHeaders headers = new HttpHeaders();

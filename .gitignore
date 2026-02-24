@@ -22,9 +22,6 @@ Thumbs.db
 # allow example template
 !.env.example
 
-### dev ###
-application-dev.yml
-
 # localstack local cache
 localstack/
 

@@ -9,9 +9,11 @@ import java.io.IOException;
 @Service
 @RequiredArgsConstructor
 public class ConversationManager {
+
     private final OpenAiService openAiService;
     private final RetellService retellService;
 
+    // 텍스트 면접: 무조건 OpenAI 스트리밍 사용
     public void startTextStreaming(String answer, SseEmitter emitter) {
         openAiService.streamQuestion(answer).subscribe(
                 data -> {
@@ -26,6 +28,7 @@ public class ConversationManager {
         );
     }
 
+    // 음성 면접: 무조건 Retell 세션 생성 사용
     public VoiceSessionResponse startVoiceInterview(Long sessionId) {
         return retellService.createVoiceCall(sessionId);
     }

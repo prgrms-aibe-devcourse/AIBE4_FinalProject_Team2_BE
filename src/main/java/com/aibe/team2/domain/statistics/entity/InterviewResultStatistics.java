@@ -51,7 +51,7 @@ public class InterviewResultStatistics {
 
     // 발화 습관 JSON 데이터
     @Convert(converter = JsonAttributeConverter.class)
-    @Column(name = "speech_habits", columnDefinition = "json")
+    @Column(name = "speech_habits", columnDefinition = "TEXT")
     private Map<String, Object> speechHabits;
 
     @CreatedDate
