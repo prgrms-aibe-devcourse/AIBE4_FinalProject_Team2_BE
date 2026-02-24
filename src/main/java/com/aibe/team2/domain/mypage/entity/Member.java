@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -14,10 +15,12 @@ import java.time.LocalDateTime;
 @Table(name = "member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "member_id")
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -69,30 +72,21 @@ public class Member {
         this.nickname = nickname;
         this.role = role != null ? role : Role.MEMBER;
         this.provider = provider;
-
         this.subscriptionPlan = SubscriptionPlan.FREE;
         this.creditBalance = 0;
-
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateProfile(String nickname, String profileImageUrl) {
-        if(nickname != null && !nickname.isEmpty())
-            this.nickname = nickname;
-        if(profileImageUrl != null && !profileImageUrl.isEmpty())
-            this.profileImageUrl = profileImageUrl;
-        this.updatedAt = LocalDateTime.now();
+        if (nickname != null && !nickname.isEmpty()) this.nickname = nickname;
+        if (profileImageUrl != null && !profileImageUrl.isEmpty()) this.profileImageUrl = profileImageUrl;
     }
 
     public void updatePassword(String encodedNewPassword) {
         this.password = encodedNewPassword;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateJobPreferences(String desiredJobRole, String preferredLocation) {
         this.desiredJobRole = desiredJobRole;
         this.preferredLocation = preferredLocation;
-        this.updatedAt = LocalDateTime.now();
     }
 }
