@@ -64,21 +64,22 @@
 | `skill_name` | `VARCHAR(50)` | 스킬명 (Java, Python 등) |
 | `created_at` | `DATETIME` | 생성 일시 |
 | `updated_at` | `DATETIME` | 수정 일시 |
+
 ### 5. analysis_report (분석 리포트)
 
-| **컬럼명** | **타입** | **설명** |
-| :--- | :--- | :--- |
-| `id` | `BIGINT` | 리포트 ID |
-| `resume_id` | `BIGINT` | 이력서 ID |
-| `job_posting_id` | `BIGINT` | 채용 공고 ID |
-| `match_score` | `INT` | 매칭 점수 |
-| `keyword_analysis` | `JSON` | 키워드 분석 데이터 |
-| `sentence_correction` | `JSON` | 문장 교정 데이터 |
-| `generated_subtitle` | `JSON` | 생성된 소제목 |
-| `revised_content` | `TEXT` | 수정 제안된 이력서 내용 |
-| `status` | `ENUM(...)` | 진행 상태 |
-| `created_at` | `DATETIME` | 생성 일시 |
-| `updated_at` | `DATETIME` | 수정 일시 |
+| **컬럼명**                | **타입** | **설명** |
+|:-----------------------| :--- | :--- |
+| `id`                   | `BIGINT` | 리포트 ID |
+| `resume_id`            | `BIGINT` | 이력서 ID |
+| `job_posting_id`       | `BIGINT` | 채용 공고 ID |
+| `match_score`          | `INT` | 매칭 점수 |
+| `keyword_analysis`     | `JSON` | 키워드 분석 데이터 |
+| `sentence_correction`  | `JSON` | 문장 교정 데이터 |
+| `generated_subtitle`   | `JSON` | 생성된 소제목 |
+| `revised_full_content` | `TEXT` | 수정 제안된 이력서 내용 |
+| `status`               | `ENUM(...)` | 진행 상태 |
+| `created_at`           | `DATETIME` | 생성 일시 |
+| `updated_at`           | `DATETIME` | 수정 일시 |
 
 ### 6. interview_session (면접 세션)
 

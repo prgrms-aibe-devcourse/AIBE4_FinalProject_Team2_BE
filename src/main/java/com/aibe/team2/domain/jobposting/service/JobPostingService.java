@@ -3,9 +3,10 @@ package com.aibe.team2.domain.jobposting.service;
 import com.aibe.team2.domain.jobposting.dto.JobPostingRequest;
 import com.aibe.team2.domain.jobposting.dto.JobPostingResponse;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
+import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.global.error.ErrorCode;
-import com.aibe.team2.global.exception.custom.NotFoundException;
+import com.aibe.team2.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
@@ -35,49 +36,55 @@ public class JobPostingService {
         if (hasUrl(request.postingUrl()) && isEmpty(finalDescription)) {
             log.info("Crawling requested for URL: {}", request.postingUrl());
             try {
-                // Jsoup 연결 및 문서 가져오기 (User-Agent 설정으로 403 방지)
                 Document doc = Jsoup.connect(request.postingUrl())
                         .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                        .timeout(5000) // 5초 타임아웃
+                        .timeout(5000)
                         .get();
 
-                // 페이지의 모든 텍스트 추출 (HTML 태그 제거)
-                // 만약 특정 사이트(원티드 등)만 타겟팅한다면 doc.select(".class-name").text()로 정교하게 가능
                 String crawledText = doc.body().text();
-
-                // 크롤링한 내용으로 덮어쓰기
                 finalDescription = crawledText;
                 log.info("Crawling success. Text length: {}", crawledText.length());
 
-                // (선택) 제목이 비어있으면 페이지 타이틀(<title>) 가져오기
                 if (isEmpty(finalJobTitle)) {
                     finalJobTitle = doc.title();
                 }
 
             } catch (IOException e) {
                 log.error("Failed to crawl URL: {}", request.postingUrl(), e);
-                // 크롤링 실패해도 에러를 던지지 않고, 입력된 내용(비어있을 수 있음)으로 진행
             }
         }
 
-        // 2. Entity 생성
+        // 2. Entity 생성 (JobPosting)
         JobPosting jobPosting = JobPosting.builder()
                 .userId(request.userId())
                 .companyName(request.companyName())
                 .jobTitle(finalJobTitle)
-                .postingUrl(request.postingUrl()) // URL 저장
-                .jobDescription(finalDescription) // 크롤링된 결과 or 원본
-                .requiredSkills(request.requiredSkills())
+                .postingUrl(request.postingUrl())
+                .jobDescription(finalDescription)
                 .build();
 
-        // 3. 저장
+        // 3. 스킬 목록(JobSkill) 엔티티 생성
+        if (request.requiredSkills() != null && !request.requiredSkills().isEmpty()) {
+            request.requiredSkills().forEach(skillName -> {
+                JobSkill jobSkill = JobSkill.builder()
+                        .jobPosting(jobPosting) // 연관관계 설정
+                        .skillName(skillName)
+                        .build();
+
+                // 편의 메서드를 통해 양방향 매핑 설정
+                jobPosting.addJobSkill(jobSkill);
+            });
+        }
+
+        // 4. 저장 (JobPosting 엔티티에 cascade = CascadeType.ALL이 설정되어 있으므로 JobSkill도 함께 DB에 저장됨)
         JobPosting savedPosting = jobPostingRepository.save(jobPosting);
+
         return JobPostingResponse.from(savedPosting);
     }
 
     public JobPostingResponse getJobPosting(Long id) {
         JobPosting jobPosting = jobPostingRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
         return JobPostingResponse.from(jobPosting);
     }
 
