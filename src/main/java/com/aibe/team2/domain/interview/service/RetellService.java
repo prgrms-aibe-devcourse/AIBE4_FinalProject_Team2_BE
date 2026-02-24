@@ -1,6 +1,7 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,7 +14,10 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
 public class RetellService {
+
+    private final RestTemplate restTemplate;
 
     @Value("${retell.api.key}")
     private String apiKey;
@@ -21,11 +25,7 @@ public class RetellService {
     @Value("${retell.agent.id}")
     private String agentId;
 
-    /**
-     * [기존] Retell 음성 면접 세션 생성
-     */
     public VoiceSessionResponse createVoiceCall(Long sessionId) {
-        RestTemplate restTemplate = new RestTemplate();
         String url = "https://api.retellai.com/v2/create-web-call";
 
         HttpHeaders headers = new HttpHeaders();
