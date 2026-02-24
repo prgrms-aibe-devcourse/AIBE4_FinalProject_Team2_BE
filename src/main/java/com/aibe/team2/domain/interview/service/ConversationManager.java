@@ -1,7 +1,6 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
-import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
