@@ -5,11 +5,16 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class InterviewSession {
 
     @Id
@@ -23,7 +28,7 @@ public class InterviewSession {
 
     private Long jobPostingId; // 채용 공고 ID
 
-    private String interviewMode; // 면접 모드 (NORMAL, FOLLOW_UP, PRESSURE)
+    private String interviewMode; // 면접 모드 (NORMAL, FOLLOW_UP 등)
 
     @Column(nullable = false)
     private String interviewType; // 면접 방식 (TEXT, VOICE)
@@ -33,11 +38,15 @@ public class InterviewSession {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private InterviewSessionStatus status; // CREATED, IN_PROGRESS, DONE, ABORTED
+    private InterviewSessionStatus status; // 면접 상태 (CREATED, IN_PROGRESS 등)
 
     private Integer finalScore; // 최종 점수
 
+    @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 
     @Builder
@@ -47,15 +56,12 @@ public class InterviewSession {
         this.jobPostingId = jobPostingId;
         this.interviewMode = interviewMode;
         this.interviewType = interviewType;
-        this.aiProvider = aiProvider; // 빌더에 추가
+        this.aiProvider = aiProvider;
         this.status = InterviewSessionStatus.CREATED;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     // 상태 변경 메서드
     public void updateStatus(InterviewSessionStatus status) {
         this.status = status;
-        this.updatedAt = LocalDateTime.now();
     }
 }
