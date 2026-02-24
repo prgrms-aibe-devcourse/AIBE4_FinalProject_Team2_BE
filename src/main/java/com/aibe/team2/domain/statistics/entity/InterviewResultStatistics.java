@@ -49,6 +49,9 @@ public class InterviewResultStatistics {
     @Column(name = "attitude_confidence_score")
     private Double attitudeConfidenceScore;
 
+    @Column(name = "overall_feedback", columnDefinition = "TEXT")
+    private String overallFeedback;
+
     // 발화 습관 JSON 데이터
     @Convert(converter = JsonAttributeConverter.class)
     @Column(name = "speech_habits", columnDefinition = "TEXT")
@@ -71,6 +74,7 @@ public class InterviewResultStatistics {
             Double jobRelevanceScore,
             Double logicalStructureScore,
             Double attitudeConfidenceScore,
+            String overallFeedback,
             Map<String, Object> speechHabits
     ){
         this.interviewSession = interviewSession;
@@ -80,6 +84,7 @@ public class InterviewResultStatistics {
         this.jobRelevanceScore = jobRelevanceScore;
         this.logicalStructureScore = logicalStructureScore;
         this.attitudeConfidenceScore = attitudeConfidenceScore;
+        this.overallFeedback = overallFeedback;
         this.speechHabits = speechHabits;
     }
 }

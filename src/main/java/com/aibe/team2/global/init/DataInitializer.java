@@ -111,6 +111,7 @@ public class DataInitializer implements CommandLineRunner {
                        .jobRelevanceScore(random.nextDouble() * 100)
                        .logicalStructureScore(random.nextDouble() * 100)
                        .attitudeConfidenceScore(random.nextDouble() * 100)
+                       .overallFeedback("전반적으로 직무에 대한 이해도가 높고 답변이 논리적입니다. 다만, 구체적인 프로젝트 사례를 조금 더 덧붙이면 좋겠습니다.")
                        .speechHabits(habitDummy)
                        .build();
                setCreatedAt(stats, pastDate);
