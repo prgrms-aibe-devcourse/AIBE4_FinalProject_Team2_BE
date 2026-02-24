@@ -12,8 +12,8 @@ import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.entity.InterviewResultStatistics;
-import com.aibe.team2.domain.statistics.repository.InterviewRecordRepository;
-import com.aibe.team2.domain.statistics.repository.InterviewResultStatisticsRepository;
+import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
+import com.aibe.team2.domain.statistics.repository.interview.InterviewResultStatisticsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -56,9 +56,13 @@ public class DataInitializer implements CommandLineRunner {
        List<Member> members = createMembers();
 
        for(Member member : members) {
-           Long userId = member.getId();
+           // TODO : Resume 엔티티 수정 -> 삭제
+           Long userId = member.getMemberId();
 
            // 2. 이력서 및 채용공고 생성(부모 데이터)
+           // TODO : Resume 엔티티 수정
+           // Resume resume = createResume(member);
+           // JobPosting jobPosting = createJobPosting(member);
            Resume resume = createResume(userId);
            JobPosting jobPosting = createJobPosting(userId);
 
@@ -137,6 +141,18 @@ public class DataInitializer implements CommandLineRunner {
        return members;
     }
 
+    // TODO : Resume 엔티티 수정
+    // private Resume createResume(Member member) { // 파라미터 타입 변경 (Long -> Member)
+    //     Resume resume = Resume.builder()
+    //             .member(member) // 객체 연관관계 매핑 (@ManyToOne)
+    //             .title("백엔드 개발자 지원 이력서")
+    //             .content("저는 Java와 Spring을 활용한 프로젝트 경험이 있습니다. ...")
+    //             .s3FileUrl("https://s3.ap-northeast-2.amazonaws.com/synctalk/dummy.pdf")
+    //             .build();
+    //
+    //     resume.updateAnalysisStatus(true);
+    //     return resumeRepository.save(resume);
+    // }
     private Resume createResume(Long userId) {
        Resume resume = Resume.builder()
                .userId(userId)
@@ -148,9 +164,14 @@ public class DataInitializer implements CommandLineRunner {
        return resumeRepository.save(resume);
     }
 
+    // TODO : Resume 엔티티 수정
+    // private JobPosting createJobPosting(Member member){
     private JobPosting createJobPosting(Long userId) {
         String jsonSkills = "[\"Java\", \"Spring Boot\", \"JPA\", \"MySQL\"]";
+
         JobPosting jobPosting = JobPosting.builder()
+                // TODO : Resume 엔티티 수정
+                // .member(member)
                 .userId(userId)
                 .companyName("싱크테크")
                 .jobTitle("주니어 백엔드 엔지니어")

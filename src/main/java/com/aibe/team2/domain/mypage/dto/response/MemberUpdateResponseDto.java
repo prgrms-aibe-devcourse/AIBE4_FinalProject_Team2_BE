@@ -15,7 +15,7 @@ public class MemberUpdateResponseDto {
     private final LocalDateTime updatedAt;
 
     public MemberUpdateResponseDto(Member member) {
-        this.userId = member.getId();
+        this.userId = member.getMemberId();
         this.email = member.getEmail();
         this.nickname = member.getNickname();
         this.profileImageUrl = member.getProfileImageUrl();

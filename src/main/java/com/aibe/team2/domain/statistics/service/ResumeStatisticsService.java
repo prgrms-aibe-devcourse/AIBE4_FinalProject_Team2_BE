@@ -36,6 +36,12 @@ public class ResumeStatisticsService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
 
         // 2. 권한 검증
+        // TODO : Resume 엔티티 변경
+        /*
+        if (!report.getResume().getMember().getId().equals(currentUserId)) {
+            throw new ForbiddenException(ErrorCode.COMMON_403);
+        }
+        */
         if(!report.getResume().getUserId().equals(currentUserId)){
             throw new ForbiddenException(ErrorCode.COMMON_403);
         }
