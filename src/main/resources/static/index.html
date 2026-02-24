@@ -28,7 +28,6 @@
         .voice-controls { display: flex; justify-content: center; gap: 10px; }
         .stop-btn { background: #dc3545; }
 
-        /* [추가] 실시간 자막 화면 스타일 */
         #voiceSubtitle {
             margin-top: 25px;
             padding: 15px;
@@ -38,7 +37,7 @@
             overflow-y: auto;
             text-align: left;
             font-size: 15px;
-            display: none; /* 통화 시작 전에는 숨김 */
+            display: none;
             flex-direction: column;
             gap: 10px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
@@ -85,6 +84,9 @@
     const retellWebClient = new RetellWebClient();
     let currentType = 'TEXT';
 
+    // [PR 리뷰 반영] 텍스트 면접 세션 ID를 기억할 변수 선언 (최초 1회만 생성하기 위함)
+    let textSessionId = null;
+
     const typeTextBtn = document.getElementById('typeText');
     const typeVoiceBtn = document.getElementById('typeVoice');
     const textArea = document.getElementById('textArea');
@@ -93,12 +95,13 @@
     const sendBtn = document.getElementById('sendBtn');
     const startVoiceBtn = document.getElementById('startVoiceBtn');
     const stopVoiceBtn = document.getElementById('stopVoiceBtn');
-    const voiceSubtitle = document.getElementById('voiceSubtitle'); // 자막 박스
+    const voiceSubtitle = document.getElementById('voiceSubtitle');
 
+    // Retell 실시간 자막(Transcript) 이벤트 리스너
     retellWebClient.on("update", (update) => {
         if (update && update.transcript) {
-            voiceSubtitle.style.display = 'flex'; // 자막창 보이기
-            voiceSubtitle.innerHTML = ''; // 이전 내용 지우고 새로 그리기 (Retell이 누적된 문장을 보내줌)
+            voiceSubtitle.style.display = 'flex';
+            voiceSubtitle.innerHTML = '';
 
             update.transcript.forEach(item => {
                 const div = document.createElement('div');
@@ -112,7 +115,6 @@
                 voiceSubtitle.appendChild(div);
             });
 
-            // 항상 최신 대화가 보이도록 스크롤 아래로 고정
             voiceSubtitle.scrollTop = voiceSubtitle.scrollHeight;
         }
     });
@@ -140,7 +142,7 @@
         voiceArea.style.display = 'block';
     };
 
-    // [TEXT 모드 전용] 메시지 전송
+    // --- [TEXT 모드 전용] 메시지 전송 로직 ---
     sendBtn.onclick = async () => {
         if (currentType !== 'TEXT') return;
 
@@ -155,20 +157,26 @@
         sendBtn.disabled = true;
 
         try {
-            const response = await fetch('/api/interviews/start', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    memberId: 1,
-                    interviewType: 'TEXT',
-                    aiProvider: 'OPEN_AI',
-                    interviewMode: 'NORMAL'
-                })
-            });
+            // [PR 리뷰 반영] 세션 ID가 없을 때(첫 질문)만 세션 생성 API 호출
+            if (!textSessionId) {
+                const response = await fetch('/api/interviews/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        memberId: 1,
+                        interviewType: 'TEXT',
+                        aiProvider: 'OPEN_AI',
+                        interviewMode: 'NORMAL'
+                    })
+                });
+                const session = await response.json();
+                textSessionId = session.id;
+                console.log("새로운 텍스트 면접 세션 생성 완료:", textSessionId);
+            }
 
-            const session = await response.json();
+            // 기존에 발급받은 textSessionId를 사용하여 스트리밍 호출
             const aiMsgDiv = appendMessage('ai', '');
-            const eventSource = new EventSource(`/api/interviews/${session.id}/text/stream?answer=${encodeURIComponent(text)}`);
+            const eventSource = new EventSource(`/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}`);
 
             eventSource.onmessage = (event) => {
                 if (event.data === "[DONE]") {
@@ -185,7 +193,7 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
 
-             eventSource.onerror = () => {
+            eventSource.onerror = () => {
                 eventSource.close();
                 sendBtn.disabled = false;
             };
@@ -197,12 +205,12 @@
         }
     };
 
-    // [VOICE 모드 전용] 음성 대화 원클릭 시작
+    // --- [VOICE 모드 전용] 음성 대화 원클릭 시작 ---
     startVoiceBtn.onclick = async () => {
         try {
             startVoiceBtn.disabled = true;
             document.getElementById('voiceStatus').innerText = "서버 연결 및 세션 생성 중...";
-            voiceSubtitle.innerHTML = ''; // 시작할 때 자막 초기화
+            voiceSubtitle.innerHTML = '';
             voiceSubtitle.style.display = 'none';
 
             const response = await fetch('/api/interviews/start', {
