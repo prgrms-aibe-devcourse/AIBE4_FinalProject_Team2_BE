@@ -50,18 +50,18 @@ public class ResumeAnalysisReport {
     // JSON 타입 (MySQL 등에서 JSON 컬럼 사용 시 columnDefinition 명시 권장)
     // ⭐ Convert 어노테이션 추가 및 Map<String, Object> 변환
     @Convert(converter = JsonAttributeConverter.class)
-    @Column(name = "keyword_analysis", columnDefinition = "json")
+    @Column(name = "keyword_analysis", columnDefinition = "TEXT")
     private Map<String, Object> keywordAnalysis;
 
     // ⭐ Convert 어노테이션 추가 및 Map<String, Object> 변환
     @Convert(converter = JsonAttributeConverter.class)
-    @Column(name = "sentence_correction", columnDefinition = "json")
+    @Column(name = "sentence_correction", columnDefinition = "TEXT")
     private Map<String, Object> sentenceCorrection;
 
     // New! 이미지 반영: JSON 타입
     // ⭐ Convert 어노테이션 추가 및 Map<String, Object> 변환
     @Convert(converter = JsonAttributeConverter.class)
-    @Column(name = "generated_subtitle", columnDefinition = "json")
+    @Column(name = "generated_subtitle", columnDefinition = "TEXT")
     private Map<String, Object> generatedSubtitle;
 
     @Column(name = "revised_full_content", columnDefinition = "TEXT")
