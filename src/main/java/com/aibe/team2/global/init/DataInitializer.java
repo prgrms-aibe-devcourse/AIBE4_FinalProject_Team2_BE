@@ -75,7 +75,8 @@ public class DataInitializer implements CommandLineRunner {
                // 4-1. InterviewSession
                InterviewSession session = InterviewSession.builder()
                        .memberId(userId)
-                       .type(i % 2 == 0 ? "TEXT" : "VOICE")
+                       .interviewType(i % 2 == 0 ? "TEXT" : "VOICE") // 변경된 필드명에 맞게 수정
+                       .aiProvider(i % 2 == 0 ? "OPEN_AI" : "RETELL") // aiProvider 값도 함께 세팅 (Null 방지)
                        .build();
 
                setCreatedAt(session, pastDate);
