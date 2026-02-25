@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface JobPostingRepository extends JpaRepository<JobPosting, Long> {
     // 사용자의 공고 목록 조회 (최신순)
-    List<JobPosting> findAllByUserIdOrderByCreatedAtDesc(Long userId);
+    List<JobPosting> findAllByMemberIdOrderByCreatedAtDesc(Long memberId);
 }

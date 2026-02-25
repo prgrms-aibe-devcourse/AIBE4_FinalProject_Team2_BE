@@ -85,7 +85,7 @@ CREATE TABLE analysis_report (
                                  keyword_analysis JSON,
                                  sentence_correction JSON,
                                  generated_subtitle JSON,
-                                 revised_content TEXT,
+                                 revised_full_content TEXT,
                                  status ENUM('PENDING', 'PROCESSING', 'DELAYED', 'COMPLETED', 'FAILED') DEFAULT 'PENDING',
                                  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                                  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

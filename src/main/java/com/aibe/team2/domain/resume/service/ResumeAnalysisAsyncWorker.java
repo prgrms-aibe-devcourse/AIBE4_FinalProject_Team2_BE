@@ -57,7 +57,7 @@ public class ResumeAnalysisAsyncWorker {
                     result.generatedSubtitle(),
                     result.keywords(),
                     result.corrections(),
-                    result.revisedContent()
+                    result.revisedFullContent()
             );
             log.info("[Async Worker] AI 분석 완료 및 저장 성공 - Report ID: {}", reportId);
 
@@ -146,6 +146,6 @@ public class ResumeAnalysisAsyncWorker {
             Map<String, Object> generatedSubtitle,
             Map<String, Object> keywords,
             Map<String, Object> corrections,
-            String revisedContent
+            String revisedFullContent
     ) {}
 }

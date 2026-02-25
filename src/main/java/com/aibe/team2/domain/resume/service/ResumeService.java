@@ -21,7 +21,7 @@ public class ResumeService {
     @Transactional
     public ResumeResponse saveResume(ResumeRequest request) {
         Resume resume = Resume.builder()
-                .userId(request.userId())
+                .memberId(request.memberId())
                 .title(request.title())
                 .content(request.content())
                 .s3FileUrl(null)

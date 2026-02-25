@@ -10,6 +10,8 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "job_posting")
@@ -22,8 +24,8 @@ public class JobPosting {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "member_id", nullable = false)
+    private Long memberId;
 
     @Column(name = "company_name", length = 100)
     private String companyName;
@@ -31,16 +33,11 @@ public class JobPosting {
     @Column(name = "job_title", nullable = false, length = 100)
     private String jobTitle;
 
-    // [New] 원본 채용 공고 URL
     @Column(name = "posting_url", length = 500)
     private String postingUrl;
 
     @Column(name = "job_description", columnDefinition = "TEXT")
     private String jobDescription;
-
-    // DB는 JSON, Java는 String
-    @Column(name = "required_skills", columnDefinition = "json")
-    private String requiredSkills;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -50,13 +47,22 @@ public class JobPosting {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "jobPosting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<JobSkill> jobSkills = new ArrayList<>();
+
     @Builder
-    public JobPosting(Long userId, String companyName, String jobTitle, String postingUrl, String jobDescription, String requiredSkills) {
-        this.userId = userId;
+    public JobPosting(Long memberId, String companyName, String jobTitle, String postingUrl, String jobDescription, String requiredSkills) {
+        this.memberId = memberId;
         this.companyName = (companyName == null || companyName.isEmpty()) ? "Self-Input" : companyName;
         this.jobTitle = jobTitle;
         this.postingUrl = postingUrl;
         this.jobDescription = jobDescription;
-        this.requiredSkills = requiredSkills;
     }
+
+    // 연관관계 편의 메서드 추가 (공고에 스킬을 추가할 때 사용)
+    // 아마 채용공고를 복사하는 형식으로 갖고오는거라 안 쓰긴 할듯.
+    public void addJobSkill(JobSkill jobSkill) {
+        this.jobSkills.add(jobSkill);
+    }
+
 }
