@@ -36,7 +36,7 @@ class MemberRepositoryTest {
         Member savedMember = memberRepository.save(newMember);
 
         // When: 작성한 QueryDSL 메서드 호출
-        Optional<Member> foundMember = memberRepository.findProfileByIdWithQueryDSL(savedMember.getId());
+        Optional<Member> foundMember = memberRepository.findProfileByIdWithQueryDSL(savedMember.getMemberId());
 
         // Then: 저장한 데이터와 QueryDSL로 찾은 데이터가 일치하는지 확인
         assertThat(foundMember).isPresent(); // 데이터가 존재하는지 확인

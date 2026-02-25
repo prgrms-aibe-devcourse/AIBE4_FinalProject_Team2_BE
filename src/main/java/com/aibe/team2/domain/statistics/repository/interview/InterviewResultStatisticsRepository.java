@@ -1,4 +1,4 @@
-package com.aibe.team2.domain.statistics.repository;
+package com.aibe.team2.domain.statistics.repository.interview;
 
 import com.aibe.team2.domain.statistics.entity.InterviewResultStatistics;
 import org.springframework.data.jpa.repository.JpaRepository;

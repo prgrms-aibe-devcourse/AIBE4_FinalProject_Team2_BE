@@ -19,7 +19,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
     public Optional<Member> findProfileByIdWithQueryDSL(Long memberId) {
         Member findMember = queryFactory
                 .selectFrom(member)
-                .where(member.id.eq(memberId)) // 조건 : ID가 일치하는 직원
+                .where(member.memberId.eq(memberId)) // 조건 : ID가 일치하는 직원
                 .fetchOne(); // 단건 조회
 
         return Optional.ofNullable(findMember);

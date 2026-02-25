@@ -2,7 +2,7 @@ package com.aibe.team2.global.init;
 
 import com.aibe.team2.domain.statistics.dto.common.RadarChartStatResponse;
 import com.aibe.team2.domain.statistics.entity.InterviewResultStatistics;
-import com.aibe.team2.domain.statistics.repository.InterviewResultStatisticsRepository;
+import com.aibe.team2.domain.statistics.repository.interview.InterviewResultStatisticsRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,11 +16,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-@SpringBootTest(properties = {
-        "spring.data.redis.host=localhost",
-        "spring.data.redis.port=6379"
-})
-@ActiveProfiles("local")
+@SpringBootTest
+@ActiveProfiles("test")
 @Transactional
 public class DummyDataRetrievalTest {
 

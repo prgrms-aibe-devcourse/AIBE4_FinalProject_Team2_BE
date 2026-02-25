@@ -4,9 +4,7 @@ import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.entity.enums.Provider;
 import com.aibe.team2.domain.mypage.entity.enums.SubscriptionPlan;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -15,13 +13,15 @@ import java.time.LocalDateTime;
 @Table(name = "member")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder
 @EntityListeners(AuditingEntityListener.class)
 public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id")
-    private Long id;
+    @Column(name = "id")
+    private Long memberId;
 
     @Column(nullable = false, unique = true)
     private String email;
