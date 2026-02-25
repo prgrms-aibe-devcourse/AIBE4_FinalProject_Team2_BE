@@ -29,18 +29,18 @@
 | `updated_at` | `DATETIME` | 수정 일시 |
 | `deleted_at` | `DATETIME` | 탈퇴 일시 (Soft Delete) |
 
-### 3. resume (이력서)
+### 3. resume (자소서)
 
-| **컬럼명** | **타입** | **설명** |
-| :--- | :--- | :--- |
-| `id` | `BIGINT` | 이력서 ID |
-| `member_id` | `BIGINT` | 회원 ID |
-| `title` | `VARCHAR(255)` | 이력서 제목 |
-| `s3_file_url` | `VARCHAR(500)` | 이력서 파일 URL |
-| `content` | `TEXT` | 이력서 텍스트 추출 내용 |
-| `is_analyzed` | `BOOLEAN` | 분석 완료 여부 |
-| `created_at` | `DATETIME` | 생성 일시 |
-| `updated_at` | `DATETIME` | 수정 일시 |
+| **컬럼명** | **타입** | **설명**        |
+| :--- | :--- |:--------------|
+| `id` | `BIGINT` | 자소서 ID        |
+| `member_id` | `BIGINT` | 회원 ID         |
+| `title` | `VARCHAR(255)` | 자소서 제목        |
+| `s3_file_url` | `VARCHAR(500)` | 자소서 파일 URL    |
+| `content` | `TEXT` | 자소서 텍스트 추출 내용 |
+| `is_analyzed` | `BOOLEAN` | 분석 완료 여부      |
+| `created_at` | `DATETIME` | 생성 일시         |
+| `updated_at` | `DATETIME` | 수정 일시         |
 
 ### 4. job_posting (채용 공고)
 
@@ -67,34 +67,34 @@
 
 ### 5. analysis_report (분석 리포트)
 
-| **컬럼명**                | **타입** | **설명** |
-|:-----------------------| :--- | :--- |
-| `id`                   | `BIGINT` | 리포트 ID |
-| `resume_id`            | `BIGINT` | 이력서 ID |
-| `job_posting_id`       | `BIGINT` | 채용 공고 ID |
-| `match_score`          | `INT` | 매칭 점수 |
-| `keyword_analysis`     | `JSON` | 키워드 분석 데이터 |
-| `sentence_correction`  | `JSON` | 문장 교정 데이터 |
-| `generated_subtitle`   | `JSON` | 생성된 소제목 |
-| `revised_full_content` | `TEXT` | 수정 제안된 이력서 내용 |
-| `status`               | `ENUM(...)` | 진행 상태 |
-| `created_at`           | `DATETIME` | 생성 일시 |
-| `updated_at`           | `DATETIME` | 수정 일시 |
+| **컬럼명**                | **타입** | **설명**        |
+|:-----------------------| :--- |:--------------|
+| `id`                   | `BIGINT` | 리포트 ID        |
+| `resume_id`            | `BIGINT` | 자소서 ID        |
+| `job_posting_id`       | `BIGINT` | 채용 공고 ID      |
+| `match_score`          | `INT` | 매칭 점수         |
+| `keyword_analysis`     | `JSON` | 키워드 분석 데이터    |
+| `sentence_correction`  | `JSON` | 문장 교정 데이터     |
+| `generated_subtitle`   | `JSON` | 생성된 소제목       |
+| `revised_full_content` | `TEXT` | 수정 제안된 자소서 내용 |
+| `status`               | `ENUM(...)` | 진행 상태         |
+| `created_at`           | `DATETIME` | 생성 일시         |
+| `updated_at`           | `DATETIME` | 수정 일시         |
 
 ### 6. interview_session (면접 세션)
 
-| **컬럼명** | **타입** | **설명** |
-| :--- | :--- | :--- |
-| `id` | `BIGINT` | 세션 ID |
-| `member_id` | `BIGINT` | 회원 ID |
-| `resume_id` | `BIGINT` | 이력서 ID |
-| `job_posting_id` | `BIGINT` | 채용 공고 ID |
+| **컬럼명** | **타입** | **설명**               |
+| :--- | :--- |:---------------------|
+| `id` | `BIGINT` | 세션 ID                |
+| `member_id` | `BIGINT` | 회원 ID                |
+| `resume_id` | `BIGINT` | 자소서 ID               |
+| `job_posting_id` | `BIGINT` | 채용 공고 ID             |
 | `interview_mode` | `ENUM(...)` | 면접 모드 (일반, 꼬리질문, 압박) |
-| `interview_type` | `ENUM('TEXT', 'VOICE')` | 면접 방식 (텍스트, 음성) |
-| `status` | `ENUM('IN_PROGRESS', 'COMPLETED')` | 진행 상태 |
-| `final_score` | `INT` | 최종 점수 |
-| `created_at` | `DATETIME` | 시작 일시 |
-| `updated_at` | `DATETIME` | 수정 일시 |
+| `interview_type` | `ENUM('TEXT', 'VOICE')` | 면접 방식 (텍스트, 음성)      |
+| `status` | `ENUM('IN_PROGRESS', 'COMPLETED')` | 진행 상태                |
+| `final_score` | `INT` | 최종 점수                |
+| `created_at` | `DATETIME` | 시작 일시                |
+| `updated_at` | `DATETIME` | 수정 일시                |
 
 ### 7. interview_record (면접 상세 기록)
 
@@ -173,13 +173,13 @@
 | `updated_at` | `DATETIME` | 수정 일시 |
 ### 12. attachment (첨부 파일)
 
-| **컬럼명** | **타입** | **설명** |
-| :--- | :--- | :--- |
-| `id` | `BIGINT` | 파일 ID |
-| `owner_member_id` | `BIGINT` | 소유자(회원) ID |
-| `s3_key` | `VARCHAR(500)` | 저장소 Key (경로) |
-| `file_type` | `ENUM('RESUME_ORIGINAL','RESUME_REVISED','INTERVIEW_AUDIO')` | 파일 유형 (이력서/오디오 등) |
-| `target_type` | `VARCHAR(50)` | 연결 대상 타입 |
-| `target_id` | `BIGINT` | 연결 대상 ID |
-| `created_at` | `DATETIME` | 업로드 일시 |
-| `updated_at` | `DATETIME` | 수정 일시 |
+| **컬럼명** | **타입** | **설명**            |
+| :--- | :--- |:------------------|
+| `id` | `BIGINT` | 파일 ID             |
+| `owner_member_id` | `BIGINT` | 소유자(회원) ID        |
+| `s3_key` | `VARCHAR(500)` | 저장소 Key (경로)      |
+| `file_type` | `ENUM('RESUME_ORIGINAL','RESUME_REVISED','INTERVIEW_AUDIO')` | 파일 유형 (자소서/오디오 등) |
+| `target_type` | `VARCHAR(50)` | 연결 대상 타입          |
+| `target_id` | `BIGINT` | 연결 대상 ID          |
+| `created_at` | `DATETIME` | 업로드 일시            |
+| `updated_at` | `DATETIME` | 수정 일시             |

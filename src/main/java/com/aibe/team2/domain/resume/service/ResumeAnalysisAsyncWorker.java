@@ -10,12 +10,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
@@ -26,61 +24,62 @@ import java.util.Map;
 public class ResumeAnalysisAsyncWorker {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
+    private final SimilarityEngine similarityEngine;
     private final ObjectMapper objectMapper;
     private final WebClient.Builder webClientBuilder;
-
+    private final AnalysisStatusManager statusManager;
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
     @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent}")
     private String geminiApiUrl;
 
-    /**
-     * 별도의 백그라운드 스레드에서 실행되는 AI 분석 로직
-     */
-    @Async // 이 메서드는 호출 즉시 리턴되고, 내부 로직은 백그라운드에서 돕니다.
+    @Async
     @Transactional
     public void processAiAnalysisAsync(Long reportId, String resumeContent, String jobDescription) {
         log.info("[Async Worker] AI 분석 시작 - Report ID: {}", reportId);
 
-        // 1. 트랜잭션이 분리되었으므로 DB에서 리포트를 다시 조회해옵니다.
         ResumeAnalysisReport report = resumeAnalysisRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
         try {
-            // 2. Gemini API 호출
-            AiAnalysisResult result = callGeminiApi(resumeContent, jobDescription);
+            // 1. 객관적 지표: 임베딩 기반 코사인 유사도 계산 (0~100점)
+            int matchScore = similarityEngine.calculateCosineSimilarityScore(resumeContent, jobDescription);
 
-            // 3. 분석 성공 처리 및 DB 업데이트
+            // 2. 정성적 지표: Gemini API 호출 (첨삭, 키워드, 소제목 추출)
+            AiAnalysisResult result = callGeminiApiForCorrections(resumeContent, jobDescription);
+
+            // 3. 분석 성공 처리 및 DB 업데이트 (유사도 점수와 AI 첨삭 결과를 합침)
             report.completeAnalysis(
-                    result.score(),
+                    matchScore, // 계산된 유사도 점수를 저장
                     result.generatedSubtitle(),
                     result.keywords(),
                     result.corrections(),
                     result.revisedFullContent()
             );
-            log.info("[Async Worker] AI 분석 완료 및 저장 성공 - Report ID: {}", reportId);
+            log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
 
         } catch (Exception e) {
             log.error("[Async Worker] AI 분석 중 오류 발생 - Report ID: {}", reportId, e);
-            report.failAnalysis();
+            // 현재 트랜잭션이 롤백되더라도, 독립된 트랜잭션으로 FAILED 상태를 무조건 DB에 기록합니다
+            statusManager.updateStatusToFailed(reportId);
         }
     }
 
-    private AiAnalysisResult callGeminiApi(String resumeContent, String jobDescription) throws Exception {
+    private AiAnalysisResult callGeminiApiForCorrections(String resumeContent, String jobDescription) throws Exception {
+        // 프롬프트 수정: 점수 계산 요구를 빼고 첨삭에만 집중
         String prompt = String.format("""
-                당신은 10년 차 전문 채용 담당자이자 이력서 첨삭 전문가입니다.
-                아래의 [채용 공고]와 지원자의 [이력서]를 분석하고, 합격률을 높일 수 있도록 이력서를 첨삭해주세요.
+                당신은 10년 차 전문 채용 담당자이자 자소서 첨삭 전문가입니다.
+                아래의 [채용 공고]를 참고하여, 지원자의 [자소서]가 공고에 적합해 보이도록 첨삭해주세요.
                 
                 [채용 공고]
                 %s
                 
-                [이력서]
+                [자소서]
                 %s
                 
                 응답은 반드시 아래의 JSON 형식으로만 작성해야 하며, 마크다운이나 부가 설명은 절대 포함하지 마세요.
                 {
-                  "score": 85,
                   "generatedSubtitle": {
                     "title": "데이터 분석 역량을 갖춘 백엔드 개발자",
                     "reason": "이 소제목을 추천하는 이유"
@@ -98,11 +97,11 @@ public class ResumeAnalysisAsyncWorker {
                       }
                     ]
                   },
-                  "revisedFullContent": "전체 첨삭이 완료된 이력서의 전체 본문 텍스트"
+                  "revisedFullContent": "전체 첨삭이 완료된 자소서 본문 텍스트"
                 }
                 """,
                 jobDescription != null ? jobDescription : "채용 공고 내용 없음",
-                resumeContent != null ? resumeContent : "이력서 내용 없음"
+                resumeContent != null ? resumeContent : "자소서 내용 없음"
         );
 
         Map<String, Object> requestBody = Map.of(
@@ -112,14 +111,11 @@ public class ResumeAnalysisAsyncWorker {
 
         WebClient webClient = webClientBuilder.baseUrl(geminiApiUrl).build();
 
-        // 비동기 스레드 내부이므로 block()을 써도 메인 스레드에 영향을 주지 않아 안전합니다.
         JsonNode responseNode = webClient.post()
                 .uri("")
-                .header("x-goog-api-key", geminiApiKey) // Security 경고 해결!
+                .header("x-goog-api-key", geminiApiKey)
                 .bodyValue(requestBody)
                 .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new BusinessException(ErrorCode.AI_INVALID_REQUEST)))
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new BusinessException(ErrorCode.AI_SERVER_ERROR)))
                 .bodyToMono(JsonNode.class)
                 .block();
 
@@ -133,7 +129,6 @@ public class ResumeAnalysisAsyncWorker {
         JsonNode parsedResult = objectMapper.readTree(responseText);
 
         return new AiAnalysisResult(
-                parsedResult.get("score").asInt(),
                 objectMapper.convertValue(parsedResult.get("generatedSubtitle"), new TypeReference<>() {}),
                 objectMapper.convertValue(parsedResult.get("keywords"), new TypeReference<>() {}),
                 objectMapper.convertValue(parsedResult.get("corrections"), new TypeReference<>() {}),
@@ -142,7 +137,6 @@ public class ResumeAnalysisAsyncWorker {
     }
 
     private record AiAnalysisResult(
-            Integer score,
             Map<String, Object> generatedSubtitle,
             Map<String, Object> keywords,
             Map<String, Object> corrections,

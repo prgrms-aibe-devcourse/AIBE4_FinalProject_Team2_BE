@@ -22,7 +22,6 @@ public class Resume {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 이미지 스펙: FK (member.id), NOT NULL
     @Column(name = "member_id", nullable = false)
     private Long memberId;
 
