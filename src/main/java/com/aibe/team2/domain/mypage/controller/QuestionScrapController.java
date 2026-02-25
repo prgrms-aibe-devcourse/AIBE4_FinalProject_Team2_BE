@@ -37,6 +37,7 @@ public class QuestionScrapController {
         // 1. 임시로 DI 고정
         Long memberId = TEST_MEMBER_ID;
         log.info("[북마크 토글 요청] MemberId: {}, QuestionId: {}", memberId, questionId);
+        // API 명세상 변수명은 questionId지만, 비즈니스 로직상 면접기록(InterviewRecord) ID로 사용됨
         boolean isBookmarked = questionScrapService.toggleBookmark(memberId, questionId);
 
         return ResponseEntity.ok(isBookmarked);
@@ -49,7 +50,7 @@ public class QuestionScrapController {
     @Operation(summary = "내 북마크 목록 조회", description = "내가 저장한 질문 리스트를 페이징하여 조회합니다.")
     @GetMapping("/bookmarks")
     public ResponseEntity<Page<BookmarkResponse>> getMyBookmarks(
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         Long memberId = TEST_MEMBER_ID;
         log.info("[북마크 목록 조회] MemberId: {}",  memberId);
