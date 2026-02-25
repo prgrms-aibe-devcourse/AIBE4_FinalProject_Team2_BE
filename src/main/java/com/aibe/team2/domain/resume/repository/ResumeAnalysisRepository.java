@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface ResumeAnalysisRepository extends JpaRepository<ResumeAnalysisReport, Long> {
 
-    // 특정 자소서의 최신 분석 결과 조회 (내림차순 정렬 후 첫 번째 데이터)
+    // 특정 자소서의 최신 분석 결과 조회 (내림차순 정렬 후 첫 번째 데이터) // 마이페이지용
     Optional<ResumeAnalysisReport> findTopByResumeIdOrderByCreatedAtDesc(Long resumeId);
 }

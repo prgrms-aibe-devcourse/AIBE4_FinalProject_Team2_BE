@@ -3,7 +3,7 @@ package com.aibe.team2.domain.resume.service;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
-import com.aibe.team2.domain.resume.dto.ResumeAnalysisEvent; // ✅ 이벤트 import
+import com.aibe.team2.domain.resume.dto.ResumeAnalysisEvent;
 import com.aibe.team2.domain.resume.entity.Resume;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
@@ -12,7 +12,7 @@ import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher; // ✅ Publisher import
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +30,24 @@ public class ResumeAnalysisService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public Long analyzeResume(Long resumeId, Long jobPostingId) {
+    public Long analyzeResume(Long resumeId, Long jobPostingId, Long memberId) {
+
+        // 1. 이력서 조회 및 권한 검증
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
+        if (!resume.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.COMMON_403); // 권한 없음 에러
+        }
+
+        // 2. 채용 공고 조회
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.JOB_POSTING_NOT_FOUND));
+
+
+        if (!jobPosting.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.COMMON_403); // 내 공고가 아니면 차단!
+        }
 
         String jobSkillsText = jobPosting.getJobSkills().stream()
                 .map(JobSkill::getSkillName)

@@ -31,7 +31,7 @@ public class AnalysisQueueProducer {
         private String fullJobDescription;
     }
 
-    // 이전 트랜잭션이 완벽하게 Commit(완료)된 직후(AFTER_COMMIT)에만 이 메서드가 실행됩니다!
+    // 이전 트랜잭션이 완벽하게 Commit(완료)된 직후(AFTER_COMMIT)에만 이 메서드가 실행됩니다
     // 만약 DB 저장 중 에러가 나서 롤백되면 이 메서드는 아예 실행되지 않으므로 안전합니다.
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleResumeAnalysisEvent(ResumeAnalysisEvent event) {
