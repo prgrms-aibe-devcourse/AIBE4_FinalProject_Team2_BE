@@ -1,4 +1,4 @@
-package com.aibe.team2.domain.mypage.repository;
+package com.aibe.team2.domain.mypage.repository.member;
 
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.querydsl.jpa.impl.JPAQueryFactory;

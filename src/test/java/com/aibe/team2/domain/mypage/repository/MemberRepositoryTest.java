@@ -3,6 +3,7 @@ package com.aibe.team2.domain.mypage.repository;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.entity.enums.Provider;
 import com.aibe.team2.domain.mypage.entity.enums.Role;
+import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.global.config.QuerydslConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
