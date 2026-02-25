@@ -1,12 +1,12 @@
 package com.aibe.team2.domain.statistics.service;
 
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
+import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.CorrectionDetail;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.EvaluationSummary;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.KeywordStats;
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
@@ -22,7 +22,6 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-// TODO : 하드코딩 부분 수정
 public class ResumeStatisticsService {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
@@ -31,34 +30,32 @@ public class ResumeStatisticsService {
     @Transactional(readOnly = true)
     public ResumeAnalysisResultResponse getResumeAnalysisReport(Long analysisId, Long currentUserId) {
 
-        // 1. 분석 리포트 단건 조회(연관된 이력서 함께 조회 가정)
+        // 1. 분석 리포트 단건 조회
         ResumeAnalysisReport report = resumeAnalysisRepository.findById(analysisId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
 
-        // 2. 권한 검증
-        // TODO : Resume 엔티티 변경
-        /*
-        if (!report.getResume().getMember().getId().equals(currentUserId)) {
-            throw new ForbiddenException(ErrorCode.COMMON_403);
-        }
-        */
-        if(!report.getResume().getUserId().equals(currentUserId)){
+        // 2. 권한 검증 (내 이력서가 맞는지 확인)
+        // Resume 엔티티가 memberId 필드를 가지고 있다고 가정
+        Long resumeOwnerId = report.getResume().getMemberId();
+
+        if (!resumeOwnerId.equals(currentUserId)) {
             throw new ForbiddenException(ErrorCode.COMMON_403);
         }
 
-        // 3. 비즈니스 룰 처리
+        // 3. 비즈니스 룰 처리 (분석 중인지 확인)
         boolean isProcessing = report.getStatus() == ResumeAnalysisStatus.PROCESSING;
 
-        // 4. JSON 데이터 파싱 및 내부 Record 조립
-        List<String> goodKeywords = isProcessing ? Collections.emptyList() : extractGoodKeywords(report.getKeywordAnalysis());
-        List<String> missingKeywords = isProcessing ? Collections.emptyList() : extractMissingKeywords(report.getKeywordAnalysis());
+        // 4. JSON 데이터 파싱 (안전한 메서드 사용)
+        // 분석 중일 때는 빈 리스트 반환, 완료되면 DB JSON 파싱
+        List<String> goodKeywords = isProcessing ? Collections.emptyList() : extractList(report.getKeywordAnalysis(), "goodKeywords");
+        List<String> missingKeywords = isProcessing ? Collections.emptyList() : extractList(report.getKeywordAnalysis(), "missingKeywords");
         List<CorrectionDetail> corrections = isProcessing ? Collections.emptyList() : extractCorrections(report.getSentenceCorrection());
 
         // 4-1. 상단 요약 지표
         EvaluationSummary summary = null;
         if(!isProcessing){
             summary = new EvaluationSummary(
-                    "High",
+                    "High", // TODO: 실제 점수 기반 등급 산정 로직 필요 시 수정
                     goodKeywords.size(),
                     true
             );
@@ -75,82 +72,55 @@ public class ResumeStatisticsService {
                 keywordStats,
                 corrections,
                 isProcessing ? null : report.getGeneratedSubtitle(),
-                isProcessing ? null : report.getRevisedFullContent(), // After: 첨삭 완료된 자소서 본문
+                isProcessing ? null : report.getRevisedFullContent(),
                 report.getCreatedAt()
         );
     }
 
-    // 내부 매핑 로직
+    // --- 내부 매핑 로직 (Private Methods) ---
 
-    // @SuppressWarnings("unchecked")
-    // private List<String> extractGoodKeywords(Map<String, Object> keywordMap){
-    //     if(keywordMap == null || !keywordMap.containsKey("keywords")){
-    //         return Collections.emptyList();
-    //     }
-    //     List<Map<String, Object>> list = (List<Map<String, Object>>) keywordMap.get("keywords");
-    //     return list.stream().map(k -> String.valueOf(k.get("keyword"))).toList();
-    // }
-    //
-    // @SuppressWarnings("unchecked")
-    // private List<String> extractMissingKeywords(Map<String, Object> keywordMap){
-    //     // 실제 JSON 구조에 "missingKeywords"키가 있을 경우를 대비한 로직
-    //     if(keywordMap != null && keywordMap.containsKey("missingKeywords")){
-    //         List<Map<String, Object>> missingList = (List<Map<String, Object>>) keywordMap.get("missingKeywords");
-    //         return missingList.stream().map(k -> String.valueOf(k.get("keyword"))).toList();
-    //     }
-    //     return List.of("대규모 트래픽", "시스템 설계"); // JSON 구조 확정 전 임시 데이터
-    // }
-    //
-    // @SuppressWarnings("unchecked")
-    // private List<CorrectionDetail> extractCorrections(Map<String, Object> correctionMap){
-    //     if(correctionMap == null || !correctionMap.containsKey("corrections")){
-    //         return Collections.emptyList();
-    //     }
-    //
-    //     List<Map<String, String>> list = (List<Map<String, String>>) correctionMap.get("corrections");
-    //     return list.stream()
-    //             .map(c -> new CorrectionDetail(
-    //                     c.get("original"),
-    //                     c.get("corrected"),
-    //                     c.get("reason")
-    //             )).toList();
-    // }
-
-    // --- 내부 매핑 로직 ---
-
-    @SuppressWarnings("unchecked")
-    private List<String> extractGoodKeywords(Map<String, Object> keywordMap){
-        // DB JSON 구조: {"goodKeywords": ["분석력", "꾸준함"], ...}
-        if(keywordMap == null || !keywordMap.containsKey("goodKeywords")){
+    /**
+     * Map에서 List<String>을 안전하게 추출하는 공통 메서드
+     * (기존 extractGoodKeywords, extractMissingKeywords 통합)
+     */
+    private List<String> extractList(Map<String, Object> map, String key) {
+        if (map == null || !map.containsKey(key)) {
             return Collections.emptyList();
         }
-        // Map 객체가 아니라 순수 String 리스트이므로 바로 변환 후 반환
-        return (List<String>) keywordMap.get("goodKeywords");
+
+        Object value = map.get(key);
+        if (!(value instanceof List<?>)) {
+            return Collections.emptyList();
+        }
+
+        // 안전한 형변환: 요소 하나하나를 String으로 변환
+        return ((List<?>) value).stream()
+                .map(String::valueOf)
+                .toList();
     }
 
+    /**
+     * Map에서 첨삭 상세 내용(CorrectionDetail)을 추출
+     */
     @SuppressWarnings("unchecked")
-    private List<String> extractMissingKeywords(Map<String, Object> keywordMap){
-        // DB JSON 구조: {..., "missingKeywords": ["대규모 트래픽", "시스템 설계"]}
-        if(keywordMap == null || !keywordMap.containsKey("missingKeywords")){
-            return Collections.emptyList();
-        }
-        // Map 객체가 아니라 순수 String 리스트이므로 바로 변환 후 반환
-        return (List<String>) keywordMap.get("missingKeywords");
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<CorrectionDetail> extractCorrections(Map<String, Object> correctionMap){
-        if(correctionMap == null || !correctionMap.containsKey("corrections")){
+    private List<CorrectionDetail> extractCorrections(Map<String, Object> correctionMap) {
+        if (correctionMap == null || !correctionMap.containsKey("corrections")) {
             return Collections.emptyList();
         }
 
-        List<Map<String, Object>> list = (List<Map<String, Object>>) correctionMap.get("corrections");
+        Object correctionsObj = correctionMap.get("corrections");
+        if (!(correctionsObj instanceof List<?>)) {
+            return Collections.emptyList();
+        }
+
+        List<Map<String, Object>> list = (List<Map<String, Object>>) correctionsObj;
+
         return list.stream()
                 .map(c -> new CorrectionDetail(
-                        // DB에 넣은 키값(originalSentence, correctedSentence)과 정확히 매칭
                         String.valueOf(c.getOrDefault("originalSentence", "")),
                         String.valueOf(c.getOrDefault("correctedSentence", "")),
                         String.valueOf(c.getOrDefault("reason", ""))
-                )).toList();
+                ))
+                .toList();
     }
 }
