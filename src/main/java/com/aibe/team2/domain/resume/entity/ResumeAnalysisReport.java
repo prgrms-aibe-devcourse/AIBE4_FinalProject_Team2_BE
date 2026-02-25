@@ -107,5 +107,7 @@ public class ResumeAnalysisReport {
     }
 
     public void updateStatus(ResumeAnalysisStatus resumeAnalysisStatus) {
+        this.status = resumeAnalysisStatus;
     }
+
 }

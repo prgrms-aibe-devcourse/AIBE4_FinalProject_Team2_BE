@@ -27,7 +27,7 @@ public class ResumeAnalysisService {
     private final JobPostingRepository jobPostingRepository;
 
     private final ResumeAnalysisAsyncWorker asyncWorker;
-
+    private final AnalysisQueueProducer queueProducer;
     @Transactional
     public Long analyzeResume(Long resumeId) {
         // 1. 자소서 조회
@@ -70,7 +70,7 @@ public class ResumeAnalysisService {
 
         // 5. 비동기 워커 호출 (스킬이 포함된 fullJobDescription을 넘깁니다)
         // 이전처럼 파라미터가 4개가 아니라 3개이므로 컴파일 에러가 발생하지 않습니다!
-        asyncWorker.processAiAnalysisAsync(savedReport.getId(), resume.getContent(), fullJobDescription);
+        queueProducer.sendAnalysisRequest(savedReport.getId(), resume.getContent(), fullJobDescription);
 
         // 6. 사용자(프론트엔드)에게는 즉시 리포트 ID를 반환하여 로딩 화면을 보여주게 합니다.
         return savedReport.getId();
@@ -79,6 +79,6 @@ public class ResumeAnalysisService {
     @Transactional(readOnly = true)
     public ResumeAnalysisReport getAnalysisResult(Long resumeId) {
         return resumeAnalysisRepository.findTopByResumeIdOrderByCreatedAtDesc(resumeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_REPORT_NOT_FOUND));
     }
 }

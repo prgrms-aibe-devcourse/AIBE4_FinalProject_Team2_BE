@@ -31,10 +31,10 @@ public class ResumeService {
         return ResumeResponse.from(savedResume);
     }
 
-    // 2. 자소서 상세 조회 (추가됨)
+    // 2. 자소서 상세 조회
     public ResumeResponse findResume(Long resumeId) {
         Resume resume = resumeRepository.findById(resumeId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND)); // 에러 코드 확인 필요
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
         return ResumeResponse.from(resume);
     }

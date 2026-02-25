@@ -24,10 +24,10 @@ import java.util.Map;
 public class ResumeAnalysisAsyncWorker {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
-    private final SimilarityEngine similarityEngine; // ✅ 유사도 엔진 주입
+    private final SimilarityEngine similarityEngine;
     private final ObjectMapper objectMapper;
     private final WebClient.Builder webClientBuilder;
-
+    private final AnalysisStatusManager statusManager;
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
@@ -51,17 +51,18 @@ public class ResumeAnalysisAsyncWorker {
 
             // 3. 분석 성공 처리 및 DB 업데이트 (유사도 점수와 AI 첨삭 결과를 합침)
             report.completeAnalysis(
-                    matchScore, // ✅ 계산된 유사도 점수를 저장
+                    matchScore, // 계산된 유사도 점수를 저장
                     result.generatedSubtitle(),
                     result.keywords(),
                     result.corrections(),
-                    result.revisedContent()
+                    result.revisedFullContent()
             );
             log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
 
         } catch (Exception e) {
             log.error("[Async Worker] AI 분석 중 오류 발생 - Report ID: {}", reportId, e);
-            report.failAnalysis();
+            // 현재 트랜잭션이 롤백되더라도, 독립된 트랜잭션으로 FAILED 상태를 무조건 DB에 기록합니다
+            statusManager.updateStatusToFailed(reportId);
         }
     }
 
@@ -139,6 +140,6 @@ public class ResumeAnalysisAsyncWorker {
             Map<String, Object> generatedSubtitle,
             Map<String, Object> keywords,
             Map<String, Object> corrections,
-            String revisedContent
+            String revisedFullContent
     ) {}
 }
