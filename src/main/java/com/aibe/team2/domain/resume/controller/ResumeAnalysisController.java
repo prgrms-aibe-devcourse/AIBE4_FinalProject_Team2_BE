@@ -10,18 +10,21 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/resumes") // URL 구조 유지를 위해 동일한 path 사용
+@RequestMapping("/api/resumes")
 @RequiredArgsConstructor
 public class ResumeAnalysisController {
 
     private final ResumeAnalysisService resumeAnalysisService;
 
     // 1. 자소서 분석 요청 (AI 사용)
-    // [POST] /api/resumes/{resumeId}/analysis
+    // [POST] /api/resumes/{resumeId}/analysis?jobPostingId={jobPostingId}
     @PostMapping("/{resumeId}/analysis")
-    public ApiResponse<Long> analyzeResume(@PathVariable Long resumeId) {
-        log.info("resumeId에 대한 분석 요청: {}", resumeId);
-        Long reportId = resumeAnalysisService.analyzeResume(resumeId);
+    public ApiResponse<Long> analyzeResume(
+            @PathVariable Long resumeId,
+            @RequestParam Long jobPostingId // ✅ 쿼리 파라미터로 jobPostingId를 동적으로 받습니다.
+    ) {
+        log.info("이력서 ID: {}, 채용공고 ID: {} 에 대한 분석 요청", resumeId, jobPostingId);
+        Long reportId = resumeAnalysisService.analyzeResume(resumeId, jobPostingId);
         return ApiResponse.success(reportId);
     }
 

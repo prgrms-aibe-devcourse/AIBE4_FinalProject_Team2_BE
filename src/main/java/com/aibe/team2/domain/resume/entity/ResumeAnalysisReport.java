@@ -86,7 +86,6 @@ public class ResumeAnalysisReport {
         this.status = ResumeAnalysisStatus.PENDING;
     }
 
-
     // 분석
     public void startAnalysis() {
         this.status = ResumeAnalysisStatus.PROCESSING;

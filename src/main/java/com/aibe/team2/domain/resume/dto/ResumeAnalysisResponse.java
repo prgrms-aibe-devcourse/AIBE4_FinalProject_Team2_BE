@@ -13,7 +13,6 @@ public record ResumeAnalysisResponse(
         Long jobPostingId,
         Integer matchScore,
 
-        // String -> Map<String, Object>
         // JSON 형식의 String -> JSON 객체
         @Schema(description = "AI가 생성한 소제목 (JSON 객체)", example = "{\"title\": \"...\", \"reason\": \"...\"}")
         Map<String, Object> generatedSubtitle,
