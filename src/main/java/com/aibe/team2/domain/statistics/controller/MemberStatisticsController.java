@@ -24,11 +24,11 @@ public class MemberStatisticsController {
     public ResponseEntity<MonthlyUsageResponse> getMonthlyAiUsage(
             // TODO : Spring Security 구현 후 주석 해제 및 임시 memberId 파라미터 삭제 필요
             // @AuthenticationPrincipal UserDetails userDetails,
-
-            // [임시] 로그인한 사용자 정보 가져오기
-            @RequestParam(name = "memberId", required = false, defaultValue = "1") Long memberId,
             @RequestParam(name = "year", required = false) Integer year
     ) {
+        // 임시 아이디 지정 -> 보완이 완성되면 이 줄만 userDetails.getId()로 변경
+        Long memberId = 1L;
+
         int targetYear = (year != null ? year : LocalDate.now().getYear());
         MonthlyUsageResponse response = memberStatisticsService.getMonthlyUsageStatistics(memberId, targetYear);
 
