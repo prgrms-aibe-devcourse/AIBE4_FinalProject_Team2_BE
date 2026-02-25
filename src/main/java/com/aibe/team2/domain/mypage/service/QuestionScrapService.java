@@ -9,12 +9,15 @@ import com.aibe.team2.domain.mypage.repository.bookmark.QuestionScrapRepository;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
+import com.aibe.team2.global.exception.custom.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +34,8 @@ public class QuestionScrapService {
     private final InterviewRecordRepository interviewRecordRepository;
     private final JobPostingRepository jobPostingRepository;
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
     /*
      * [북마크 토글 기능]
      * - 이미 북마크 되어있으면 -> 삭제 (return false)
@@ -41,28 +46,60 @@ public class QuestionScrapService {
 
         // 1. 사용자 조회(없으면 예외 발생)
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 회원을 찾을 수 없습니다. (ID: " + memberId + ")"));
 
         // 2. 질문 조회
         InterviewRecord interviewRecord = interviewRecordRepository.findById(interviewRecordId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 면접 기록입니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 면접 기록을 찾을 수 없습니다. (ID: " + interviewRecordId + ")"));
 
-        // 3. 북마크 존재 여부 확인 및 처리
+        // Redis Key 생성
+        String redisKey = "bookmark:count:" + interviewRecordId;
+
+        // 3. 북마크 로직 + Redis 카운팅
         return questionScrapRepository.findByMemberAndInterviewRecord(member, interviewRecord)
                 .map(scrap -> {
-                    // 3-1. 이미 존재하면 삭제
+                    // 3-1. 삭제 로직
                     questionScrapRepository.delete(scrap);
-                    return false; // 북마크 해제
+
+                    // [Redis] 캐시가 존재하면 -1 감소
+                    if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
+                        redisTemplate.opsForValue().decrement(redisKey);
+                    }
+                    return false;
                 })
                 .orElseGet(() -> {
-                    // 3-2. 없으면 새로 생성 및 저장
+                    // 3-2. 저장 로직
                     QuestionScrap newScrap = QuestionScrap.builder()
                             .member(member)
                             .interviewRecord(interviewRecord)
                             .build();
                     questionScrapRepository.save(newScrap);
-                    return true; // 북마크 설정됨
+
+                    // [Redis] 캐시가 존재하면 +1 증가 (없으면 굳이 안 만듦 -> 조회할 때 만들어짐)
+                    if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
+                        redisTemplate.opsForValue().increment(redisKey);
+                    }
+                    return true;
                 });
+    }
+
+    /*
+     * [북마크 개수 조회 - Redis Caching 적용]
+     * - 화면에서 "좋아요 120개" 보여줄 때 사용하는 메서드입니다.
+     */
+    public Long getBookmarkCount(Long interviewRecordId){
+        String redisKey = "bookmark:count:" + interviewRecordId;
+
+        String countStr = (String) redisTemplate.opsForValue().get(redisKey);
+
+        if(countStr != null) {
+            return Long.parseLong(countStr);
+        }
+
+        Long dbCount = questionScrapRepository.countByInterviewRecordId(interviewRecordId);
+        redisTemplate.opsForValue().set(redisKey, String.valueOf(dbCount), Duration.ofHours(1));
+
+        return dbCount;
     }
 
     /*

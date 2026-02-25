@@ -12,4 +12,6 @@ public interface QuestionScrapRepository extends JpaRepository<QuestionScrap, Lo
     boolean existsByMemberAndInterviewRecord(Member member, InterviewRecord interviewRecord);
 
     Optional<QuestionScrap> findByMemberAndInterviewRecord(Member member, InterviewRecord interviewRecord);
+
+    long countByInterviewRecordId(long interviewRecordId);
 }
