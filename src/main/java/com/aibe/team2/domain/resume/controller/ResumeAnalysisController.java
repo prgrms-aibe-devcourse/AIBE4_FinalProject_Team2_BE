@@ -16,7 +16,7 @@ public class ResumeAnalysisController {
 
     private final ResumeAnalysisService resumeAnalysisService;
 
-    // 1. 이력서 분석 요청 (AI 사용)
+    // 1. 자소서 분석 요청 (AI 사용)
     // [POST] /api/resumes/{resumeId}/analysis
     @PostMapping("/{resumeId}/analysis")
     public ApiResponse<Long> analyzeResume(@PathVariable Long resumeId) {

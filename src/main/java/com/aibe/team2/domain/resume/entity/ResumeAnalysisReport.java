@@ -105,4 +105,7 @@ public class ResumeAnalysisReport {
     public void failAnalysis() {
         this.status = ResumeAnalysisStatus.FAILED;
     }
+
+    public void updateStatus(ResumeAnalysisStatus resumeAnalysisStatus) {
+    }
 }

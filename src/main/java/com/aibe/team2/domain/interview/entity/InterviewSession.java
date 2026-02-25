@@ -24,7 +24,7 @@ public class InterviewSession {
     @Column(nullable = false)
     private Long memberId; // 회원 ID
 
-    private Long resumeId; // 이력서 ID
+    private Long resumeId; // 자소서 ID
 
     private Long jobPostingId; // 채용 공고 ID
 
