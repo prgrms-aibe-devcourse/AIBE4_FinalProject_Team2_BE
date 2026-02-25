@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.resume.service;
 
+import com.aibe.team2.domain.resume.dto.ResumeAnalysisEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,25 +18,31 @@ public class AnalysisQueueConsumer {
     private final ResumeAnalysisAsyncWorker asyncWorker;
     private static final String QUEUE_KEY = "resume:analysis:queue";
 
-    // 1초(1000ms)마다 백그라운드에서 큐를 확인합니다.
+    // 🌟 [핵심] 한 번 스케줄러가 동작할 때 최대 처리할 메시지 개수 제한 (Batch Size)
+    private static final int MAX_BATCH_SIZE = 50;
+
     @Scheduled(fixedDelay = 1000)
     public void consumeQueue() {
-        // Redis List의 왼쪽(Left)에서 데이터를 하나 뽑아옵니다. (없으면 null 반환)
-        Object jsonMessage = redisTemplate.opsForList().leftPop(QUEUE_KEY);
 
-        if (jsonMessage != null) {
+        // 🌟 무한 루프(while true) 대신 지정된 개수(MAX_BATCH_SIZE)만큼만 반복하는 for문 사용
+        for (int i = 0; i < MAX_BATCH_SIZE; i++) {
+            Object jsonMessage = redisTemplate.opsForList().leftPop(QUEUE_KEY);
+
+            // 큐가 비어있으면 즉시 탈출 (50번을 다 돌기 전이라도 멈춤)
+            if (jsonMessage == null) {
+                break;
+            }
+
             try {
-                // JSON 텍스트를 다시 Java 객체로 변환
-                AnalysisQueueProducer.AnalysisMessage message =
-                        objectMapper.readValue(jsonMessage.toString(), AnalysisQueueProducer.AnalysisMessage.class);
-
-                log.info("[QueueConsumer] 큐에서 작업 추출 성공! AI 분석 시작 - Report ID: {}", message.getReportId());
-
+                ResumeAnalysisEvent event;
+                event = objectMapper.readValue(jsonMessage.toString(), ResumeAnalysisEvent.class);
+                log.info("[QueueConsumer] 큐에서 작업 추출 성공! AI 분석 비동기 위임 - Report ID: {}", event.reportId());
                 // 비동기 워커 실행!
+                // 💡 주의: asyncWorker의 메서드는 @Async가 붙어있으므로, 여기서 결과를 기다리지 않고 백그라운드 스레드 풀에 던진 뒤 즉시 다음 루프로 넘어갑니다.
                 asyncWorker.processAiAnalysisAsync(
-                        message.getReportId(),
-                        message.getResumeContent(),
-                        message.getFullJobDescription()
+                        event.reportId(),
+                        event.resumeContent(),
+                        event.fullJobDescription()
                 );
             } catch (Exception e) {
                 log.error("[QueueConsumer] 큐 메시지 처리 중 오류 발생", e);

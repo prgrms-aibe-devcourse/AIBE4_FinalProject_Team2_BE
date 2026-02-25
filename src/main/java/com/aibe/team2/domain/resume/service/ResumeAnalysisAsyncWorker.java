@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -117,6 +118,7 @@ public class ResumeAnalysisAsyncWorker {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
+                .timeout(Duration.ofSeconds(30))
                 .block();
 
         if (responseNode == null || !responseNode.has("candidates")) {

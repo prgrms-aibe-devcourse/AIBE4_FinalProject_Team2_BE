@@ -1,13 +1,13 @@
 package com.aibe.team2.domain.resume.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SimilarityEngine {
 
-    private final ObjectMapper objectMapper;
     private final WebClient.Builder webClientBuilder;
 
     @Value("${gemini.api.key}")
@@ -53,7 +52,7 @@ public class SimilarityEngine {
     /**
      * Gemini Embedding API를 호출하여 텍스트를 벡터(List<Double>)로 변환합니다.
      */
-    private List<Double> getEmbeddingVector(String text) throws Exception {
+    private List<Double> getEmbeddingVector(String text) {
         Map<String, Object> requestBody = Map.of(
                 "model", "models/text-embedding-004",
                 "content", Map.of("parts", List.of(Map.of("text", text)))
@@ -66,6 +65,7 @@ public class SimilarityEngine {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
+                .timeout(Duration.ofSeconds(30))
                 .block();
 
         if (responseNode == null || !responseNode.has("embedding")) {

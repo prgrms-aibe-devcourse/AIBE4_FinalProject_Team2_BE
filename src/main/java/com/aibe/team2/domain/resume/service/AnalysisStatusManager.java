@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnalysisStatusManager {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
-
     private final ResumeAnalysisRepository analysisRepository;
 
     // 비동기 스레드나 큐 컨슈머에서 호출되므로, 항상 새로운 트랜잭션(REQUIRES_NEW)으로 상태를 즉시 DB에 반영하는 것이 안전
