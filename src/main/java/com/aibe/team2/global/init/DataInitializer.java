@@ -5,7 +5,7 @@ import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.mypage.entity.Member;
-import com.aibe.team2.domain.mypage.repository.MemberRepository;
+import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.resume.entity.Resume;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
@@ -57,11 +57,11 @@ public class DataInitializer implements CommandLineRunner {
 
        for(Member member : members) {
 
-           // 2. 이력서 및 채용공고 생성(부모 데이터)
+           // 2. 자기소개서 및 채용공고 생성(부모 데이터)
            Resume resume = createResume(member);
            JobPosting jobPosting = createJobPosting(member);
 
-           // 3. 이력서 분석 결과 생성(자식 데이터)
+           // 3. 자기소개서 분석 결과 생성(자식 데이터)
            createResumeAnalysisReport(resume, jobPosting);
 
            // 4. 회우너별 면접 세션 및 통계 데이터 생성(5~10건)
@@ -139,7 +139,7 @@ public class DataInitializer implements CommandLineRunner {
     private Resume createResume(Member member) {
        Resume resume = Resume.builder()
                .memberId(member.getMemberId())
-               .title("백엔드 개발자 지원 이력서")
+               .title("백엔드 개발자 지원 자기소개서")
                .content("저는 Java와 Spring을 활용한 프로젝트 경험이 있습니다. ...")
                .s3FileUrl("https://s3.ap-northeast-2.amazonaws.com/synctalk/dummy.pdf")
                .build();
@@ -183,7 +183,7 @@ public class DataInitializer implements CommandLineRunner {
                 generatedSubtitle,
                 keywordAnalysis,
                 sentenceCorrection,
-                "첨삭이 완료된 전체 이력서 내용입니다. ..."
+                "첨삭이 완료된 전체 자기소개서 내용입니다. ..."
         );
 
         resumeAnalysisRepository.save(report);

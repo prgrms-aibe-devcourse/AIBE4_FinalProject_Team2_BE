@@ -34,7 +34,7 @@ public class ResumeStatisticsService {
         ResumeAnalysisReport report = resumeAnalysisRepository.findById(analysisId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
 
-        // 2. 권한 검증 (내 이력서가 맞는지 확인)
+        // 2. 권한 검증 (내 자기소개서가 맞는지 확인)
         // Resume 엔티티가 memberId 필드를 가지고 있다고 가정
         Long resumeOwnerId = report.getResume().getMemberId();
 
