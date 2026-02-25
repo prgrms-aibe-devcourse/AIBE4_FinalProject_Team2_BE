@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.List;
 
 public record JobPostingRequest(
-        // Long memberId,  <-- 보안을 위해 삭제하세요!
-
+        @NotBlank(message = "회사명은 필수입니다.")
         @Schema(description = "기업명", example = "원티드랩")
         String companyName,
 

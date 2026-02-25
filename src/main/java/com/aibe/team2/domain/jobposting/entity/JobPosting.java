@@ -60,9 +60,7 @@ public class JobPosting {
     }
 
     // 연관관계 편의 메서드 추가 (공고에 스킬을 추가할 때 사용)
-    // 아마 채용공고를 복사하는 형식으로 갖고오는거라 안 쓰긴 할듯.
     public void addJobSkill(JobSkill jobSkill) {
         this.jobSkills.add(jobSkill);
     }
-
 }
