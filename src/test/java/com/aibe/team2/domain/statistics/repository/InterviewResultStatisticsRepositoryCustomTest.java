@@ -1,7 +1,7 @@
 package com.aibe.team2.domain.statistics.repository;
 
 import com.aibe.team2.domain.mypage.entity.Member;
-import com.aibe.team2.domain.mypage.repository.MemberRepository;
+import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewResultStatistics;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewResultStatisticsRepository;
 import lombok.extern.slf4j.Slf4j;
