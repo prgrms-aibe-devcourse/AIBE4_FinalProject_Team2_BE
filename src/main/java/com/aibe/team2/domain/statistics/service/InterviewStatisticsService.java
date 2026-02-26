@@ -9,8 +9,8 @@ import com.aibe.team2.domain.statistics.dto.interview.InterviewResultDetailRespo
 import com.aibe.team2.domain.statistics.dto.interview.InterviewResultDetailResponse.TurnScript;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.entity.InterviewResultStatistics;
-import com.aibe.team2.domain.statistics.repository.InterviewRecordRepository;
-import com.aibe.team2.domain.statistics.repository.InterviewResultStatisticsRepository;
+import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
+import com.aibe.team2.domain.statistics.repository.interview.InterviewResultStatisticsRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;

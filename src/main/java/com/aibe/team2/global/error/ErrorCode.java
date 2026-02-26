@@ -46,15 +46,15 @@ public enum ErrorCode {
     JOB_POSTING_CRAWL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "JOB_002", "채용 공고 URL 크롤링에 실패했습니다."),
     JOB_POSTING_OWNERSHIP_ERROR(HttpStatus.FORBIDDEN, "JOB_003", "해당 채용 공고에 대한 접근 권한이 없습니다."),
 
-    // Resume (자소서)
-    RESUME_NOT_FOUND(HttpStatus.NOT_FOUND, "RESUME_001", "해당 이력서를 찾을 수 없습니다."),
-    RESUME_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "RESUME_002", "이력서 내용을 분석하는 중 오류가 발생했습니다."),
-    RESUME_OWNERSHIP_ERROR(HttpStatus.FORBIDDEN, "RESUME_003", "해당 이력서에 대한 접근 권한이 없습니다."),
+    // Resume (자기소개서)
+    RESUME_NOT_FOUND(HttpStatus.NOT_FOUND, "RESUME_001", "해당 자기소개서를 찾을 수 없습니다."),
+    RESUME_PARSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "RESUME_002", "자기소개서 내용을 분석하는 중 오류가 발생했습니다."),
+    RESUME_OWNERSHIP_ERROR(HttpStatus.FORBIDDEN, "RESUME_003", "해당 자기소개서에 대한 접근 권한이 없습니다."),
 
-    // Resume Analysis (이력서 첨삭/분석 리포트)
-    ANALYSIS_REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "ANALYSIS_001", "이력서 분석 리포트를 찾을 수 없습니다."),
-    ANALYSIS_IN_PROGRESS(HttpStatus.CONFLICT, "ANALYSIS_002", "현재 이력서 분석이 진행 중입니다. 잠시 후 다시 시도해주세요."),
-    ANALYSIS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ANALYSIS_003", "이력서 분석에 실패했습니다."),
+    // Resume Analysis (자기소개서 첨삭/분석 리포트)
+    ANALYSIS_REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "ANALYSIS_001", "자기소개서 분석 리포트를 찾을 수 없습니다."),
+    ANALYSIS_IN_PROGRESS(HttpStatus.CONFLICT, "ANALYSIS_002", "현재 자기소개서 분석이 진행 중입니다. 잠시 후 다시 시도해주세요."),
+    ANALYSIS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "ANALYSIS_003", "자기소개서 분석에 실패했습니다."),
 
     // Interview (면접)
     INTERVIEW_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "INTERVIEW_001", "면접 세션을 찾을 수 없습니다."),
@@ -78,8 +78,10 @@ public enum ErrorCode {
     AI_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "AI_004", "AI 서비스에 잘못된 요청(프롬프트 등)이 전달되었습니다."),
     AI_CONTENT_FILTERED(HttpStatus.BAD_REQUEST, "AI_005", "안전 정책(Safety Policy)에 의해 AI가 답변 생성을 거부했습니다."),
     AI_RESPONSE_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI_006", "AI가 생성한 응답 데이터(JSON)를 분석하는 데 실패했습니다."),
-    AI_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI_007", "외부 AI 서버 내부에서 일시적인 오류가 발생했습니다.");
+    AI_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI_007", "외부 AI 서버 내부에서 일시적인 오류가 발생했습니다."),
 
+    // Redis 관련 (추가 제안)
+    REDIS_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "EXT008", "캐시 서버 연결에 실패했습니다.");
 
     private final HttpStatus status;
     private final String code;

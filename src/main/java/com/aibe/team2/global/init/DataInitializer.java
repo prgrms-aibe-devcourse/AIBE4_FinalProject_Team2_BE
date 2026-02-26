@@ -5,15 +5,15 @@ import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.mypage.entity.Member;
-import com.aibe.team2.domain.mypage.repository.MemberRepository;
+import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.resume.entity.Resume;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.entity.InterviewResultStatistics;
-import com.aibe.team2.domain.statistics.repository.InterviewRecordRepository;
-import com.aibe.team2.domain.statistics.repository.InterviewResultStatisticsRepository;
+import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
+import com.aibe.team2.domain.statistics.repository.interview.InterviewResultStatisticsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -56,13 +56,12 @@ public class DataInitializer implements CommandLineRunner {
        List<Member> members = createMembers();
 
        for(Member member : members) {
-           Long userId = member.getId();
 
-           // 2. 이력서 및 채용공고 생성(부모 데이터)
-           Resume resume = createResume(userId);
-           JobPosting jobPosting = createJobPosting(userId);
+           // 2. 자기소개서 및 채용공고 생성(부모 데이터)
+           Resume resume = createResume(member);
+           JobPosting jobPosting = createJobPosting(member);
 
-           // 3. 이력서 분석 결과 생성(자식 데이터)
+           // 3. 자기소개서 분석 결과 생성(자식 데이터)
            createResumeAnalysisReport(resume, jobPosting);
 
            // 4. 회우너별 면접 세션 및 통계 데이터 생성(5~10건)
@@ -74,9 +73,9 @@ public class DataInitializer implements CommandLineRunner {
 
                // 4-1. InterviewSession
                InterviewSession session = InterviewSession.builder()
-                       .memberId(userId)
-                       .interviewType(i % 2 == 0 ? "TEXT" : "VOICE")
-                       .aiProvider(i % 2 == 0 ? "GEMINI" : "RETELL")
+                       .memberId(member.getMemberId())
+                       .interviewType(i % 2 == 0 ? "TEXT" : "VOICE") // 변경된 필드명에 맞게 수정
+                       .aiProvider(i % 2 == 0 ? "OPEN_AI" : "RETELL") // aiProvider 값도 함께 세팅 (Null 방지)
                        .build();
 
                setCreatedAt(session, pastDate);
@@ -137,10 +136,10 @@ public class DataInitializer implements CommandLineRunner {
        return members;
     }
 
-    private Resume createResume(Long userId) {
+    private Resume createResume(Member member) {
        Resume resume = Resume.builder()
-               .memberId(userId)
-               .title("백엔드 개발자 지원 이력서")
+               .memberId(member.getMemberId())
+               .title("백엔드 개발자 지원 자기소개서")
                .content("저는 Java와 Spring을 활용한 프로젝트 경험이 있습니다. ...")
                .s3FileUrl("https://s3.ap-northeast-2.amazonaws.com/synctalk/dummy.pdf")
                .build();
@@ -148,10 +147,11 @@ public class DataInitializer implements CommandLineRunner {
        return resumeRepository.save(resume);
     }
 
-    private JobPosting createJobPosting(Long userId) {
+    private JobPosting createJobPosting(Member member) {
         String jsonSkills = "[\"Java\", \"Spring Boot\", \"JPA\", \"MySQL\"]";
+
         JobPosting jobPosting = JobPosting.builder()
-                .memberId(userId)
+                .memberId(member.getMemberId())
                 .companyName("싱크테크")
                 .jobTitle("주니어 백엔드 엔지니어")
                 .jobDescription("대용량 트래픽 처리를 경험할 백엔드 개발자를 모십니다.")
@@ -183,7 +183,7 @@ public class DataInitializer implements CommandLineRunner {
                 generatedSubtitle,
                 keywordAnalysis,
                 sentenceCorrection,
-                "첨삭이 완료된 전체 이력서 내용입니다. ..."
+                "첨삭이 완료된 전체 자기소개서 내용입니다. ..."
         );
 
         resumeAnalysisRepository.save(report);
