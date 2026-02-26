@@ -55,6 +55,14 @@ retell:
     id: ${RETELL_AGENT_ID:dummy_agent_id}
 
 aws:
+  region: ${AWS_REGION:ap-northeast-2}
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+
+  s3:
+    endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}
+    bucket: aibe-bucket
+
   sqs:
     endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}
-    region: ${AWS_REGION:ap-northeast-2}
