@@ -24,6 +24,7 @@ import java.util.Map;
                 )
         }
 )
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
@@ -39,27 +40,25 @@ public class ResumeAnalysisReport {
     private Resume resume;
 
     // FK (job_posting.id), NOT NULL
-    // ⭐ 객체 참조(@ManyToOne)로 변경
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_posting_id", nullable = false)
-    private JobPosting jobPostingId;
+    @JoinColumn(name = "job_posting", nullable = false)
+    private JobPosting jobPosting;
 
     @Column(name = "match_score")
     private Integer matchScore;
 
-    // JSON 타입 (MySQL 등에서 JSON 컬럼 사용 시 columnDefinition 명시 권장)
     // ⭐ Convert 어노테이션 추가 및 Map<String, Object> 변환
     @Convert(converter = JsonAttributeConverter.class)
     @Column(name = "keyword_analysis", columnDefinition = "TEXT")
     private Map<String, Object> keywordAnalysis;
 
-    // ⭐ Convert 어노테이션 추가 및 Map<String, Object> 변환
+    // Convert 어노테이션 추가 및 Map<String, Object> 변환
     @Convert(converter = JsonAttributeConverter.class)
     @Column(name = "sentence_correction", columnDefinition = "TEXT")
     private Map<String, Object> sentenceCorrection;
 
-    // New! 이미지 반영: JSON 타입
-    // ⭐ Convert 어노테이션 추가 및 Map<String, Object> 변환
+
+    // Convert 어노테이션 추가 및 Map<String, Object> 변환
     @Convert(converter = JsonAttributeConverter.class)
     @Column(name = "generated_subtitle", columnDefinition = "TEXT")
     private Map<String, Object> generatedSubtitle;
@@ -80,9 +79,9 @@ public class ResumeAnalysisReport {
     private LocalDateTime updatedAt;
 
     @Builder
-    public ResumeAnalysisReport(Resume resume, JobPosting jobPostingId) {
+    public ResumeAnalysisReport(Resume resume, JobPosting jobPosting) {
         this.resume = resume;
-        this.jobPostingId = jobPostingId;
+        this.jobPosting = jobPosting;
         this.status = ResumeAnalysisStatus.PENDING;
     }
 
