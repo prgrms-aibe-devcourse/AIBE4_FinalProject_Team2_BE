@@ -41,7 +41,7 @@ public class ResumeAnalysisReport {
 
     // FK (job_posting.id), NOT NULL
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_posting", nullable = false)
+    @JoinColumn(name = "job_posting_id", nullable = false)
     private JobPosting jobPosting;
 
     @Column(name = "match_score")
