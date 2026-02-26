@@ -42,7 +42,7 @@ springdoc:
 gemini:
   api:
     key: ${GEMINI_API_KEY}
-    url: https://generativelanguage.googleapis.com
+    url: ${GEMINI_API_URL}
 
 retell:
   api:
