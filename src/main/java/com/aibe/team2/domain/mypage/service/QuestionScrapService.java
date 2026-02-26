@@ -9,7 +9,8 @@ import com.aibe.team2.domain.mypage.repository.bookmark.QuestionScrapRepository;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
-import com.aibe.team2.global.exception.custom.ResourceNotFoundException;
+import com.aibe.team2.global.error.ErrorCode;
+import com.aibe.team2.global.exception.custom.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,13 +47,14 @@ public class QuestionScrapService {
 
         // 1. 사용자 조회(없으면 예외 발생)
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 회원을 찾을 수 없습니다. (ID: " + memberId + ")"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
-        // 2. 질문 조회
+        // 2. 질문 조회 (수정된 부분 ✨)
+        // - Optional을 벗겨내고(orElseThrow), 없을 때만 에러를 던지도록 수정했습니다.
         InterviewRecord interviewRecord = interviewRecordRepository.findById(interviewRecordId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 면접 기록을 찾을 수 없습니다. (ID: " + interviewRecordId + ")"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.INTERVIEW_RECORD_NOT_FOUND));
 
-        // Redis Key 생성
+        // Redis Key 생성 (이제 이 코드가 정상적으로 실행됩니다)
         String redisKey = "bookmark:count:" + interviewRecordId;
 
         // 3. 북마크 로직 + Redis 카운팅
@@ -75,7 +77,7 @@ public class QuestionScrapService {
                             .build();
                     questionScrapRepository.save(newScrap);
 
-                    // [Redis] 캐시가 존재하면 +1 증가 (없으면 굳이 안 만듦 -> 조회할 때 만들어짐)
+                    // [Redis] 캐시가 존재하면 +1 증가
                     if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
                         redisTemplate.opsForValue().increment(redisKey);
                     }
