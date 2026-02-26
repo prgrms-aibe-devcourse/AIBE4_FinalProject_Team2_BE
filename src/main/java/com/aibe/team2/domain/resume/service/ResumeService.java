@@ -38,4 +38,13 @@ public class ResumeService {
 
         return ResumeResponse.from(resume);
     }
+
+    // 3. 자기소개서 목록 보기
+    // 로그인 구현시
+//    @GetMapping
+//    public ApiResponse<List<ResumeResponse>> getMyResumes() {
+//        Long currentMemberId = getLoginMemberId();
+//        List<ResumeResponse> responses = resumeService.findMyResumes(currentMemberId);
+//        return ApiResponse.success(responses);
+//    }
 }

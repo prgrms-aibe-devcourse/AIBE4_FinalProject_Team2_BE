@@ -39,4 +39,16 @@ public class GlobalExceptionHandler {
         log.error("Internal Server Error: ", e);
         return ErrorResponse.toResponseEntity(ErrorCode.COMMON_500);
     }
+    // [Spring] JSON 형식이 틀렸거나 파싱을 못할 때 (HttpMessageNotReadableException)
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(org.springframework.http.converter.HttpMessageNotReadableException e) {
+        log.error("HttpMessageNotReadableException: {}", e.getMessage());
+        return ErrorResponse.toResponseEntity(ErrorCode.COMMON_402);
+    }
+    // [Spring] 파라미터 타입이 다를 때 (예: Long 자리에 String이 들어옴)
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    protected ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException e) {
+        log.error("MethodArgumentTypeMismatchException: {}", e.getMessage());
+        return ErrorResponse.toResponseEntity(ErrorCode.COMMON_406);
+    }
 }
