@@ -78,8 +78,10 @@ public enum ErrorCode {
     AI_INVALID_REQUEST(HttpStatus.BAD_REQUEST, "AI_004", "AI 서비스에 잘못된 요청(프롬프트 등)이 전달되었습니다."),
     AI_CONTENT_FILTERED(HttpStatus.BAD_REQUEST, "AI_005", "안전 정책(Safety Policy)에 의해 AI가 답변 생성을 거부했습니다."),
     AI_RESPONSE_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI_006", "AI가 생성한 응답 데이터(JSON)를 분석하는 데 실패했습니다."),
-    AI_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI_007", "외부 AI 서버 내부에서 일시적인 오류가 발생했습니다.");
+    AI_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI_007", "외부 AI 서버 내부에서 일시적인 오류가 발생했습니다."),
 
+    // Redis 관련 (추가 제안)
+    REDIS_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "EXT008", "캐시 서버 연결에 실패했습니다.");
 
     private final HttpStatus status;
     private final String code;

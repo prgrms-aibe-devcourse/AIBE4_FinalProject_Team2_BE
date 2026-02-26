@@ -9,7 +9,9 @@ import com.aibe.team2.domain.mypage.repository.bookmark.QuestionScrapRepository;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
-import com.aibe.team2.global.exception.custom.ResourceNotFoundException;
+import com.aibe.team2.global.error.ErrorCode;
+import com.aibe.team2.global.exception.custom.ForbiddenException;
+import com.aibe.team2.global.exception.custom.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,27 +46,34 @@ public class QuestionScrapService {
     @Transactional
     public boolean toggleBookmark(Long memberId, Long interviewRecordId){
 
-        // 1. 사용자 조회(없으면 예외 발생)
+        // 1. 사용자 조회
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 회원을 찾을 수 없습니다. (ID: " + memberId + ")"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
 
         // 2. 질문 조회
         InterviewRecord interviewRecord = interviewRecordRepository.findById(interviewRecordId)
-                .orElseThrow(() -> new ResourceNotFoundException("해당 ID의 면접 기록을 찾을 수 없습니다. (ID: " + interviewRecordId + ")"));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.INTERVIEW_RECORD_NOT_FOUND));
+
+        // [Security Fix] IDOR 취약점 방지: 내 면접 기록인지 확인
+        // TODO: 만약 '다른 사람의 공개된 면접 기록'을 북마크하는 기능이라면 이 부분 로직을 수정해야 합니다. (예: isPublic 체크 등)
+        Long ownerId = interviewRecord.getInterviewSession().getMemberId();
+        if (!ownerId.equals(memberId)) {
+            // 내 것이 아니면 접근 거부
+            throw new ForbiddenException(ErrorCode.INTERVIEW_OWNERSHIP_ERROR);
+        }
 
         // Redis Key 생성
         String redisKey = "bookmark:count:" + interviewRecordId;
 
-        // 3. 북마크 로직 + Redis 카운팅
+        // 3. 북마크 로직 + Redis 캐시 무효화(Invalidation)
         return questionScrapRepository.findByMemberAndInterviewRecord(member, interviewRecord)
                 .map(scrap -> {
                     // 3-1. 삭제 로직
                     questionScrapRepository.delete(scrap);
 
-                    // [Redis] 캐시가 존재하면 -1 감소
-                    if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
-                        redisTemplate.opsForValue().decrement(redisKey);
-                    }
+                    // [Redis Fix] 값을 직접 줄이지 않고 캐시를 삭제함 (데이터 정합성 보장)
+                    redisTemplate.delete(redisKey);
+
                     return false;
                 })
                 .orElseGet(() -> {
@@ -75,10 +84,9 @@ public class QuestionScrapService {
                             .build();
                     questionScrapRepository.save(newScrap);
 
-                    // [Redis] 캐시가 존재하면 +1 증가 (없으면 굳이 안 만듦 -> 조회할 때 만들어짐)
-                    if (Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
-                        redisTemplate.opsForValue().increment(redisKey);
-                    }
+                    // [Redis Fix] 값을 직접 늘리지 않고 캐시를 삭제함
+                    redisTemplate.delete(redisKey);
+
                     return true;
                 });
     }
