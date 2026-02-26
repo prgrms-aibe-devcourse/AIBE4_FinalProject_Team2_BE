@@ -26,7 +26,7 @@ public class SimilarityEngine {
     private static final String EMBEDDING_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent";
 
     /**
-     * 채용 공고(JD)와 자소서의 코사인 유사도를 계산하여 100점 만점으로 반환합니다.
+     * 채용 공고(JD)와 자기소개서의 코사인 유사도를 계산하여 100점 만점으로 반환합니다.
      */
     public int calculateCosineSimilarityScore(String resumeContent, String jobDescription) {
         try {

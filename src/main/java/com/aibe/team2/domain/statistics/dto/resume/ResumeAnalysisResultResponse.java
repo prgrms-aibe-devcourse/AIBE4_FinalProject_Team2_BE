@@ -6,7 +6,7 @@ import java.util.Map;
 
 public record ResumeAnalysisResultResponse(
         Long analysisId,
-        Integer totalScore, // 자소서 완성도 점수
+        Integer totalScore, // 자기소개서 완성도 점수
 
         EvaluationSummary evaluationSummary, // 상단 4대 지표 요약
         KeywordStats keywordStats, // 상세 피드백 데이터
