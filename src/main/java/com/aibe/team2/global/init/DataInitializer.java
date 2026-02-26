@@ -75,8 +75,8 @@ public class DataInitializer implements CommandLineRunner {
                // 4-1. InterviewSession
                InterviewSession session = InterviewSession.builder()
                        .memberId(userId)
-                       .interviewType(i % 2 == 0 ? "TEXT" : "VOICE") // 변경된 필드명에 맞게 수정
-                       .aiProvider(i % 2 == 0 ? "OPEN_AI" : "RETELL") // aiProvider 값도 함께 세팅 (Null 방지)
+                       .interviewType(i % 2 == 0 ? "TEXT" : "VOICE")
+                       .aiProvider(i % 2 == 0 ? "GEMINI" : "RETELL")
                        .build();
 
                setCreatedAt(session, pastDate);
@@ -139,7 +139,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private Resume createResume(Long userId) {
        Resume resume = Resume.builder()
-               .userId(userId)
+               .memberId(userId)
                .title("백엔드 개발자 지원 이력서")
                .content("저는 Java와 Spring을 활용한 프로젝트 경험이 있습니다. ...")
                .s3FileUrl("https://s3.ap-northeast-2.amazonaws.com/synctalk/dummy.pdf")
@@ -151,7 +151,7 @@ public class DataInitializer implements CommandLineRunner {
     private JobPosting createJobPosting(Long userId) {
         String jsonSkills = "[\"Java\", \"Spring Boot\", \"JPA\", \"MySQL\"]";
         JobPosting jobPosting = JobPosting.builder()
-                .userId(userId)
+                .memberId(userId)
                 .companyName("싱크테크")
                 .jobTitle("주니어 백엔드 엔지니어")
                 .jobDescription("대용량 트래픽 처리를 경험할 백엔드 개발자를 모십니다.")

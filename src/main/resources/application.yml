@@ -42,17 +42,13 @@ springdoc:
 gemini:
   api:
     key: ${GEMINI_API_KEY}
-    url: ${GEMINI_API_URL}
-
-openai:
-  api:
-    key: ${OPENAI_API_KEY:dummy_key_for_now}
+    url: https://generativelanguage.googleapis.com
 
 retell:
   api:
-    key: ${RETELL_API_KEY:dummy_key_for_now}
+    key: key_50c10277448c070f6b6bb6c2ecba
   agent:
-    id: ${RETELL_AGENT_ID:dummy_agent_id}
+    id: agent_28edb6c22201bee8f27a45ecfd
 
 aws:
   sqs:

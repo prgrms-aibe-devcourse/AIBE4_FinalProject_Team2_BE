@@ -36,7 +36,7 @@ public class ResumeStatisticsService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
 
         // 2. 권한 검증
-        if(!report.getResume().getUserId().equals(currentUserId)){
+        if(!report.getResume().getMemberId().equals(currentUserId)){
             throw new ForbiddenException(ErrorCode.COMMON_403);
         }
 

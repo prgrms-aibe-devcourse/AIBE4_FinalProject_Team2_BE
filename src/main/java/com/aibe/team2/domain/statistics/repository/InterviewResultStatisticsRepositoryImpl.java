@@ -45,6 +45,6 @@ public class InterviewResultStatisticsRepositoryImpl implements InterviewResultS
     // 2. 면접 타입 일치 여부(동적 조건)
     private BooleanExpression sessionTypeEq(String sessionType) {
         // StringUtils.hasText()를 통해 null 또는 빈 문자열을 한 번에 검증
-        return StringUtils.hasText(sessionType) ? interviewSession.type.eq(sessionType) : null;
+        return StringUtils.hasText(sessionType) ? interviewSession.interviewType.eq(sessionType) : null;
     }
 }

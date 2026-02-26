@@ -165,7 +165,7 @@
                     body: JSON.stringify({
                         memberId: 1,
                         interviewType: 'TEXT',
-                        aiProvider: 'OPEN_AI',
+                        aiProvider: 'GEMINI',
                         interviewMode: 'NORMAL'
                     })
                 });
@@ -186,7 +186,12 @@
                 }
                 try {
                     const data = JSON.parse(event.data);
-                    aiMsgDiv.innerText += data.choices[0].delta.content || "";
+
+                    // [수정] 기존 OpenAI 코드를 지우고 Gemini 규격(candidates)만 남깁니다!
+                    if (data.candidates && data.candidates[0].content) {
+                        aiMsgDiv.innerText += data.candidates[0].content.parts[0].text || "";
+                    }
+
                 } catch (e) {
                     aiMsgDiv.innerText += event.data;
                 }
