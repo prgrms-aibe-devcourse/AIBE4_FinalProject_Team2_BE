@@ -17,7 +17,7 @@ public class ResumeService {
 
     private final ResumeRepository resumeRepository;
 
-    // 1. 자소서 저장
+    // 1. 자기소개서 저장
     @Transactional
     public ResumeResponse saveResume(ResumeRequest request) {
         Resume resume = Resume.builder()
@@ -31,7 +31,7 @@ public class ResumeService {
         return ResumeResponse.from(savedResume);
     }
 
-    // 2. 자소서 상세 조회
+    // 2. 자기소개서 상세 조회
     public ResumeResponse findResume(Long resumeId) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));

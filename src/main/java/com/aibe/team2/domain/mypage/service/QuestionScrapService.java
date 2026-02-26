@@ -54,7 +54,7 @@ public class QuestionScrapService {
         InterviewRecord interviewRecord = interviewRecordRepository.findById(interviewRecordId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.INTERVIEW_RECORD_NOT_FOUND));
 
-        // Redis Key 생성 (이제 이 코드가 정상적으로 실행됩니다)
+        // Redis Key 생성
         String redisKey = "bookmark:count:" + interviewRecordId;
 
         // 3. 북마크 로직 + Redis 카운팅
