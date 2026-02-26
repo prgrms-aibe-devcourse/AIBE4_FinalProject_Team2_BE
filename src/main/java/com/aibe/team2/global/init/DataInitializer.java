@@ -163,7 +163,7 @@ public class DataInitializer implements CommandLineRunner {
     private void createResumeAnalysisReport(Resume resume, JobPosting jobPosting) {
         ResumeAnalysisReport report = ResumeAnalysisReport.builder()
                 .resume(resume)
-                .jobPostingId(jobPosting)
+                .jobPosting(jobPosting)
                 .build();
 
         Map<String, Object> generatedSubtitle = new HashMap<>();

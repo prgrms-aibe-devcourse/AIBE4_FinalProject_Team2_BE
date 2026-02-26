@@ -17,6 +17,8 @@ public class ResumeController {
 
     private final ResumeService resumeService;
 
+    //Todo ResumeController & ResumeService memberId(currentMemberId)로 변경.
+
     // 1. 자기소개서 저장 (생성)
     @PostMapping
     public ApiResponse<ResumeResponse> createResume(@RequestBody @Valid ResumeRequest request) {
@@ -32,4 +34,13 @@ public class ResumeController {
         ResumeResponse response = resumeService.findResume(resumeId);
         return ApiResponse.success(response);
     }
+
+    // 3. 내 자기소개서 목록 보기(마이페이지)
+    // 로그인 구현시
+//    @GetMapping
+//    public ApiResponse<List<ResumeResponse>> getMyResumes() {
+//        Long currentMemberId = getLoginMemberId();
+//        List<ResumeResponse> responses = resumeService.findMyResumes(currentMemberId);
+//        return ApiResponse.success(responses);
+//    }
 }

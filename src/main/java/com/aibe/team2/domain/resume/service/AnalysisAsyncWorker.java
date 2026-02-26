@@ -14,21 +14,24 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ResumeAnalysisAsyncWorker {
+public class AnalysisAsyncWorker {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final SimilarityEngine similarityEngine;
     private final ObjectMapper objectMapper;
     private final WebClient.Builder webClientBuilder;
     private final AnalysisStatusManager statusManager;
+
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
@@ -50,9 +53,9 @@ public class ResumeAnalysisAsyncWorker {
             // 2. 정성적 지표: Gemini API 호출 (첨삭, 키워드, 소제목 추출)
             AiAnalysisResult result = callGeminiApiForCorrections(resumeContent, jobDescription);
 
-            // 3. 분석 성공 처리 및 DB 업데이트 (유사도 점수와 AI 첨삭 결과를 합침)
+            // 3. 분석 성공 처리 및 DB 업데이트
             report.completeAnalysis(
-                    matchScore, // 계산된 유사도 점수를 저장
+                    matchScore,
                     result.generatedSubtitle(),
                     result.keywords(),
                     result.corrections(),
@@ -60,15 +63,19 @@ public class ResumeAnalysisAsyncWorker {
             );
             log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
 
+        } catch (WebClientRequestException | TimeoutException e) {
+            // 지연 // AI 서버 응답 지연 또는 타임아웃 발생 시 -> DELAYED 상태로 변경
+            log.warn("[Async Worker] AI API 호출 지연/타임아웃 발생 - Report ID: {}", reportId, e);
+            statusManager.updateToDelayed(reportId);
+
         } catch (Exception e) {
+            // 실패 // 그 외 파싱 에러나 알 수 없는 에러 발생 시 -> FAILED 상태로 변경
             log.error("[Async Worker] AI 분석 중 오류 발생 - Report ID: {}", reportId, e);
-            // 현재 트랜잭션이 롤백되더라도, 독립된 트랜잭션으로 FAILED 상태를 무조건 DB에 기록합니다
-            statusManager.updateStatusToFailed(reportId);
+            statusManager.updateToFailed(reportId);
         }
     }
 
     private AiAnalysisResult callGeminiApiForCorrections(String resumeContent, String jobDescription) throws Exception {
-        // 프롬프트 수정: 점수 계산 요구를 빼고 첨삭에만 집중
         String prompt = String.format("""
                 당신은 10년 차 전문 채용 담당자이자 자기소개서 첨삭 전문가입니다.
                 아래의 [채용 공고]를 참고하여, 지원자의 [자기소개서]가 공고에 적합해 보이도록 첨삭해주세요.

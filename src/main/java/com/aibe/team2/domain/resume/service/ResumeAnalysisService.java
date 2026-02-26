@@ -32,7 +32,7 @@ public class ResumeAnalysisService {
     @Transactional
     public Long analyzeResume(Long resumeId, Long jobPostingId, Long memberId) {
 
-        // 1. 이력서 조회 및 권한 검증
+        // 1. 자기소개서 조회 및 권한 검증
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
@@ -62,13 +62,13 @@ public class ResumeAnalysisService {
                 .findTopByResumeIdOrderByCreatedAtDesc(resumeId);
 
         ResumeAnalysisReport report;
-        if (existingReport.isPresent() && existingReport.get().getJobPostingId().getId().equals(jobPostingId)) {
+        if (existingReport.isPresent() && existingReport.get().getJobPosting().getId().equals(jobPostingId)) {
             report = existingReport.get();
             report.startAnalysis();
         } else {
             report = ResumeAnalysisReport.builder()
                     .resume(resume)
-                    .jobPostingId(jobPosting)
+                    .jobPosting(jobPosting)
                     .build();
             report.startAnalysis();
         }
@@ -88,7 +88,17 @@ public class ResumeAnalysisService {
     }
 
     @Transactional(readOnly = true)
-    public ResumeAnalysisReport getAnalysisResult(Long resumeId) {
+    public ResumeAnalysisReport getAnalysisResult(Long resumeId, Long memberId) {
+
+        // 1. 이력서 조회 및 내 이력서가 맞는지 보안 검증
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
+
+        if (!resume.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.COMMON_403);
+        }
+
+        // 2. 검증 통과 시에만 결과 반환
         return resumeAnalysisRepository.findTopByResumeIdOrderByCreatedAtDesc(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_REPORT_NOT_FOUND));
     }

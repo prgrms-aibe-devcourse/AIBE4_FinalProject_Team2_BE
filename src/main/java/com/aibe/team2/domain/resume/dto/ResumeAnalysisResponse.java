@@ -31,7 +31,7 @@ public record ResumeAnalysisResponse(
         return new ResumeAnalysisResponse(
                 report.getId(),
                 report.getResume().getId(),
-                report.getJobPostingId().getId(),
+                report.getJobPosting().getId(),
                 report.getMatchScore(),
                 report.getGeneratedSubtitle(),
                 report.getKeywordAnalysis(),
