@@ -17,7 +17,7 @@ public class ResumeController {
 
     private final ResumeService resumeService;
 
-    // 1. 자소서 저장 (생성)
+    // 1. 자기소개서 저장 (생성)
     @PostMapping
     public ApiResponse<ResumeResponse> createResume(@RequestBody @Valid ResumeRequest request) {
         log.info("Resume save requested. title: {}", request.title());
@@ -25,7 +25,7 @@ public class ResumeController {
         return ApiResponse.success(response);
     }
 
-    // 2. 자소서 상세 조회
+    // 2. 자기소개서 상세 조회
     @GetMapping("/{resumeId}")
     public ApiResponse<ResumeResponse> getResume(@PathVariable Long resumeId) {
         log.info("Resume lookup requested. id: {}", resumeId);

@@ -10,9 +10,9 @@ import java.util.Optional;
 @Repository
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
 
-    // 특정 사용자의 모든 자소서 조회 (마이페이지/자소서 관리 등에서 사용)
+    // 특정 사용자의 모든 자기소개서 조회 (마이페이지/자기소개서 관리 등에서 사용)
     List<Resume> findAllByMemberId(Long memberId);
 
-    // Id와 MemberId를 함께 검증하여 조회 (보안상 본인 자소서만 접근 가능하게 할 때 사용)
+    // Id와 MemberId를 함께 검증하여 조회 (보안상 본인 자기소개서만 접근 가능하게 할 때 사용)
     Optional<Resume> findByIdAndMemberId(Long id, Long memberId);
 }
