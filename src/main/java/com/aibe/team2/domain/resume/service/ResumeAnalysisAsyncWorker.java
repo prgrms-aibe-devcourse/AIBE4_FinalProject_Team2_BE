@@ -70,13 +70,13 @@ public class ResumeAnalysisAsyncWorker {
     private AiAnalysisResult callGeminiApiForCorrections(String resumeContent, String jobDescription) throws Exception {
         // 프롬프트 수정: 점수 계산 요구를 빼고 첨삭에만 집중
         String prompt = String.format("""
-                당신은 10년 차 전문 채용 담당자이자 자소서 첨삭 전문가입니다.
-                아래의 [채용 공고]를 참고하여, 지원자의 [자소서]가 공고에 적합해 보이도록 첨삭해주세요.
+                당신은 10년 차 전문 채용 담당자이자 자기소개서 첨삭 전문가입니다.
+                아래의 [채용 공고]를 참고하여, 지원자의 [자기소개서]가 공고에 적합해 보이도록 첨삭해주세요.
                 
                 [채용 공고]
                 %s
                 
-                [자소서]
+                [자기소개서]
                 %s
                 
                 응답은 반드시 아래의 JSON 형식으로만 작성해야 하며, 마크다운이나 부가 설명은 절대 포함하지 마세요.
@@ -98,11 +98,11 @@ public class ResumeAnalysisAsyncWorker {
                       }
                     ]
                   },
-                  "revisedFullContent": "전체 첨삭이 완료된 자소서 본문 텍스트"
+                  "revisedFullContent": "전체 첨삭이 완료된 자기소개서 본문 텍스트"
                 }
                 """,
                 jobDescription != null ? jobDescription : "채용 공고 내용 없음",
-                resumeContent != null ? resumeContent : "자소서 내용 없음"
+                resumeContent != null ? resumeContent : "자기소개서 내용 없음"
         );
 
         Map<String, Object> requestBody = Map.of(
