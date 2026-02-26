@@ -63,6 +63,8 @@ aws:
   s3:
     endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}
     bucket: aibe-bucket
+    presign-expiration-minutes: 10
+    allowed-content-types: application/pdf,image/png,image/jpeg
 
   sqs:
     endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}
