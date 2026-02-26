@@ -8,6 +8,7 @@ import com.aibe.team2.domain.mypage.entity.QuestionScrap;
 import com.aibe.team2.domain.mypage.repository.bookmark.QuestionScrapRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
+import com.aibe.team2.global.exception.custom.NotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -119,7 +120,7 @@ class QuestionScrapServiceTest {
         given(memberRepository.findById(memberId)).willReturn(Optional.empty());
 
         // when & then (실행 시 예외가 터져야 성공)
-        assertThrows(IllegalArgumentException.class, () ->
+        assertThrows(NotFoundException.class, () ->
                 questionScrapService.toggleBookmark(memberId, 10L)
         );
     }
