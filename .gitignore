@@ -33,4 +33,4 @@ localstack/
 /src/main/generated
 
 ###Test 폴더 제외
-/src/test
+/src/test/
