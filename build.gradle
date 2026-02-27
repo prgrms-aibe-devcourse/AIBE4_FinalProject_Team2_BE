@@ -68,6 +68,10 @@ dependencies {
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    implementation platform("software.amazon.awssdk:bom:2.25.52")
+    implementation "software.amazon.awssdk:s3"
+    implementation "software.amazon.awssdk:auth"
 }
 
 // Q-Class
