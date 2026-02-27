@@ -55,7 +55,6 @@ public class S3Config {
 
         applyEndpointAndCredentials(builder);
 
-        // LocalStack에서 presign도 path-style이 필요하면 켜기
         if (isLocalstackEndpoint()) {
             builder.serviceConfiguration(
                     S3Configuration.builder()
