@@ -31,3 +31,6 @@ localstack/
 
 # IDE의 자체 빌더가 src/main/generated에 생성할 경우 대비
 /src/main/generated
+
+###Test 폴더 제외
+/src/test/

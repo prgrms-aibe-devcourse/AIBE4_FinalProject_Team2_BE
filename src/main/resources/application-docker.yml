@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:mysql}:${MYSQL_PORT:3306}/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
@@ -12,12 +15,14 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: false
-#  GEMINI_API_KEY
-#  OPEN_API_KEY
-#  RETELL_API_KEY
-#  RETELL_AGENT_ID
 
   data:
     redis:
       host: ${DOCKER_REDIS_HOST:redis}
       port: ${DOCKER_REDIS_PORT:6379}
+
+aws:
+  s3:
+    endpoint: http://${LOCALSTACK_HOST:localstack}:${LOCALSTACK_PORT:4566}
+  sqs:
+    endpoint: http://${LOCALSTACK_HOST:localstack}:${LOCALSTACK_PORT:4566}
