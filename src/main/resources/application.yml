@@ -1,8 +1,6 @@
 spring:
   application:
     name: aibe-team2-api
-  profiles:
-    active: dev # 기본적으로 실행할 프로필을 dev로 지정
 
   servlet:
     multipart:
@@ -10,6 +8,7 @@ spring:
       max-request-size: 20MB
 
 server:
+  # 기본값(로컬 개발용)
   port: 8080
   servlet:
     encoding:
@@ -41,8 +40,8 @@ springdoc:
 # 외부 API 및 인프라 공통 설정
 gemini:
   api:
-    key: ${GEMINI_API_KEY}
-    url: ${GEMINI_API_URL}
+    key: ${GEMINI_API_KEY:dummy-key}
+    url: ${GEMINI_API_URL:https://dummy-url.com}
 
 openai:
   api:
@@ -56,15 +55,11 @@ retell:
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}
-  credentials:
-    access-key: ${AWS_ACCESS_KEY_ID:test}
-    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
 
   s3:
-    endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}
     bucket: aibe-bucket
     presign-expiration-minutes: 10
     allowed-content-types: application/pdf,image/png,image/jpeg
 
   sqs:
-    endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}
+    {}
