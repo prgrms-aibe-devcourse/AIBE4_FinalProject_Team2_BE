@@ -29,19 +29,18 @@ public class FileController {
 
     @PostMapping("/complete")
     public ResponseEntity<AttachmentCompleteResponse> complete(
-            @RequestBody AttachmentCompleteRequest request
+            @RequestBody AttachmentCompleteRequest request,
+            @RequestHeader("X-Member-Id") Long ownerMemberId
     ) {
-        // TODO: Auth 붙으면 SecurityContext에서 memberId 꺼내기
-        Long ownerMemberId = 1L;
         return ResponseEntity.ok(attachmentService.complete(request, ownerMemberId));
     }
 
     @PostMapping("/{attachmentId}/presigned-download")
     public ResponseEntity<PresignedDownloadResponse> presignDownload(
-            @PathVariable Long attachmentId
+            @PathVariable Long attachmentId,
+            @RequestHeader("X-Member-Id") Long requesterId,
+            @RequestHeader(value = "X-Admin", defaultValue = "false") boolean isAdmin
     ) {
-        Long requesterId = 1L;
-        boolean isAdmin = false;
         return ResponseEntity.ok(attachmentService.presignDownload(attachmentId, requesterId, isAdmin));
     }
 }
