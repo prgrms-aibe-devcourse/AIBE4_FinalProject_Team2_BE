@@ -33,7 +33,7 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/api/v1/mypage/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/files/presigned-url").permitAll()
+                        .requestMatchers("/api/files/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
