@@ -49,9 +49,9 @@ public class DailyStatisticsService {
         ValueOperations<String, Object> operations = redisTemplate.opsForValue();
 
         // 3. Cache Hit : Redis에 데이터가 있는지 확인
-        if(Boolean.TRUE.equals(redisTemplate.hasKey(redisKey))) {
-            log.info("Cache Hit! Key: {}", redisKey);
-            return (DailyStatisticsResponse) operations.get(redisKey);
+        DailyStatisticsResponse cachedResponse = (DailyStatisticsResponse) operations.get(redisKey);
+        if(cachedResponse != null){
+            return cachedResponse;
         }
 
         // 4. Cache Miss : DB에서 데이터 집계
