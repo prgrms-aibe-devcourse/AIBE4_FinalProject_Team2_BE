@@ -59,6 +59,13 @@ dependencies {
     
     implementation 'org.jsoup:jsoup:1.13.1'
 
+    // Spring Batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    // Spring Batch 테스트용 라이브러리 (추후 단위 테스트 작성 시 필요)
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
