@@ -3,6 +3,7 @@ package com.aibe.team2.domain.statistics.service;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
+import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisListResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.CorrectionDetail;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.EvaluationSummary;
@@ -12,6 +13,8 @@ import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,9 +25,15 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ResumeStatisticsService {
+public class                                          ResumeStatisticsService {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
+
+    // [FR-REP-04] 자기소개서 첨삭 이력 조회
+    public Page<ResumeAnalysisListResponse> getResumeAnalysisList(long memberId, Pageable pageable) {
+        return resumeAnalysisRepository.findByMemberIdWithDetails(memberId, pageable)
+                .map(ResumeAnalysisListResponse::from);
+    }
 
     // [FR-REP-04] 자기소개서 첨삭 이력 - 상세 조회
     @Transactional(readOnly = true)

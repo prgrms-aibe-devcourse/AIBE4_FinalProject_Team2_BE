@@ -1,6 +1,8 @@
 package com.aibe.team2.domain.resume.repository;
 
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +24,11 @@ public interface ResumeAnalysisRepository extends JpaRepository<ResumeAnalysisRe
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query(value = "SELECT r FROM ResumeAnalysisReport r " +
+            "JOIN FETCH r.resume res " +
+            "JOIN FETCH r.jobPosting jp " +
+            "WHERE res.memberId = :memberId",
+            countQuery = "SELECT count(r) FROM ResumeAnalysisReport r WHERE r.resume.memberId = :memberId")
+    Page<ResumeAnalysisReport> findByMemberIdWithDetails(@Param("memberId") Long memberId, Pageable pageable);
 }
