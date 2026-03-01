@@ -33,7 +33,10 @@ public class RedisConfig {
     @Bean
     public GenericJackson2JsonRedisSerializer customJsonSerializer() {
         PolymorphicTypeValidator typeValidator = BasicPolymorphicTypeValidator.builder()
-                .allowIfBaseType(Object.class)
+                .allowIfBaseType("com.aibe.team2.domain") // DTO 객체들 허용
+                .allowIfBaseType("java.util")             // List, Map 등 자바 기본 컬렉션 허용
+                .allowIfBaseType("java.time")             // LocalDateTime 등 시간 객체 허용
+                .allowIfBaseType("java.lang")             // String, Long, Integer 등 기본 래퍼 타입 허용
                 .build();
 
         ObjectMapper objectMapper = new ObjectMapper();
