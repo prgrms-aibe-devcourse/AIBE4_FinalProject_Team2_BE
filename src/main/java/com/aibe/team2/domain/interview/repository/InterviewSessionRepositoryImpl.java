@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.interview.repository;
 
-import com.aibe.team2.domain.mypage.dto.InterviewSessionListResponse;
+import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;

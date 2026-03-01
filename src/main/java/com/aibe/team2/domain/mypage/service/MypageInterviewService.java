@@ -1,7 +1,7 @@
 package com.aibe.team2.domain.mypage.service;
 
 import com.aibe.team2.domain.interview.repository.InterviewSessionRepository;
-import com.aibe.team2.domain.mypage.dto.InterviewSessionListResponse;
+import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

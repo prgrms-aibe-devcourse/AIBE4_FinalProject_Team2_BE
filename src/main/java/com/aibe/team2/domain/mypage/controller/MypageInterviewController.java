@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.mypage.controller;
 
-import com.aibe.team2.domain.mypage.dto.InterviewSessionListResponse;
+import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import com.aibe.team2.domain.mypage.service.MypageInterviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -91,7 +91,7 @@ public class GrowthStatisticsService {
     }
 
     // 튜플 전용 헬퍼 메서드
-    private BigDecimal getSafeScore(Tuple tuple, com.querydsl.core.types.dsl.NumberExpression<Double> expression) {
+    private BigDecimal getSafeScore(Tuple tuple, NumberExpression<Double> expression) {
         if (tuple == null || tuple.get(expression) == null) {
             // 값이 아예 없을 때도 "0.00"으로 포맷을 예쁘게 맞춰줍니다.
             return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);

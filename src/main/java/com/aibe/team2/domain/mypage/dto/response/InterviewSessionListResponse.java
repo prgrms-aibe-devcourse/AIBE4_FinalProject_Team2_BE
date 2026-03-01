@@ -1,4 +1,4 @@
-package com.aibe.team2.domain.mypage.dto;
+package com.aibe.team2.domain.mypage.dto.response;
 
 import com.aibe.team2.domain.interview.entity.InterviewSessionStatus;
 import java.time.LocalDateTime;
@@ -14,9 +14,13 @@ public record InterviewSessionListResponse(
         Integer finalScore,
         LocalDateTime createdAt
 ) {
+    // 상수 추출
+    private static final String NO_RESUME_SELECTED = "선택된 자기소개서 없음";
+    private static final String FREESTYLE_INTERVIEW = "자유 면접";
+    private static final String NO_JOB_TITLE = "-";
     public InterviewSessionListResponse {
-        resumeTitle = (resumeTitle != null) ? resumeTitle : "선택된 자소서 없음";
-        companyName = (companyName != null) ? companyName : "자유 면접";
-        jobTitle = (jobTitle != null) ? jobTitle : "-";
+        resumeTitle = (resumeTitle != null) ? resumeTitle : NO_RESUME_SELECTED;
+        companyName = (companyName != null) ? companyName : FREESTYLE_INTERVIEW;
+        jobTitle = (jobTitle != null) ? jobTitle : NO_JOB_TITLE;
     }
 }
