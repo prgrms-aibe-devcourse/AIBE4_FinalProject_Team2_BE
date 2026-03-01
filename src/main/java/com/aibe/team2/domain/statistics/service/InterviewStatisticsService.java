@@ -16,6 +16,7 @@ import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,7 @@ public class InterviewStatisticsService {
     private final InterviewResultStatisticsRepository statisticsRepository;
 
     // [단건 상세 조회]
+    @Cacheable(cacheNames = "interviewDetail", key = "#sessionId + ':' + #currentMemberId ")
     @Transactional(readOnly = true)
     public InterviewResultDetailResponse getInterviewStatistics(Long sessionId, Long currentMemberId) {
 
@@ -94,6 +96,7 @@ public class InterviewStatisticsService {
     }
 
     // [다건 목록 동적 조회]
+    @Cacheable(cacheNames = "interviewList", key = "#currentMemberId + ':' + #sessionType")
     @Transactional(readOnly = true)
     public List<RadarChartStatResponse> getInterviewStatisticsList(Long currentMemberId, String sessionType) {
 

@@ -13,6 +13,7 @@ import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,11 @@ public class ResumeStatisticsService {
     }
 
     // [FR-REP-04] 자기소개서 첨삭 이력 - 상세 조회
+    @Cacheable(
+            cacheNames = "resumeReport",
+            key = "#analysisId + ':' + #currentUserId",
+            unless = "#result.totalScore() == null" // 반환된 DTO의 matchScore가 null이면(PROCESSING 상태) Redis에 저장하지 않음
+    )
     @Transactional(readOnly = true)
     public ResumeAnalysisResultResponse getResumeAnalysisReport(Long analysisId, Long currentUserId) {
 

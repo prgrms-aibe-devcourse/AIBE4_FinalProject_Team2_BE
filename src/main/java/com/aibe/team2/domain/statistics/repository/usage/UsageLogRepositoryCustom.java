@@ -1,9 +1,9 @@
 package com.aibe.team2.domain.statistics.repository.usage;
 
-import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatDto;
+import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatResponse;
 import java.util.List;
 
 public interface UsageLogRepositoryCustom {
 
-    List<MonthlyUsageStatDto> findMonthlyStats(Long memberId, int year);
+    List<MonthlyUsageStatResponse> findMonthlyStats(Long memberId, int year);
 }

@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MonthlyUsageStatDto {
+public class MonthlyUsageStatResponse {
     private int month; // 월(1~12)
     private String serviceType; // 서비스 타입(RESUME, INTERVIEW 등)
     private Long count; // 사용 횟수

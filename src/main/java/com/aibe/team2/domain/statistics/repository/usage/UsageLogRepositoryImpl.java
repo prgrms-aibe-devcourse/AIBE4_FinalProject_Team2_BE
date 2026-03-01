@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.statistics.repository.usage;
 
-import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatDto;
+import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberTemplate;
@@ -17,7 +17,7 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<MonthlyUsageStatDto> findMonthlyStats(Long memberId, int year) {
+    public List<MonthlyUsageStatResponse> findMonthlyStats(Long memberId, int year) {
 
         // [1] 날짜에서 '월' 추출
         NumberTemplate<Integer> monthExpression = Expressions.numberTemplate(
@@ -26,7 +26,7 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
 
         return queryFactory
                 .select(Projections.constructor(
-                        MonthlyUsageStatDto.class,
+                        MonthlyUsageStatResponse.class,
                         monthExpression,
                         usageLog.serviceType.stringValue(),
                         usageLog.count(),
