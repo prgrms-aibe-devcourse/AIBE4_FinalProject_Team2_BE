@@ -40,18 +40,14 @@ springdoc:
 # 외부 API 및 인프라 공통 설정
 gemini:
   api:
-    key: ${GEMINI_API_KEY:dummy-key}
-    url: ${GEMINI_API_URL:https://dummy-url.com}
-
-openai:
-  api:
-    key: ${OPENAI_API_KEY:dummy_key_for_now}
+    key: ${GEMINI_API_KEY}
+    url: ${GEMINI_API_URL}
 
 retell:
   api:
-    key: ${RETELL_API_KEY:dummy_key_for_now}
+    key: ${RETELL_API_KEY}
   agent:
-    id: ${RETELL_AGENT_ID:dummy_agent_id}
+    id: ${RETELL_AGENT_ID}
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}

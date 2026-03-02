@@ -14,7 +14,6 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.S3PresignerBuilder;
 
 @Configuration
 public class S3Config {
@@ -51,7 +50,7 @@ public class S3Config {
 
     @Bean
     public S3Presigner s3Presigner() {
-        S3PresignerBuilder builder = S3Presigner.builder()
+        S3Presigner.Builder builder = S3Presigner.builder()
                 .region(Region.of(region));
 
         applyEndpointAndCredentials(builder);
@@ -79,7 +78,7 @@ public class S3Config {
         }
     }
 
-    private void applyEndpointAndCredentials(S3PresignerBuilder builder) {
+    private void applyEndpointAndCredentials(S3Presigner.Builder builder) {
         if (isLocalstackEndpoint()) {
             builder.endpointOverride(URI.create(s3Endpoint));
         }
