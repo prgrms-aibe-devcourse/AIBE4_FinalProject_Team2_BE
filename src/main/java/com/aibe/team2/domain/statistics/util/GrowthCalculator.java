@@ -31,8 +31,8 @@ public class GrowthCalculator {
         if(previous.compareTo(BigDecimal.ZERO) == 0) {
             return GrowthResultResponse.builder()
                     .metricName(metricName)
-                    .previousValue(previous)
-                    .currentValue(current)
+                    .previousValue(roundedPrevious)
+                    .currentValue(roundedCurrent)
                     .difference(difference)
                     .growthRate(null) // 이전 값이 0이면 성장률 수치로 정의할 수 없음
                     .displayGrowthRate("신규 진입")
