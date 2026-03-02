@@ -42,7 +42,7 @@ public class GrowthCalculator {
         // 성장률 계산 : (Difference / Previous) * 100
         // 소수점 셋째 자리에서 반올림하여 둘째 자리까지 표현
         BigDecimal growthRate = difference.divide(previous, 4, RoundingMode.HALF_UP)
-                .multiply(new BigDecimal("100"))
+                .multiply(BigDecimal.valueOf(100L))
                 .setScale(2, RoundingMode.HALF_UP);
 
         return GrowthResultResponse.builder()
