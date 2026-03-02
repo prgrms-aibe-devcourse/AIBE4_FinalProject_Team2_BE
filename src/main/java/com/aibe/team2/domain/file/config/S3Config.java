@@ -55,11 +55,24 @@ public class S3Config {
 
         applyEndpointAndCredentials(builder);
 
+        if (isLocalstackEndpoint()) {
+            builder.serviceConfiguration(
+                    S3Configuration.builder()
+                            .pathStyleAccessEnabled(true)
+                            .build()
+            );
+        }
+
         return builder.build();
     }
 
     private boolean isLocalstackEndpoint() {
         return s3Endpoint != null && !s3Endpoint.isBlank();
+    }
+
+    private boolean hasStaticCredentials() {
+        return accessKey != null && !accessKey.isBlank()
+                && secretKey != null && !secretKey.isBlank();
     }
 
     private void applyEndpointAndCredentials(S3ClientBuilder builder) {
@@ -92,10 +105,5 @@ public class S3Config {
         } else {
             builder.credentialsProvider(DefaultCredentialsProvider.create());
         }
-    }
-
-    private boolean hasStaticCredentials() {
-        return accessKey != null && !accessKey.isBlank()
-                && secretKey != null && !secretKey.isBlank();
     }
 }
