@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
-@Component
+//@Component
 @Profile("!prod") // 로컬이나 개발 환경에서만 이 빈이 활성화됨
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {

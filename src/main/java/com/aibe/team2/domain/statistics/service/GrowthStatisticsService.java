@@ -7,6 +7,7 @@ import com.aibe.team2.domain.statistics.repository.interview.InterviewResultStat
 import com.aibe.team2.domain.statistics.util.GrowthCalculator;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.NumberExpression;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,7 +68,6 @@ public class GrowthStatisticsService {
         Tuple prevTuple = interviewResultStatisticsRepository.findAverageMetricsTupleByMemberIdAndCreatedAtBetween(
                 memberId, previousMonthStart, previousMonthEnd);
 
-        // [리팩토링] 순서가 완벽히 보장되는 List와 Record를 활용한 반복문 처리
         record Metric(String name, NumberExpression<Double> expression) {}
 
         List<Metric> metrics = List.of(

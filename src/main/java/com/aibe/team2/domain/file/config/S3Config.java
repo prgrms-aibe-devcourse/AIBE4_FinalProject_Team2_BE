@@ -14,7 +14,6 @@ import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.S3PresignerBuilder;
 
 @Configuration
 public class S3Config {
@@ -51,16 +50,29 @@ public class S3Config {
 
     @Bean
     public S3Presigner s3Presigner() {
-        S3PresignerBuilder builder = S3Presigner.builder()
+        S3Presigner.Builder builder = S3Presigner.builder()
                 .region(Region.of(region));
 
         applyEndpointAndCredentials(builder);
+
+        if (isLocalstackEndpoint()) {
+            builder.serviceConfiguration(
+                    S3Configuration.builder()
+                            .pathStyleAccessEnabled(true)
+                            .build()
+            );
+        }
 
         return builder.build();
     }
 
     private boolean isLocalstackEndpoint() {
         return s3Endpoint != null && !s3Endpoint.isBlank();
+    }
+
+    private boolean hasStaticCredentials() {
+        return accessKey != null && !accessKey.isBlank()
+                && secretKey != null && !secretKey.isBlank();
     }
 
     private void applyEndpointAndCredentials(S3ClientBuilder builder) {
@@ -79,7 +91,7 @@ public class S3Config {
         }
     }
 
-    private void applyEndpointAndCredentials(S3PresignerBuilder builder) {
+    private void applyEndpointAndCredentials(S3Presigner.Builder builder) {
         if (isLocalstackEndpoint()) {
             builder.endpointOverride(URI.create(s3Endpoint));
         }
@@ -93,10 +105,5 @@ public class S3Config {
         } else {
             builder.credentialsProvider(DefaultCredentialsProvider.create());
         }
-    }
-
-    private boolean hasStaticCredentials() {
-        return accessKey != null && !accessKey.isBlank()
-                && secretKey != null && !secretKey.isBlank();
     }
 }

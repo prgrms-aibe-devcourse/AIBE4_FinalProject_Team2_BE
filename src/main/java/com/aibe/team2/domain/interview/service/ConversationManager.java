@@ -10,12 +10,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class ConversationManager {
 
-    private final OpenAiService openAiService;
+    private final GeminiService geminiService;
     private final RetellService retellService;
 
-    // 텍스트 면접: 무조건 OpenAI 스트리밍 사용
     public void startTextStreaming(String answer, SseEmitter emitter) {
-        openAiService.streamQuestion(answer).subscribe(
+        geminiService.streamQuestion(answer).subscribe(
                 data -> {
                     try {
                         emitter.send(SseEmitter.event().name("message").data(data));

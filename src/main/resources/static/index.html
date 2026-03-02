@@ -52,7 +52,7 @@
 
     <div class="selector-group">
         <div class="mode-switch">
-            <button class="btn-opt active" id="typeText">💬 텍스트 면접 (OpenAI)</button>
+            <button class="btn-opt active" id="typeText">💬 텍스트 면접 (Gemini)</button>
             <button class="btn-opt" id="typeVoice">🎙️ 음성 면접 (Retell)</button>
         </div>
     </div>
@@ -83,8 +83,6 @@
 
     const retellWebClient = new RetellWebClient();
     let currentType = 'TEXT';
-
-    // [PR 리뷰 반영] 텍스트 면접 세션 ID를 기억할 변수 선언 (최초 1회만 생성하기 위함)
     let textSessionId = null;
 
     const typeTextBtn = document.getElementById('typeText');
@@ -97,16 +95,13 @@
     const stopVoiceBtn = document.getElementById('stopVoiceBtn');
     const voiceSubtitle = document.getElementById('voiceSubtitle');
 
-    // Retell 실시간 자막(Transcript) 이벤트 리스너
     retellWebClient.on("update", (update) => {
         if (update && update.transcript) {
             voiceSubtitle.style.display = 'flex';
             voiceSubtitle.innerHTML = '';
-
             update.transcript.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'stt-line';
-
                 if (item.role === 'agent') {
                     div.innerHTML = `<span style="color: #007bff; font-weight: bold;">🤖 면접관:</span> ${item.content}`;
                 } else {
@@ -114,7 +109,6 @@
                 }
                 voiceSubtitle.appendChild(div);
             });
-
             voiceSubtitle.scrollTop = voiceSubtitle.scrollHeight;
         }
     });
@@ -125,7 +119,6 @@
         stopVoiceBtn.disabled = true;
     });
 
-    // 탭 전환 로직
     typeTextBtn.onclick = () => {
         currentType = 'TEXT';
         typeTextBtn.classList.add('active');
@@ -142,7 +135,6 @@
         voiceArea.style.display = 'block';
     };
 
-    // --- [TEXT 모드 전용] 메시지 전송 로직 ---
     sendBtn.onclick = async () => {
         if (currentType !== 'TEXT') return;
 
@@ -157,7 +149,6 @@
         sendBtn.disabled = true;
 
         try {
-            // [PR 리뷰 반영] 세션 ID가 없을 때(첫 질문)만 세션 생성 API 호출
             if (!textSessionId) {
                 const response = await fetch('/api/interviews/start', {
                     method: 'POST',
@@ -165,17 +156,16 @@
                     body: JSON.stringify({
                         memberId: 1,
                         interviewType: 'TEXT',
-                        aiProvider: 'OPEN_AI',
+                        aiProvider: 'GEMINI', // 🚀 AI 공급자를 GEMINI로 명시
                         interviewMode: 'NORMAL'
                     })
                 });
                 const session = await response.json();
                 textSessionId = session.id;
-                console.log("새로운 텍스트 면접 세션 생성 완료:", textSessionId);
             }
 
-            // 기존에 발급받은 textSessionId를 사용하여 스트리밍 호출
             const aiMsgDiv = appendMessage('ai', '');
+            // 🚀 2. 스트리밍 주소 호출 및 데이터 파싱 로직 최적화
             const eventSource = new EventSource(`/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}`);
 
             eventSource.onmessage = (event) => {
@@ -184,16 +174,27 @@
                     sendBtn.disabled = false;
                     return;
                 }
+
                 try {
+                    // Gemini의 복잡한 JSON 구조를 안전하게 파싱합니다.
                     const data = JSON.parse(event.data);
-                    aiMsgDiv.innerText += data.choices[0].delta.content || "";
+
+                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                        const content = data.candidates[0].content.parts[0].text;
+                        aiMsgDiv.innerText += content;
+                    } else if (data.text) { // 혹시 서버에서 text 필드로 한 번 더 가공해서 보낼 경우 대비
+                        aiMsgDiv.innerText += data.text;
+                    }
+
                 } catch (e) {
+                    // JSON 형식이 아닌 일반 텍스트 데이터가 올 경우 그대로 출력
                     aiMsgDiv.innerText += event.data;
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
 
-            eventSource.onerror = () => {
+            eventSource.onerror = (err) => {
+                console.error("SSE Error:", err);
                 eventSource.close();
                 sendBtn.disabled = false;
             };
@@ -205,7 +206,6 @@
         }
     };
 
-    // --- [VOICE 모드 전용] 음성 대화 원클릭 시작 ---
     startVoiceBtn.onclick = async () => {
         try {
             startVoiceBtn.disabled = true;
@@ -230,7 +230,6 @@
             const token = voiceData.accessToken;
 
             document.getElementById('voiceStatus').innerText = "마이크 권한을 승인해 주세요...";
-
             await retellWebClient.startCall({ accessToken: token });
 
             document.getElementById('voiceStatus').innerText = "🔴 면접관과 대화 중입니다... (마이크 켜짐)";
