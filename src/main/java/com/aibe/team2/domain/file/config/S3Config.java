@@ -37,7 +37,7 @@ public class S3Config {
 
         applyEndpointAndCredentials(builder);
 
-        if (isLocalstackEndpoint()) {
+        if (isEndpointOverrideEnabled()) {
             builder.serviceConfiguration(
                     S3Configuration.builder()
                             .pathStyleAccessEnabled(true)
@@ -55,7 +55,7 @@ public class S3Config {
 
         applyEndpointAndCredentials(builder);
 
-        if (isLocalstackEndpoint()) {
+        if (isEndpointOverrideEnabled()) {
             builder.serviceConfiguration(
                     S3Configuration.builder()
                             .pathStyleAccessEnabled(true)
@@ -66,7 +66,7 @@ public class S3Config {
         return builder.build();
     }
 
-    private boolean isLocalstackEndpoint() {
+    private boolean isEndpointOverrideEnabled() {
         return s3Endpoint != null && !s3Endpoint.isBlank();
     }
 
@@ -76,7 +76,7 @@ public class S3Config {
     }
 
     private void applyEndpointAndCredentials(S3ClientBuilder builder) {
-        if (isLocalstackEndpoint()) {
+        if (isEndpointOverrideEnabled()) {
             builder.endpointOverride(URI.create(s3Endpoint));
         }
 
@@ -92,7 +92,7 @@ public class S3Config {
     }
 
     private void applyEndpointAndCredentials(S3Presigner.Builder builder) {
-        if (isLocalstackEndpoint()) {
+        if (isEndpointOverrideEnabled()) {
             builder.endpointOverride(URI.create(s3Endpoint));
         }
 

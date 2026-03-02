@@ -63,14 +63,13 @@ public class S3PresignedService {
 
         @PostConstruct
         void init() {
-            if (service.isLocalStack()) {
+            if (service.isEndpointOverrideEnabled()) {
                 service.ensureBucketExists();
             }
         }
     }
 
-    // endpoint가 있으면 LocalStack으로 판단
-    boolean isLocalStack() {
+    boolean isEndpointOverrideEnabled() {
         return endpoint != null && !endpoint.isBlank();
     }
 
@@ -158,8 +157,13 @@ public class S3PresignedService {
             throw new BusinessException(ErrorCode.COMMON_400);
         }
 
+        if (allowedContentTypes == null || allowedContentTypes.isBlank()) {
+            throw new BusinessException(ErrorCode.SYS_INTERNAL_ERROR);
+        }
+
         boolean ok = Arrays.stream(allowedContentTypes.split(","))
                 .map(String::trim)
+                .filter(s -> !s.isBlank())
                 .anyMatch(allowed -> allowed.equalsIgnoreCase(contentType));
 
         if (!ok) {
