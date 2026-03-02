@@ -1,9 +1,10 @@
 package com.aibe.team2.domain.statistics.service;
 
 import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageResponse;
-import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatDto;
+import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatResponse;
 import com.aibe.team2.domain.statistics.repository.usage.UsageLogRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +23,11 @@ public class MemberStatisticsService {
      * @param year 조회할 연도
      * @return 월별 통계 리스트와 총합이 담긴 응답 객체
      */
+    @Cacheable(cacheNames = "monthlyUsageStats", key = "#memberId + ':' + #year")
     public MonthlyUsageResponse getMonthlyUsageStatistics(Long memberId, int year){
 
         // 1. Repository를 통해 DB에서 월별/서비스별 통계 데이터를 가져옴
-        List<MonthlyUsageStatDto> stats = usageLogRepository.findMonthlyStats(memberId, year);
+        List<MonthlyUsageStatResponse> stats = usageLogRepository.findMonthlyStats(memberId, year);
 
         // 2. 미리 만들어둔 ResponseDTO의 static 메서드를 사용해 결과를 포장
         return MonthlyUsageResponse.of(memberId, year, stats);

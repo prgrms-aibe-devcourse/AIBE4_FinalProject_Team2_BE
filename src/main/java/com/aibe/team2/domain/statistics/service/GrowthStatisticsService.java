@@ -9,6 +9,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.NumberExpression;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ public class GrowthStatisticsService {
     private final InterviewSessionRepository interviewSessionRepository;
     private final InterviewResultStatisticsRepository interviewResultStatisticsRepository;
 
+    @Cacheable(value = "growthStatistics", key = "#memberId")
     public List<GrowthResultResponse> getGrowthStatistics(Long memberId) {
         List<GrowthResultResponse> growthResults = new ArrayList<>();
 
