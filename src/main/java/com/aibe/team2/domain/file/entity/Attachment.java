@@ -33,8 +33,9 @@ public class Attachment {
     @Column(name = "file_type", nullable = false, length = 50)
     private AttachmentFileType fileType;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "target_type", nullable = false, length = 50)
-    private String targetType;
+    private TargetType targetType;
 
     @Column(name = "target_id", nullable = false)
     private Long targetId;
@@ -48,7 +49,8 @@ public class Attachment {
     private LocalDateTime updatedAt;
 
     @Builder
-    private Attachment(Long ownerMemberId, String s3Key, AttachmentFileType fileType, String targetType, Long targetId) {
+    private Attachment(Long ownerMemberId, String s3Key,
+                       AttachmentFileType fileType, TargetType targetType, Long targetId) {
         this.ownerMemberId = ownerMemberId;
         this.s3Key = s3Key;
         this.fileType = fileType;

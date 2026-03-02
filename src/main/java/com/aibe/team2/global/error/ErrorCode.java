@@ -66,6 +66,7 @@ public enum ErrorCode {
     INTERVIEW_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "INTERVIEW_003", "질문 정보를 찾을 수 없습니다."),
     INTERVIEW_RECORD_NOT_FOUND(HttpStatus.NOT_FOUND, "INTERVIEW_004", "면접 상세 기록(턴)을 찾을 수 없습니다."),
     INTERVIEW_OWNERSHIP_ERROR(HttpStatus.FORBIDDEN, "INTERVIEW_005", "해당 면접 기록에 대한 접근 권한이 없습니다."),
+    INTERVIEW_NOT_COMPLETED(HttpStatus.CONFLICT, "INTERVIEW_006", "면접이 완료되지 않아 파일을 다운로드할 수 없습니다."),
 
     // Scrap (스크랩)
     SCRAP_NOT_FOUND(HttpStatus.NOT_FOUND, "SCRAP_001", "스크랩한 질문을 찾을 수 없습니다."),

@@ -49,7 +49,7 @@ public class S3PresignedService {
     }
 
     /**
-     * LocalStack 환경(endpoint가 설정된 경우)에서만 앱 시작 시 버킷을 보장
+     * 앱 시작 시 버킷 존재를 보장.
      */
     @Component
     @Profile("docker")
@@ -63,18 +63,17 @@ public class S3PresignedService {
 
         @PostConstruct
         void init() {
-            if (service.isLocalStack()) {
+            if (service.isEndpointOverrideEnabled()) {
                 service.ensureBucketExists();
             }
         }
     }
 
-    // endpoint가 있으면 LocalStack으로 판단
-    boolean isLocalStack() {
+    boolean isEndpointOverrideEnabled() {
         return endpoint != null && !endpoint.isBlank();
     }
 
-    // package-private로 유지
+    // package-private
     void ensureBucketExists() {
         try {
             s3Client.headBucket(
@@ -97,11 +96,22 @@ public class S3PresignedService {
         }
     }
 
-    public PresignedUrlResponse generatePutPresignedUrl(String originalFileName, String contentType) {
+    /**
+     * 업로드용 Presigned PUT URL 생성
+     * - contentType 검증
+     * - 파일명 sanitize
+     * - key를 회원별 prefix로 강제하여 IDOR 완화
+     */
+    public PresignedUrlResponse generatePutPresignedUrl(Long ownerMemberId, String originalFileName, String contentType) {
+        if (ownerMemberId == null || ownerMemberId <= 0) {
+            throw new BusinessException(ErrorCode.COMMON_400);
+        }
+
         validateContentType(contentType);
 
         String sanitizedFileName = sanitizeFileName(originalFileName);
-        String key = "uploads/" + UUID.randomUUID() + "-" + sanitizedFileName;
+
+        String key = buildMemberScopedKey(ownerMemberId, sanitizedFileName);
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
@@ -158,8 +168,13 @@ public class S3PresignedService {
             throw new BusinessException(ErrorCode.COMMON_400);
         }
 
+        if (allowedContentTypes == null || allowedContentTypes.isBlank()) {
+            throw new BusinessException(ErrorCode.SYS_INTERNAL_ERROR);
+        }
+
         boolean ok = Arrays.stream(allowedContentTypes.split(","))
                 .map(String::trim)
+                .filter(s -> !s.isBlank())
                 .anyMatch(allowed -> allowed.equalsIgnoreCase(contentType));
 
         if (!ok) {
@@ -177,6 +192,10 @@ public class S3PresignedService {
                 .replace("/", "_");
 
         return base.replaceAll("[^a-zA-Z0-9._-]", "_");
+    }
+
+    private String buildMemberScopedKey(Long ownerMemberId, String sanitizedFileName) {
+        return "uploads/members/" + ownerMemberId + "/" + UUID.randomUUID() + "-" + sanitizedFileName;
     }
 
     public record PresignedUrlResponse(String url, String key) {}
