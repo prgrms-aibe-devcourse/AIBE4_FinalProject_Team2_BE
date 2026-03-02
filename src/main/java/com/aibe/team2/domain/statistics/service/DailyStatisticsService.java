@@ -62,7 +62,7 @@ public class DailyStatisticsService {
         if(targetDate.isEqual(LocalDate.now())) {
             operations.set(redisKey, statsDto, Duration.ofMinutes(5));
         } else {
-            operations.set(redisKey, statsDto, Duration.ofMinutes(1));
+            operations.set(redisKey, statsDto, Duration.ofDays(1));
         }
 
         return statsDto;

@@ -49,27 +49,48 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         return true;
     }
 
+    // 1. 클라이언트 식별자를 결정하는 메인 메서드
     private String getClientIdentifier(HttpServletRequest request) {
-        return request.getRemoteAddr();
+
+        // TODO: Spring Security 구현 시, 주석을 해제하고 로그인 유저(ID) 식별 로직을 추가
+    /*
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null && authentication.isAuthenticated()) {
+        Object principal = authentication.getPrincipal();
+        if (!"anonymousUser".equals(principal)) {
+            return authentication.getName();
+        }
+    }
+    */
+
+        // 현재는 Security가 없으므로, 모든 요청을 비로그인 사용자로 간주하고 '진짜 클라이언트 IP'를 반환
+        return getRealClientIp(request);
     }
 
-    // TODO : Spring Security 구현 후 수정
-    // private String getClientIdentifier(HttpServletRequest request) {
-    //     // 1. SecurityContextHolder에서 현재 요청의 인증(Authentication) 정보를 가져옴
-    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    //
-    //     // 2. 인증 객체가 존재하고, 사용자가 로그인한 상태(인증됨)인지 검증
-    //     if (authentication != null && authentication.isAuthenticated()) {
-    //
-    //         // 3. 익명 사용자(비로그인 상태)가 아닌 경우에만 해당 사용자의 고유 ID를 반환
-    //         // principal이 "anonymousUser"인 경우는 Spring Security의 기본 익명 사용자 설정임
-    //         Object principal = authentication.getPrincipal();
-    //         if (!principal.equals("anonymousUser")) {
-    //             return authentication.getName(); // 보통 JWT의 subject(유저 식별자)가 반환됨
-    //         }
-    //     }
-    //
-    //     // 4. Fallback (대체 수단): 비로그인 사용자가 접근 가능한 API의 경우 기존처럼 IP 주소 반환
-    //     return request.getRemoteAddr();
-    // }
+    // 2. 프록시 환경을 고려하여 실제 클라이언트 IP를 추출하는 헬퍼 메서드
+    private String getRealClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+
+        return ip;
+    }
 }

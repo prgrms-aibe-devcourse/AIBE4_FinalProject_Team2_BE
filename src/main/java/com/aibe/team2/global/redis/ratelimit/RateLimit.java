@@ -13,6 +13,6 @@ public @interface RateLimit {
     // 허용되는 최대 요청 횟수(기본값 10회)
     int maxRequests() default 10;
 
-    // 제한을 두는 기준 시간(기본값 60초)
+    // 제한을 두는 기준 시간(기본값 10초)
     long durationSeconds() default 10;
 }
