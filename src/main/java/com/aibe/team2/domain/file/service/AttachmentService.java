@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
-import com.aibe.team2.domain.interview.repository.InterviewSessionRepository;
 
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
@@ -33,7 +32,6 @@ public class AttachmentService {
     private final ResumeRepository resumeRepository;
     private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final InterviewRecordRepository interviewRecordRepository;
-    private final InterviewSessionRepository interviewSessionRepository;
 
     @Transactional
     public AttachmentCompleteResponse complete(AttachmentCompleteRequest req, Long ownerMemberId) {
@@ -41,10 +39,13 @@ public class AttachmentService {
         // 0) targetType/targetId 소유권 검증
         validateTargetOwnership(req.targetType(), req.targetId(), ownerMemberId);
 
-        // 1) S3에 업로드 되었는지 검증
+        // 1) key가 내 prefix인지 검증 (IDOR 최소 방어)
+        validateKeyOwnership(req.key(), ownerMemberId);
+
+        // 2) S3에 업로드 되었는지 검증
         s3PresignedService.headObject(req.key());
 
-        // 2) DB 저장
+        // 3) DB 저장
         Attachment saved = attachmentRepository.save(
                 Attachment.builder()
                         .ownerMemberId(ownerMemberId)
@@ -74,6 +75,17 @@ public class AttachmentService {
 
         var presigned = s3PresignedService.generateGetPresignedUrl(att.getS3Key());
         return new PresignedDownloadResponse(presigned.url(), presigned.key());
+    }
+
+    private void validateKeyOwnership(String key, Long ownerMemberId) {
+        if (key == null || key.isBlank() || ownerMemberId == null || ownerMemberId <= 0) {
+            throw new BusinessException(ErrorCode.COMMON_400);
+        }
+
+        String prefix = "uploads/members/" + ownerMemberId + "/";
+        if (!key.startsWith(prefix)) {
+            throw new BusinessException(ErrorCode.COMMON_403);
+        }
     }
 
     private void validateTargetOwnership(TargetType targetType, Long targetId, Long ownerMemberId) {

@@ -20,9 +20,14 @@ public class FileController {
 
     @PostMapping("/presigned-url")
     public ResponseEntity<PresignedPutUrlResponse> createPresignedUrl(
-            @RequestBody PresignedPutUrlRequest request
+            @RequestBody PresignedPutUrlRequest request,
+            @RequestHeader("X-Member-Id") Long ownerMemberId
     ) {
-        var presigned = s3PresignedService.generatePutPresignedUrl(request.fileName(), request.contentType());
+        var presigned = s3PresignedService.generatePutPresignedUrl(
+                ownerMemberId,
+                request.fileName(),
+                request.contentType()
+        );
         return ResponseEntity.ok(new PresignedPutUrlResponse(presigned.url(), presigned.key()));
     }
 
