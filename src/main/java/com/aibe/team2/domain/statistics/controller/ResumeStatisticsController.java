@@ -3,6 +3,7 @@ package com.aibe.team2.domain.statistics.controller;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisListResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
 import com.aibe.team2.domain.statistics.service.ResumeStatisticsService;
+import com.aibe.team2.global.redis.ratelimit.RateLimit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ public class ResumeStatisticsController {
     private final ResumeStatisticsService resumeStatisticsService;
 
     // [FR-REP-04] 자기소개서 첨삭 이력 조회
+    @RateLimit
     @GetMapping("/analysis")
     public ResponseEntity<Page<ResumeAnalysisListResponse>> getResumeAnalysisList(
             @RequestParam(defaultValue = "0") int page, // URL 파라미터: 시작 페이지 (기본 0)

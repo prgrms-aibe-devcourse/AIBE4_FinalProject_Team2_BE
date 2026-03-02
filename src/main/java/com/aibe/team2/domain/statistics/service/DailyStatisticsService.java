@@ -58,8 +58,12 @@ public class DailyStatisticsService {
         log.info("Cache Miss 발생! DB 집계 시작! 키: {}", redisKey);
         DailyStatisticsResponse statsDto = aggregateFromDb(memberId, targetDate);
 
-        // 5. Redis에 저장(TTL 설정 : 자정까지)
-        operations.set(redisKey, statsDto, Duration.ofDays(1));
+        // 날짜에 따른 동적 TTL 설정
+        if(targetDate.isEqual(LocalDate.now())) {
+            operations.set(redisKey, statsDto, Duration.ofMinutes(5));
+        } else {
+            operations.set(redisKey, statsDto, Duration.ofDays(1));
+        }
 
         return statsDto;
     }
