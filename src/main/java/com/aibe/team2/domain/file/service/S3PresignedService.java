@@ -4,9 +4,9 @@ import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -39,8 +40,8 @@ public class S3PresignedService {
     @Value("${aws.s3.presign-expiration-minutes:10}")
     private long presignExpirationMinutes;
 
-    @Value("${aws.s3.endpoint:}")
-    private String endpoint; // LocalStack이면 값 있음, AWS S3(prod)면 빈 값 권장
+    @Value("${aws.s3.endpoint:#{null}}")
+    private String endpoint;
 
     public S3PresignedService(S3Client s3Client, S3Presigner s3Presigner) {
         this.s3Client = s3Client;
@@ -68,6 +69,11 @@ public class S3PresignedService {
         }
     }
 
+    // endpoint가 있으면 LocalStack으로 판단
+    boolean isLocalStack() {
+        return endpoint != null && !endpoint.isBlank();
+    }
+
     // package-private로 유지
     void ensureBucketExists() {
         try {
@@ -89,11 +95,6 @@ public class S3PresignedService {
         } catch (SdkException e) {
             throw new BusinessException(ErrorCode.FILE_UPLOAD_FAILED);
         }
-    }
-
-    // endpoint가 있으면 LocalStack으로 판단
-    boolean isLocalStack() {
-        return endpoint != null && !endpoint.isBlank();
     }
 
     public PresignedUrlResponse generatePutPresignedUrl(String originalFileName, String contentType) {
@@ -125,8 +126,13 @@ public class S3PresignedService {
                             .key(key)
                             .build()
             );
-        } catch (S3Exception e) {
+        } catch (NoSuchKeyException e) {
             throw new BusinessException(ErrorCode.FILE_NOT_FOUND);
+        } catch (S3Exception e) {
+            if (e.statusCode() == 404) {
+                throw new BusinessException(ErrorCode.FILE_NOT_FOUND);
+            }
+            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAILED);
         } catch (SdkException e) {
             throw new BusinessException(ErrorCode.FILE_UPLOAD_FAILED);
         }
