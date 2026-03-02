@@ -20,6 +20,7 @@ public enum ErrorCode {
     COMMON_407(HttpStatus.BAD_REQUEST, "COMMON_407", "필수 파라미터가 누락되었습니다."),
     COMMON_408(HttpStatus.BAD_REQUEST, "COMMON_408", "유효하지 않은 파라미터입니다."),
     COMMON_409(HttpStatus.CONFLICT, "COMMON_409", "요청이 현재 상태와 충돌합니다."),
+    COMMON_429(HttpStatus.TOO_MANY_REQUESTS, "COMMON_429", "너무 많은 요청이 발생했습니다. 잠시 후 다시 시도해주세요."),
     COMMON_500(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_500", "서버 내부 오류가 발생했습니다."),
     COMMON_JSON_CONVERSION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_501", "JSON 데이터 변환 중 오류가 발생했습니다."),
 

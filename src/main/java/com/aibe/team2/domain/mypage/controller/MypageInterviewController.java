@@ -2,6 +2,7 @@ package com.aibe.team2.domain.mypage.controller;
 
 import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import com.aibe.team2.domain.mypage.service.MypageInterviewService;
+import com.aibe.team2.global.redis.ratelimit.RateLimit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,6 +20,7 @@ public class MypageInterviewController {
 
     private final MypageInterviewService mypageInterviewService;
 
+    @RateLimit
     @GetMapping
     public ResponseEntity<Page<InterviewSessionListResponse>> getInterviewSessionList(
             @RequestParam(defaultValue = "0") int page,

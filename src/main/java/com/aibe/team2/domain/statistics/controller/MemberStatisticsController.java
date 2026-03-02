@@ -2,6 +2,7 @@ package com.aibe.team2.domain.statistics.controller;
 
 import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageResponse;
 import com.aibe.team2.domain.statistics.service.MemberStatisticsService;
+import com.aibe.team2.global.redis.ratelimit.RateLimit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +21,7 @@ public class MemberStatisticsController {
 
     // [FR-STA-01] 월별 사용량 조회
     // GET /api/v1/mypage/ai-usage
+    @RateLimit
     @GetMapping("/ai-usage")
     public ResponseEntity<MonthlyUsageResponse> getMonthlyAiUsage(
             // TODO : Spring Security 구현 후 주석 해제 및 임시 memberId 파라미터 삭제 필요
