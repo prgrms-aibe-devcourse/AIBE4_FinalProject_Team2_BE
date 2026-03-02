@@ -89,4 +89,7 @@ public class Member {
         this.desiredJobRole = desiredJobRole;
         this.preferredLocation = preferredLocation;
     }
+    public void updateCreditBalance(int newBalance) {
+        this.creditBalance = newBalance;
+    }
 }
