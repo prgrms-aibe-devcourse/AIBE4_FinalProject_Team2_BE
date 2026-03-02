@@ -97,7 +97,7 @@ public class AttachmentService {
                         .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
                 // TODO: 아래 getter는 엔티티 구조에 맞춰 조정
-                Long sessionId = record.getInterviewSessionId();
+                Long sessionId = record.getInterviewSession().getId();
 
                 var session = interviewSessionRepository.findById(sessionId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
@@ -113,7 +113,7 @@ public class AttachmentService {
                 var report = resumeAnalysisRepository.findById(targetId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
-                Long resumeId = report.getResumeId();
+                Long resumeId = report.getResume().getId();
 
                 var resume = resumeRepository.findById(resumeId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
