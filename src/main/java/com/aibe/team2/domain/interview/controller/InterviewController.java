@@ -1,7 +1,6 @@
 package com.aibe.team2.domain.interview.controller;
 
 import com.aibe.team2.domain.interview.dto.InterviewStartRequest;
-import com.aibe.team2.domain.interview.dto.UserAnswerRequest;
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
 import com.aibe.team2.domain.interview.entity.InterviewSession;
 import com.aibe.team2.domain.interview.service.ConversationManager;

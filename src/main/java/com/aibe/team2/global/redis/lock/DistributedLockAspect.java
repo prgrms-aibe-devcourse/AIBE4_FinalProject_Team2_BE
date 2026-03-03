@@ -59,11 +59,11 @@ public class DistributedLockAspect {
     }
 
     private String getDynamicKeyFromArgs(Object[] args) {
-        if (args == null || args.length == 0) return "default";
-        StringBuilder sb = new StringBuilder();
-        for (Object arg : args) {
-            sb.append(arg).append(":");
+        if (args == null || args.length == 0) {
+            return "default";
         }
-        return sb.substring(0, sb.length() - 1);
+    return java.util.Arrays.stream(args)
+            .map(String::valueOf)
+            .collect(java.util.stream.Collectors.joining(":"));
     }
 }
