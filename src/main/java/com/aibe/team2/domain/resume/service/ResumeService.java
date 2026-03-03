@@ -10,9 +10,11 @@ import com.aibe.team2.global.exception.BusinessException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -65,6 +67,7 @@ public class ResumeService {
             String contentJson = objectMapper.writeValueAsString(request.getItems());
             resume.update(request.getTitle(), contentJson);
         } catch (JsonProcessingException e) {
+            log.error("자기소개서 항목 JSON 직렬화 실패 - resumeId: {}, error: {}", resumeId, e.getMessage(), e);
             throw new BusinessException(ErrorCode.COMMON_JSON_CONVERSION_ERROR);
         }
     }
