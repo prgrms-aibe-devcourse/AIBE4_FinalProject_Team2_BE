@@ -1,10 +1,13 @@
 package com.aibe.team2.domain.mypage.repository.member;
-
+import jakarta.persistence.LockModeType;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.NotFoundException;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -21,5 +24,14 @@ public interface MemberRepository extends JpaRepository<Member,Long>, MemberRepo
     default Member getByIdThrow(Long memberId) {
         return findById(memberId)
                 .orElseThrow(()-> new NotFoundException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select m from Member m where m.memberId = :memberId")
+    Optional<Member> findByIdForUpdate(@Param("memberId") Long memberId);
+
+    default Member getByIdThrowForUpdate(Long memberId) {
+        return findByIdForUpdate(memberId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
     }
 }

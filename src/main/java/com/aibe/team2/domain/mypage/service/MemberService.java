@@ -7,6 +7,8 @@ import com.aibe.team2.domain.mypage.dto.response.MemberResponseDto;
 import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponseDto;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
+import com.aibe.team2.domain.statistics.enums.ServiceType;
+import com.aibe.team2.domain.statistics.service.usage.UsageLogWriter;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     // TODO : Security Config에 PasswordEncoder Bean 등록 시 주석 풀기
     // private final PasswordEncoder passwordEncoder;
+    private final UsageLogWriter usageLogWriter;
 
     // 1. 마이페이지 정보 조회
     public MemberResponseDto getMemberInfo(Long memberId){
@@ -89,4 +92,37 @@ public class MemberService {
         member.updateJobPreferences(joinedRoles, dto.getPreferredLocation());
     }
 
+    @Transactional
+    public int applyCreditDelta(
+            Long memberId,
+            int tokenDelta,
+            ServiceType serviceType,
+            String targetType,
+            Long targetId,
+            String description
+    ) {
+        Member member = memberRepository.getByIdThrowForUpdate(memberId);
+
+        int before = member.getCreditBalance() == null ? 0 : member.getCreditBalance();
+        int after = before + tokenDelta;
+
+        if (after < 0) {
+            throw new BadRequestException(ErrorCode.CREDIT_INSUFFICIENT);
+        }
+
+        member.updateCreditBalance(after);
+
+        usageLogWriter.record(
+                member,
+                serviceType,
+                1,
+                tokenDelta,
+                after,
+                targetType,
+                targetId,
+                description
+        );
+
+        return after;
+    }
 }

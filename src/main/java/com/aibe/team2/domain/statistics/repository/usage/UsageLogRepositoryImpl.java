@@ -1,11 +1,16 @@
 package com.aibe.team2.domain.statistics.repository.usage;
 
+import com.aibe.team2.domain.statistics.dto.admin.UsageLogAdminRow;
+import com.aibe.team2.domain.statistics.dto.admin.UsageLogAdminSearchCond;
 import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberTemplate;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -41,5 +46,11 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
                 .groupBy(monthExpression, usageLog.serviceType)
                 .orderBy(monthExpression.asc())
                 .fetch();
+    }
+
+    @Override
+    public Page<UsageLogAdminRow> searchAdminUsageLogs(UsageLogAdminSearchCond cond, Pageable pageable) {
+        // TODO: QueryDSL로 실제 검색 구현 예정
+        return new PageImpl<>(List.of(), pageable, 0);
     }
 }
