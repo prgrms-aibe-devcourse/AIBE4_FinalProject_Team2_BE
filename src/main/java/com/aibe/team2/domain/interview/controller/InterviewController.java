@@ -1,9 +1,9 @@
 package com.aibe.team2.domain.interview.controller;
 
 import com.aibe.team2.domain.interview.dto.InterviewStartRequest;
-import com.aibe.team2.domain.interview.dto.UserAnswerRequest;
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
 import com.aibe.team2.domain.interview.entity.InterviewSession;
+import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.service.ConversationManager;
 import com.aibe.team2.domain.interview.service.InterviewManager;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class InterviewController {
                 request.getMemberId(),
                 request.getResumeId(),
                 request.getJobPostingId(),
-                request.getInterviewMode(),
+                InterviewMode.valueOf(request.getInterviewMode()),
                 request.getInterviewType(),
                 request.getAiProvider(),
                 request.getModelVariant(),
@@ -35,21 +35,19 @@ public class InterviewController {
         return ResponseEntity.ok(session);
     }
 
-    // 1. 텍스트 면접: 사용자의 답변을 받고 AI의 꼬리 질문을 SSE로 스트리밍
     @GetMapping(value = "/{sessionId}/text/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamTextInterview(
             @PathVariable Long sessionId,
             @RequestParam String answer,
             @RequestParam(required = false, defaultValue = "gemini-1.5-flash-latest") String modelVariant,
             @RequestParam(required = false, defaultValue = "SENIOR") String personaType) {
-        SseEmitter emitter = new SseEmitter(120000L); // 2분 타임아웃
+        SseEmitter emitter = new SseEmitter(120000L);
 
         conversationManager.startTextStreaming(sessionId, answer, modelVariant, personaType, emitter);
 
         return emitter;
     }
 
-    // 2. 음성 면접: Retell AI 세션을 시작하고 토큰 반환
     @PostMapping("/{sessionId}/voice/start")
     public VoiceSessionResponse startVoiceInterview(@PathVariable Long sessionId) {
         return conversationManager.startVoiceInterview(sessionId);

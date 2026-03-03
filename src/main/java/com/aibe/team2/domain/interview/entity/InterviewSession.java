@@ -1,5 +1,7 @@
 package com.aibe.team2.domain.interview.entity;
 
+import com.aibe.team2.domain.interview.enums.InterviewMode;
+import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -28,14 +30,14 @@ public class InterviewSession {
 
     private Long jobPostingId;
 
-    private String interviewMode;
+    @Enumerated(EnumType.STRING) // String -> InterviewMode Enum으로 변경
+    private InterviewMode interviewMode;
 
     @Column(nullable = false)
     private String interviewType;
 
     private String aiProvider;
 
-    // 신규 필드 추가
     private String modelVariant;
     private String personaType;
 
@@ -52,16 +54,16 @@ public class InterviewSession {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @Builder // 생성자 파라미터를 업데이트하여 빌더가 인식하게 함
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String interviewMode, String interviewType, String aiProvider, String modelVariant, String personaType) {
+    @Builder
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, String personaType) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
-        this.interviewMode = interviewMode;
+        this.interviewMode = interviewMode; // Enum 타입 반영
         this.interviewType = interviewType;
         this.aiProvider = aiProvider;
-        this.modelVariant = modelVariant; // 추가
-        this.personaType = personaType;   // 추가
+        this.modelVariant = modelVariant;
+        this.personaType = personaType;
         this.status = InterviewSessionStatus.CREATED;
     }
 
