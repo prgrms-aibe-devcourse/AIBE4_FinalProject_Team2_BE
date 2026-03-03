@@ -14,7 +14,8 @@ public class ConversationManager {
     private final GeminiService geminiService;
     private final RetellService retellService;
 
-    // 락 키 예시: "interview-answer:15" (세션 ID 15번에 대해 락이 걸림)
+    // 락 키 예시: "text-streaming:15" (세션 ID 15번에 대해 락이 걸림)
+    // waitTime = 1 , leaseTime = " 면접 세션 만드는 시간 + 5초 " 설정 할 것.
     @DistributedLock(key = "text-streaming", waitTime = 1, leaseTime = 20)
     public void startTextStreaming(String answer, SseEmitter emitter) {
         geminiService.streamQuestion(answer).subscribe(
@@ -31,6 +32,7 @@ public class ConversationManager {
     }
 
     // 음성 면접: Retell 세션 생성 사용
+    // waitTime = 1 , leaseTime = " 면접 세션 만드는 시간 + 5초 " 설정 할 것.
     @DistributedLock(key = "voice-interview", waitTime = 1, leaseTime = 20)
     public VoiceSessionResponse startVoiceInterview(Long sessionId) {
         return retellService.createVoiceCall(sessionId);

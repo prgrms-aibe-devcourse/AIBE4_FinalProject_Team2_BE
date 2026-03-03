@@ -40,7 +40,7 @@ public class DistributedLockAspect {
             if (!isLocked) {
                 log.warn("[DistributedLock] 락 획득 실패. 중복 요청 방어됨. key: {}", lockKey);
                 // 중복 요청 시 예외 발생 (400 또는 409 에러)
-                throw new BusinessException(ErrorCode.COMMON_400);
+                throw new BusinessException(ErrorCode.COMMON_409);
             }
 
             // 락 획득 성공 시 비즈니스 로직 실행
