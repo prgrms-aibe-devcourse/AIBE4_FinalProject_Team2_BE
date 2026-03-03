@@ -1,4 +1,4 @@
-package com.aibe.team2.domain.statistics.service;
+package com.aibe.team2.domain.statistics.service.usage;
 
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.statistics.entity.UsageLog;

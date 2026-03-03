@@ -8,7 +8,7 @@ import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponseDto;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.statistics.enums.ServiceType;
-import com.aibe.team2.domain.statistics.service.UsageLogWriter;
+import com.aibe.team2.domain.statistics.service.usage.UsageLogWriter;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.BadRequestException;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +107,7 @@ public class MemberService {
         int after = before + tokenDelta;
 
         if (after < 0) {
-            throw new BadRequestException(ErrorCode.COMMON_400);
+            throw new BadRequestException(ErrorCode.CREDIT_INSUFFICIENT);
         }
 
         member.updateCreditBalance(after);

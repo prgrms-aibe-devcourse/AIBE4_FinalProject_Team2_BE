@@ -7,8 +7,10 @@ import com.aibe.team2.global.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/admin/credits")
@@ -16,7 +18,6 @@ public class AdminCreditController {
 
     private final AdminCreditService adminCreditService;
 
-    // 관리자 크레딧 지급/차감
     @PostMapping("/adjust")
     public ResponseEntity<ApiResponse<AdminCreditAdjustResponse>> adjustCredit(
             @RequestBody @Valid AdminCreditAdjustRequest request
