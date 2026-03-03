@@ -4,6 +4,7 @@ import com.aibe.team2.domain.interview.dto.InterviewStartRequest;
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
 import com.aibe.team2.domain.interview.entity.InterviewSession;
 import com.aibe.team2.domain.interview.enums.InterviewMode;
+import com.aibe.team2.domain.interview.enums.PersonaType;
 import com.aibe.team2.domain.interview.service.ConversationManager;
 import com.aibe.team2.domain.interview.service.InterviewManager;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class InterviewController {
                 request.getInterviewType(),
                 request.getAiProvider(),
                 request.getModelVariant(),
-                request.getPersonaType()
+                PersonaType.valueOf(request.getPersonaType())
         );
         return ResponseEntity.ok(session);
     }
@@ -43,7 +44,7 @@ public class InterviewController {
             @RequestParam(required = false, defaultValue = "SENIOR") String personaType) {
         SseEmitter emitter = new SseEmitter(120000L);
 
-        conversationManager.startTextStreaming(sessionId, answer, modelVariant, personaType, emitter);
+        conversationManager.startTextStreaming(sessionId, answer, modelVariant, PersonaType.valueOf(personaType), emitter);
 
         return emitter;
     }

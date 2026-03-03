@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.interview.dto;
 
+import com.aibe.team2.domain.interview.enums.PersonaType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,5 +11,5 @@ import lombok.NoArgsConstructor;
 public class InterviewRequestDto {
     private String message;
     private String modelVariant;
-    private String personaType;
+    private PersonaType personaType;
 }

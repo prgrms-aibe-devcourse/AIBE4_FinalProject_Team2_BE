@@ -3,6 +3,7 @@ package com.aibe.team2.domain.interview.service;
 import com.aibe.team2.domain.interview.entity.InterviewSession;
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.PersonaType;
 import com.aibe.team2.domain.interview.repository.InterviewRepository;
 //import com.aibe.team2.global.lock.DistributedLock;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class InterviewManager {
     //@DistributedLock(key = "interview-start", waitTime = 1, leaseTime = 3)
     public InterviewSession startInterview(Long memberId, Long resumeId, Long jobPostingId,
                                            InterviewMode interviewMode, String interviewType,
-                                           String aiProvider, String modelVariant, String personaType) {
+                                           String aiProvider, String modelVariant, PersonaType personaType) {
         InterviewSession session = InterviewSession.builder()
                 .memberId(memberId)
                 .resumeId(resumeId)

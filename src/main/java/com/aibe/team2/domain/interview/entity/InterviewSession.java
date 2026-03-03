@@ -2,6 +2,7 @@ package com.aibe.team2.domain.interview.entity;
 
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.PersonaType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -39,7 +40,9 @@ public class InterviewSession {
     private String aiProvider;
 
     private String modelVariant;
-    private String personaType;
+
+    @Enumerated(EnumType.STRING)
+    private PersonaType personaType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -55,7 +58,7 @@ public class InterviewSession {
     private LocalDateTime updatedAt;
 
     @Builder
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, String personaType) {
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, PersonaType personaType) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
