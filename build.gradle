@@ -30,6 +30,10 @@ dependencies {
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // Redisson
+    implementation 'org.redisson:redisson-spring-boot-starter:3.27.0'
+    // Spring AOP (DistributedLockAspect 사용을 위해 필요)
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
 
     // Security & JWT
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -54,9 +58,7 @@ dependencies {
 
     // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    
     implementation 'org.jsoup:jsoup:1.13.1'
 
     // Spring Batch
