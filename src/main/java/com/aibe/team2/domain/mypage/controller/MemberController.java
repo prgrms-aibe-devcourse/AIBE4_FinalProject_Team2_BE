@@ -1,9 +1,9 @@
 package com.aibe.team2.domain.mypage.controller;
 
-import com.aibe.team2.domain.mypage.dto.response.MemberResponseDto;
-import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponseDto;
-import com.aibe.team2.domain.mypage.dto.request.PasswordChangeRequestDto;
-import com.aibe.team2.domain.mypage.dto.request.ProfileUpdateDto;
+import com.aibe.team2.domain.mypage.dto.response.MemberResponse;
+import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponse;
+import com.aibe.team2.domain.mypage.dto.request.PasswordChangeRequest;
+import com.aibe.team2.domain.mypage.dto.request.ProfileUpdate;
 import com.aibe.team2.domain.mypage.dto.response.PasswordChangeResponse;
 import com.aibe.team2.domain.mypage.service.MemberService;
 import com.aibe.team2.global.common.response.ApiResponse;
@@ -28,23 +28,23 @@ public class MemberController {
 
     // [FR-MYP-05] 프로필 조회
     @GetMapping("/profile")
-    public ResponseEntity<MemberResponseDto> getProfile(){
+    public ResponseEntity<MemberResponse> getProfile(){
         Long memberId = getLoginMemberId();
-        MemberResponseDto response = memberService.getMemberInfo(memberId);
+        MemberResponse response = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok(response);
     }
 
     // [FR-MYP-01] 프로필 수정
     @PatchMapping("/profile")
-    public ResponseEntity<ApiResponse<MemberUpdateResponseDto>> updateProfile( // 제네릭 타입 변경
-                                                                               @Valid @RequestBody ProfileUpdateDto dto
+    public ResponseEntity<ApiResponse<MemberUpdateResponse>> updateProfile( // 제네릭 타입 변경
+                                                                            @Valid @RequestBody ProfileUpdate dto
     ){
         Long memberId = getLoginMemberId();
 
         // 반환받는 변수의 타입도 신규 DTO로 변경
-        MemberUpdateResponseDto response = memberService.updateProfile(memberId, dto);
+        MemberUpdateResponse response = memberService.updateProfile(memberId, dto);
 
-        ApiResponse<MemberUpdateResponseDto> apiResponse = ApiResponse.<MemberUpdateResponseDto>builder()
+        ApiResponse<MemberUpdateResponse> apiResponse = ApiResponse.<MemberUpdateResponse>builder()
                 .success(true)
                 .code("OK")
                 .message("프로필 수정이 완료되었습니다.")
@@ -57,7 +57,7 @@ public class MemberController {
     // [FR-MYP-02] 비밀번호 변경
     @PatchMapping("/password")
     public ResponseEntity<PasswordChangeResponse> changePassword(
-            @Valid @RequestBody PasswordChangeRequestDto dto
+            @Valid @RequestBody PasswordChangeRequest dto
     ){
         Long memberId = getLoginMemberId();
         memberService.changePassword(memberId, dto);

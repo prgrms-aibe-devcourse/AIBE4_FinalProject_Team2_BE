@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.resume.controller;
 
+import com.aibe.team2.domain.mypage.dto.request.ResumeUpdateRequest;
 import com.aibe.team2.domain.resume.dto.ResumeRequest;
 import com.aibe.team2.domain.resume.dto.ResumeResponse;
 import com.aibe.team2.domain.resume.service.ResumeService;
@@ -43,4 +44,22 @@ public class ResumeController {
 //        List<ResumeResponse> responses = resumeService.findMyResumes(currentMemberId);
 //        return ApiResponse.success(responses);
 //    }
+
+    // [추가] 자기소개서 수정 로직
+    // 4. 자기소개서 수정
+    @PatchMapping("{resumeId}")
+    public ApiResponse<Long> updateResume(
+            @PathVariable Long resumeId,
+            @RequestBody @Valid ResumeUpdateRequest request
+    ) {
+        // TODO : Spring Security 구현 후 수정
+        Long currentMemberId = 1L;
+        log.info("Resume update requested. resumeId: {}, memberId: {}", resumeId, currentMemberId);
+
+        // 1. 서비스 로직 호출
+        resumeService.updateResume(resumeId, currentMemberId, request);
+
+        // 2. 성공시 수정된 자기소개서의 ID 반환
+        return ApiResponse.success(resumeId);
+    }
 }
