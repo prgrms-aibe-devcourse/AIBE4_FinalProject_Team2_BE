@@ -19,28 +19,31 @@ public class InterviewSession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 세션 고유 ID
+    private Long id;
 
     @Column(nullable = false)
-    private Long memberId; // 회원 ID
+    private Long memberId;
 
-    private Long resumeId; // 자기소개서 ID
+    private Long resumeId;
 
-    private Long jobPostingId; // 채용 공고 ID
+    private Long jobPostingId;
 
-    private String interviewMode; // 면접 모드 (NORMAL, FOLLOW_UP 등)
+    private String interviewMode;
 
     @Column(nullable = false)
-    private String interviewType; // 면접 방식 (TEXT, VOICE)
+    private String interviewType;
 
-    // AI 제공자 선택 필드 (OPEN_AI 또는 RETELL)
     private String aiProvider;
+
+    // 신규 필드 추가
+    private String modelVariant;
+    private String personaType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private InterviewSessionStatus status; // 면접 상태 (CREATED, IN_PROGRESS 등)
+    private InterviewSessionStatus status;
 
-    private Integer finalScore; // 최종 점수
+    private Integer finalScore;
 
     @CreatedDate
     @Column(updatable = false)
@@ -49,18 +52,19 @@ public class InterviewSession {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    @Builder
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String interviewMode, String interviewType, String aiProvider) {
+    @Builder // 생성자 파라미터를 업데이트하여 빌더가 인식하게 함
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String interviewMode, String interviewType, String aiProvider, String modelVariant, String personaType) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
         this.interviewMode = interviewMode;
         this.interviewType = interviewType;
         this.aiProvider = aiProvider;
+        this.modelVariant = modelVariant; // 추가
+        this.personaType = personaType;   // 추가
         this.status = InterviewSessionStatus.CREATED;
     }
 
-    // 상태 변경 메서드
     public void updateStatus(InterviewSessionStatus status) {
         this.status = status;
     }

@@ -1,11 +1,13 @@
 package com.aibe.team2.domain.interview.service;
 
+import com.aibe.team2.domain.interview.dto.InterviewRequestDto;
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 
+// domain/interview/service/ConversationManager.java
 @Service
 @RequiredArgsConstructor
 public class ConversationManager {
@@ -13,8 +15,10 @@ public class ConversationManager {
     private final GeminiService geminiService;
     private final RetellService retellService;
 
-    public void startTextStreaming(String answer, SseEmitter emitter) {
-        geminiService.streamQuestion(answer).subscribe(
+    public void startTextStreaming(Long sessionId, String answer, String modelVariant, String personaType, SseEmitter emitter) {
+        InterviewRequestDto request = new InterviewRequestDto(answer, modelVariant, personaType);
+
+        geminiService.streamQuestion(String.valueOf(sessionId), request).subscribe(
                 data -> {
                     try {
                         emitter.send(SseEmitter.event().name("message").data(data));
@@ -27,7 +31,6 @@ public class ConversationManager {
         );
     }
 
-    // 음성 면접: 무조건 Retell 세션 생성 사용
     public VoiceSessionResponse startVoiceInterview(Long sessionId) {
         return retellService.createVoiceCall(sessionId);
     }

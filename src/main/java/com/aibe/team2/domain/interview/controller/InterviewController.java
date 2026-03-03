@@ -28,7 +28,9 @@ public class InterviewController {
                 request.getJobPostingId(),
                 request.getInterviewMode(),
                 request.getInterviewType(),
-                request.getAiProvider()
+                request.getAiProvider(),
+                request.getModelVariant(),
+                request.getPersonaType()
         );
         return ResponseEntity.ok(session);
     }
@@ -37,10 +39,12 @@ public class InterviewController {
     @GetMapping(value = "/{sessionId}/text/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamTextInterview(
             @PathVariable Long sessionId,
-            @RequestParam String answer) {
+            @RequestParam String answer,
+            @RequestParam(required = false, defaultValue = "gemini-1.5-flash-latest") String modelVariant,
+            @RequestParam(required = false, defaultValue = "SENIOR") String personaType) {
         SseEmitter emitter = new SseEmitter(120000L); // 2분 타임아웃
 
-        conversationManager.startTextStreaming(answer, emitter);
+        conversationManager.startTextStreaming(sessionId, answer, modelVariant, personaType, emitter);
 
         return emitter;
     }

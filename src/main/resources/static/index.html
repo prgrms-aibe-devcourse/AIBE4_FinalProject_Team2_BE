@@ -7,41 +7,27 @@
     <style>
         body { font-family: 'Pretendard', sans-serif; text-align: center; padding: 20px; background-color: #f8f9fa; color: #333; }
         .container { max-width: 600px; margin: 0 auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-
         .selector-group { margin: 20px 0; padding: 15px; background: #f1f3f5; border-radius: 8px; }
         .mode-switch { display: flex; justify-content: center; gap: 10px; }
+        .config-container { display: flex; justify-content: space-around; gap: 15px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6; }
+        .config-box { flex: 1; text-align: left; }
+        .config-box label { display: block; font-size: 12px; font-weight: bold; color: #666; margin-bottom: 5px; }
+        .config-box select { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ced4da; background-color: white; font-size: 13px; outline: none; }
         .btn-opt { padding: 10px 20px; border: 1px solid #dee2e6; background: white; border-radius: 20px; cursor: pointer; transition: 0.2s; font-size: 14px; }
         .btn-opt.active { background: #007bff; color: white; border-color: #007bff; font-weight: bold; }
-
         .chat-box { height: 350px; border: 1px solid #eee; border-radius: 8px; padding: 15px; overflow-y: auto; background: #fff; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
         .msg { max-width: 85%; padding: 10px 14px; border-radius: 15px; font-size: 15px; line-height: 1.5; text-align: left; }
         .msg.ai { align-self: flex-start; background: #e9ecef; color: #212529; border-bottom-left-radius: 2px; }
         .msg.user { align-self: flex-end; background: #007bff; color: white; border-bottom-right-radius: 2px; }
-
         .input-area { display: flex; gap: 8px; }
         input[type="text"] { flex: 1; padding: 12px; border: 1px solid #ced4da; border-radius: 8px; outline: none; }
         .action-btn { padding: 12px 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .action-btn:disabled { background: #adb5bd; cursor: not-allowed; }
-
         #voiceArea { display: none; padding: 30px 20px; border: 2px dashed #dee2e6; border-radius: 12px; background: #fdfdfd; }
         .voice-status { font-weight: bold; margin-bottom: 25px; color: #333; font-size: 16px; }
         .voice-controls { display: flex; justify-content: center; gap: 10px; }
         .stop-btn { background: #dc3545; }
-
-        #voiceSubtitle {
-            margin-top: 25px;
-            padding: 15px;
-            background: #e9ecef;
-            border-radius: 8px;
-            height: 200px;
-            overflow-y: auto;
-            text-align: left;
-            font-size: 15px;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-        }
+        #voiceSubtitle { margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; height: 200px; overflow-y: auto; text-align: left; font-size: 15px; display: none; flex-direction: column; gap: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
         .stt-line { line-height: 1.4; padding: 8px; border-radius: 6px; background: white; }
     </style>
 </head>
@@ -54,6 +40,24 @@
         <div class="mode-switch">
             <button class="btn-opt active" id="typeText">💬 텍스트 면접 (Gemini)</button>
             <button class="btn-opt" id="typeVoice">🎙️ 음성 면접 (Retell)</button>
+        </div>
+
+        <div class="config-container" id="configContainer">
+            <div class="config-box">
+                <label for="modelSelect">🤖 AI 모델</label>
+                <select id="modelSelect">
+                    <option value="gemini-flash-latest">Gemini Flash (성공 확인됨)</option>
+                    <option value="gemini-pro-latest">Gemini Pro (고성능/추천)</option>
+                </select>
+            </div>
+            <div class="config-box">
+                <label for="personaSelect">👨‍🏫 면접관 성향</label>
+                <select id="personaSelect">
+                    <option value="SENIOR">10년차 시니어 개발자</option>
+                    <option value="KIND">친절한 멘토형</option>
+                    <option value="STERN">날카로운 압박 면접</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -73,7 +77,6 @@
             <button class="action-btn" id="startVoiceBtn" style="background: #007bff;">음성 대화 시작</button>
             <button class="action-btn stop-btn" id="stopVoiceBtn" disabled>대화 종료</button>
         </div>
-
         <div id="voiceSubtitle"></div>
     </div>
 </div>
@@ -94,30 +97,8 @@
     const startVoiceBtn = document.getElementById('startVoiceBtn');
     const stopVoiceBtn = document.getElementById('stopVoiceBtn');
     const voiceSubtitle = document.getElementById('voiceSubtitle');
-
-    retellWebClient.on("update", (update) => {
-        if (update && update.transcript) {
-            voiceSubtitle.style.display = 'flex';
-            voiceSubtitle.innerHTML = '';
-            update.transcript.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'stt-line';
-                if (item.role === 'agent') {
-                    div.innerHTML = `<span style="color: #007bff; font-weight: bold;">🤖 면접관:</span> ${item.content}`;
-                } else {
-                    div.innerHTML = `<span style="color: #28a745; font-weight: bold;">🗣️ 나:</span> ${item.content}`;
-                }
-                voiceSubtitle.appendChild(div);
-            });
-            voiceSubtitle.scrollTop = voiceSubtitle.scrollHeight;
-        }
-    });
-
-    retellWebClient.on("call_ended", () => {
-        document.getElementById('voiceStatus').innerText = "🏁 대화가 종료되었습니다.";
-        startVoiceBtn.disabled = false;
-        stopVoiceBtn.disabled = true;
-    });
+    const modelSelect = document.getElementById('modelSelect');
+    const personaSelect = document.getElementById('personaSelect');
 
     typeTextBtn.onclick = () => {
         currentType = 'TEXT';
@@ -125,6 +106,7 @@
         typeVoiceBtn.classList.remove('active');
         textArea.style.display = 'block';
         voiceArea.style.display = 'none';
+        document.getElementById('configContainer').style.display = 'flex';
     };
 
     typeVoiceBtn.onclick = () => {
@@ -133,20 +115,20 @@
         typeTextBtn.classList.remove('active');
         textArea.style.display = 'none';
         voiceArea.style.display = 'block';
+        document.getElementById('configContainer').style.display = 'none';
     };
 
     sendBtn.onclick = async () => {
         if (currentType !== 'TEXT') return;
-
         const text = document.getElementById('userInput').value;
-        if(!text) {
-            alert("내용을 입력해주세요.");
-            return;
-        }
+        if(!text) { alert("내용을 입력해주세요."); return; }
 
         appendMessage('user', text);
         document.getElementById('userInput').value = '';
         sendBtn.disabled = true;
+
+        modelSelect.disabled = true;
+        personaSelect.disabled = true;
 
         try {
             if (!textSessionId) {
@@ -156,8 +138,10 @@
                     body: JSON.stringify({
                         memberId: 1,
                         interviewType: 'TEXT',
-                        aiProvider: 'GEMINI', // 🚀 AI 공급자를 GEMINI로 명시
-                        interviewMode: 'NORMAL'
+                        aiProvider: 'GEMINI',
+                        interviewMode: 'NORMAL',
+                        modelVariant: modelSelect.value,
+                        personaType: personaSelect.value
                     })
                 });
                 const session = await response.json();
@@ -165,8 +149,9 @@
             }
 
             const aiMsgDiv = appendMessage('ai', '');
-            // 🚀 2. 스트리밍 주소 호출 및 데이터 파싱 로직 최적화
-            const eventSource = new EventSource(`/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}`);
+            // 🚀 SSE 요청 시 모델/페르소나 파라미터 전달
+            const url = `/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}&modelVariant=${modelSelect.value}&personaType=${personaSelect.value}`;
+            const eventSource = new EventSource(url);
 
             eventSource.onmessage = (event) => {
                 if (event.data === "[DONE]") {
@@ -174,38 +159,31 @@
                     sendBtn.disabled = false;
                     return;
                 }
-
                 try {
-                    // Gemini의 복잡한 JSON 구조를 안전하게 파싱합니다.
                     const data = JSON.parse(event.data);
-
                     if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
-                        const content = data.candidates[0].content.parts[0].text;
-                        aiMsgDiv.innerText += content;
-                    } else if (data.text) { // 혹시 서버에서 text 필드로 한 번 더 가공해서 보낼 경우 대비
+                        aiMsgDiv.innerText += data.candidates[0].content.parts[0].text;
+                    } else if (data.text) {
                         aiMsgDiv.innerText += data.text;
                     }
-
                 } catch (e) {
-                    // JSON 형식이 아닌 일반 텍스트 데이터가 올 경우 그대로 출력
                     aiMsgDiv.innerText += event.data;
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
 
             eventSource.onerror = (err) => {
-                console.error("SSE Error:", err);
                 eventSource.close();
                 sendBtn.disabled = false;
             };
 
         } catch (error) {
-            console.error(error);
-            alert("텍스트 서버 연결에 실패했습니다.");
+            alert("텍스트 서버 연결 실패");
             sendBtn.disabled = false;
         }
     };
 
+    // 음성 면접 로직
     startVoiceBtn.onclick = async () => {
         try {
             startVoiceBtn.disabled = true;
@@ -227,25 +205,20 @@
 
             const voiceRes = await fetch(`/api/interviews/${session.id}/voice/start`, { method: 'POST' });
             const voiceData = await voiceRes.json();
-            const token = voiceData.accessToken;
 
             document.getElementById('voiceStatus').innerText = "마이크 권한을 승인해 주세요...";
-            await retellWebClient.startCall({ accessToken: token });
+            await retellWebClient.startCall({ accessToken: voiceData.accessToken });
 
             document.getElementById('voiceStatus').innerText = "🔴 면접관과 대화 중입니다... (마이크 켜짐)";
             stopVoiceBtn.disabled = false;
 
         } catch (err) {
             console.error("통화 시작 실패:", err);
-            alert("음성 연결에 실패했습니다: " + err.message);
+            alert("음성 연결에 실패했습니다.");
             startVoiceBtn.disabled = false;
-            document.getElementById('voiceStatus').innerText = "아래 '음성 대화 시작' 버튼을 눌러 다시 시도하세요.";
         }
     };
-
-    stopVoiceBtn.onclick = () => {
-        retellWebClient.stopCall();
-    };
+    stopVoiceBtn.onclick = () => { retellWebClient.stopCall(); };
 
     function appendMessage(sender, text) {
         const div = document.createElement('div');
