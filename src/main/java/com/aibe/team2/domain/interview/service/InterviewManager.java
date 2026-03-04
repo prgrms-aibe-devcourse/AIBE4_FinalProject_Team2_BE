@@ -1,7 +1,8 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.entity.InterviewSession;
-import com.aibe.team2.domain.interview.entity.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.InterviewMode;
+import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
 import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,26 +15,27 @@ public class InterviewManager {
     private final InterviewRepository interviewRepository;
 
     @Transactional
-    public InterviewSession startInterview(Long memberId, Long resumeId, Long jobPostingId, String mode, String type, String aiProvider) {
+    // @DistributedLock(key = "interview-start", waitTime = 1, leaseTime = 3)
+    public InterviewSession startInterview(Long memberId, Long resumeId, Long jobPostingId,
+                                           InterviewMode interviewMode, String interviewType,
+                                           String aiProvider, String modelVariant) {
         InterviewSession session = InterviewSession.builder()
-                .memberId(memberId)      // ERD: member_id
-                .resumeId(resumeId)      // ERD: resume_id
-                .jobPostingId(jobPostingId) // ERD: job_posting_id
-                .interviewMode(mode)     // ERD: interview_mode
-                .interviewType(type)     // ERD: interview_type
-                .aiProvider(aiProvider) // 사용자 선택 반영
+                .memberId(memberId)
+                .resumeId(resumeId)
+                .jobPostingId(jobPostingId)
+                .interviewMode(interviewMode)
+                .interviewType(interviewType)
+                .aiProvider(aiProvider)
+                .modelVariant(modelVariant)
                 .build();
 
         return interviewRepository.save(session);
     }
 
-
     @Transactional
     public void advanceStatus(Long sessionId, InterviewSessionStatus nextStatus) {
         InterviewSession session = interviewRepository.findById(sessionId)
                 .orElseThrow(() -> new IllegalArgumentException("세션을 찾을 수 없습니다. ID: " + sessionId));
-
-        // CREATED -> IN_PROGRESS -> DONE/ABORTED 흐름을 반영한 상태 업데이트
         session.updateStatus(nextStatus);
     }
 }
