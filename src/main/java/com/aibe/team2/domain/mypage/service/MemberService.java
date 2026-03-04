@@ -133,8 +133,7 @@ public class MemberService {
     @Transactional
     public String updateProfileImage(Long memberId, MultipartFile file) {
         // 1. 회원 조회
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        Member member = memberRepository.getByIdThrow(memberId);
 
         // 삭제할 기존 이미지 URL을 미리 저장
         String oldImageUrl = member.getProfileImageUrl();

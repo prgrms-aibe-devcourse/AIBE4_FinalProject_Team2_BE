@@ -4,6 +4,7 @@ import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +17,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class S3ImageService {
 
@@ -40,10 +43,10 @@ public class S3ImageService {
             // 2. 404(Not Found) 에러가 나면 버킷이 없다는 뜻이므로 새로 생성
             if (e.statusCode() == 404) {
                 s3Client.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
-                System.out.println("✅ S3ImageService: 테스트용 버킷 [" + bucket + "] 자동 생성 완료!");
+                log.info("✅ S3ImageService: 테스트용 버킷 [{}] 자동 생성 완료!", bucket);
             }
         } catch (Exception e) {
-            System.err.println("버킷 확인 중 에러 발생: " + e.getMessage());
+            log.error("버킷 확인 중 에러 발생: {}", e.getMessage(), e);
         }
     }
 
@@ -89,7 +92,8 @@ public class S3ImageService {
                     .build();
 
             s3Client.deleteObject(deleteObjectRequest);
-        } catch (Exception e) {
+        } catch (S3Exception e) {
+            log.error("S3 파일 삭제 중 오류 발생: {}", e.getMessage());
             throw new BusinessException(ErrorCode.FILE_DELETE_FAILED);
         }
     }
@@ -101,7 +105,7 @@ public class S3ImageService {
         }
 
         if(file.getSize() > MAX_FILE_SIZE) {
-            throw new BusinessException(ErrorCode.COMMON_400);
+            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED);
         }
 
         String extension = getExtension(file.getOriginalFilename()).toLowerCase();
