@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.auth.filter;
 
-import com.aibe.team2.domain.auth.service.CustomMemberDetailsService;
+import com.aibe.team2.domain.auth.service.CustomMemberDetailService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,21 +10,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Collections;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final CustomMemberDetailsService customMemberDetailsService;
+    private final CustomMemberDetailService customMemberDetailService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, CustomMemberDetailsService customMemberDetailsService) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, CustomMemberDetailService customMemberDetailService) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.customMemberDetailsService = customMemberDetailsService;
+        this.customMemberDetailService = customMemberDetailService;
     }
 
     @Override
@@ -37,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = jwtTokenProvider.getUsername(token);
 
             // 1. DB에서 사용자 정보를 로드 (권한 정보 포함)
-            UserDetails userDetails = customMemberDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = customMemberDetailService.loadUserByUsername(username);
 
             // 2. userDetails.getAuthorities()를 통해 실제 권한을 부여
             Authentication auth = new UsernamePasswordAuthenticationToken(

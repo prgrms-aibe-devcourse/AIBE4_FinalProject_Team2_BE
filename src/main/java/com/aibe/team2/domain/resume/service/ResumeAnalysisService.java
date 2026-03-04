@@ -30,7 +30,7 @@ public class ResumeAnalysisService {
     private final JobPostingRepository jobPostingRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-    @DistributedLock(key = "resume-analysis", waitTime = 2, leaseTime = 3)
+@DistributedLock(key = "'resume-analysis-' + #resumeId", waitTime = 1, leaseTime = 5)
     @Transactional
     public Long analyzeResume(Long resumeId, Long jobPostingId, Long memberId) {
 
