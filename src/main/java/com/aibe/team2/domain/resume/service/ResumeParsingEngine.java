@@ -35,7 +35,7 @@ public class ResumeParsingEngine {
 
         } catch (Exception e) {
             log.error("[Resume Parsing Error] 파일 명: {}, 오류: {}", file.getOriginalFilename(), e.getMessage());
-            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAILED);
+            throw new BusinessException(ErrorCode.RESUME_PARSING_ERROR);
         }
     }
 }
