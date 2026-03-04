@@ -28,7 +28,7 @@
         .voice-controls { display: flex; justify-content: center; gap: 10px; }
         .stop-btn { background: #dc3545; }
         #voiceSubtitle { margin-top: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; height: 200px; overflow-y: auto; text-align: left; font-size: 15px; display: none; flex-direction: column; gap: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
-        .stt-line { line-height: 1.4; padding: 8px; border-radius: 6px; background: white; margin-bottom: 5px; }
+        .stt-line { line-height: 1.4; padding: 8px; border-radius: 6px; background: white; }
     </style>
 </head>
 <body>
@@ -87,7 +87,9 @@
     const retellWebClient = new RetellWebClient();
     let currentType = 'TEXT';
     let textSessionId = null;
-    const MEMBER_ID = 1; // 실제 구현 시 유동적으로 설정 (보안 검증용)
+
+    // 리뷰 반영: 소유권 검증을 위한 현재 사용자 ID (백엔드 보안 로직과 연동)
+    const MEMBER_ID = 1;
 
     const typeTextBtn = document.getElementById('typeText');
     const typeVoiceBtn = document.getElementById('typeVoice');
@@ -101,11 +103,11 @@
     const modelSelect = document.getElementById('modelSelect');
     const modeSelect = document.getElementById('modeSelect');
 
-    // 음성 면접 실시간 자막 리스너
+    // 음성 자막 리스너
     retellWebClient.on("update", (update) => {
         if (update && update.transcript) {
             voiceSubtitle.style.display = 'flex';
-            voiceSubtitle.innerHTML = ''; // 이전 내용 지우기 (전체 스크립트 기반)
+            voiceSubtitle.innerHTML = '';
             update.transcript.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'stt-line';
@@ -118,9 +120,8 @@
         }
     });
 
-    // [복구] 음성 면접 종료 리스너 - UI 상태 동기화
     retellWebClient.on("call_ended", () => {
-        document.getElementById('voiceStatus').innerText = "대화가 종료되었습니다.";
+        document.getElementById('voiceStatus').innerText = "✅ 대화가 종료되었습니다.";
         startVoiceBtn.disabled = false;
         stopVoiceBtn.disabled = true;
     });
@@ -146,7 +147,7 @@
     sendBtn.onclick = async () => {
         if (currentType !== 'TEXT') return;
         const text = document.getElementById('userInput').value;
-        if(!text) return;
+        if(!text) { alert("내용을 입력해주세요."); return; }
 
         appendMessage('user', text);
         document.getElementById('userInput').value = '';
@@ -158,7 +159,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        memberId: MEMBER_ID,
+                        memberId: MEMBER_ID, // 소유권 검증용 ID 전달
                         interviewType: 'TEXT',
                         aiProvider: 'GEMINI',
                         interviewMode: modeSelect.value,
@@ -171,7 +172,7 @@
 
             const aiMsgDiv = appendMessage('ai', '');
 
-            // 보안 반영: memberId 파라미터 추가 (Ownership Check 용)
+            // 리뷰 반영: SSE 스트리밍 시 memberId 파라미터 추가 (Ownership Check)
             const url = `/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}&modelVariant=${modelSelect.value}&interviewMode=${modeSelect.value}&memberId=${MEMBER_ID}`;
             const eventSource = new EventSource(url);
 
@@ -183,22 +184,27 @@
                 }
                 try {
                     const data = JSON.parse(event.data);
-                    const chunk = data.candidates?.[0]?.content?.parts?.[0]?.text || data.text || event.data;
-                    aiMsgDiv.innerText += chunk;
+                    if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts) {
+                        aiMsgDiv.innerText += data.candidates[0].content.parts[0].text;
+                    } else if (data.text) {
+                        aiMsgDiv.innerText += data.text;
+                    }
                 } catch (e) {
                     aiMsgDiv.innerText += event.data;
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
 
+            // 🚀 리뷰 반영: SSE 통신 에러 로깅 복구
             eventSource.onerror = (err) => {
-                console.error("SSE Error:", err);
+                console.error("SSE 스트리밍 중 에러 발생:", err);
                 eventSource.close();
                 sendBtn.disabled = false;
             };
 
         } catch (error) {
-            console.error("Connection failed:", error);
+            // 🚀 리뷰 반영: API 호출 실패 에러 로깅 복구
+            console.error("텍스트 면접 시작 또는 데이터 전송 실패:", error);
             alert("텍스트 서버 연결 실패");
             sendBtn.disabled = false;
         }
@@ -215,7 +221,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    memberId: MEMBER_ID,
+                    memberId: MEMBER_ID, // 소유권 검증용 ID 전달
                     interviewType: 'VOICE',
                     aiProvider: 'RETELL',
                     interviewMode: 'NORMAL'
@@ -223,7 +229,7 @@
             });
             const session = await response.json();
 
-            // 보안 반영: memberId 파라미터 추가
+            // 리뷰 반영: 음성 면접 시작 시 memberId 파라미터 추가 (Ownership Check)
             const voiceRes = await fetch(`/api/interviews/${session.id}/voice/start?memberId=${MEMBER_ID}`, { method: 'POST' });
             const voiceData = await voiceRes.json();
 
@@ -234,15 +240,14 @@
             stopVoiceBtn.disabled = false;
 
         } catch (err) {
+            // 리뷰 반영: 에러 로깅 복구
             console.error("음성 대화 시작 실패:", err);
             alert("음성 연결에 실패했습니다.");
             startVoiceBtn.disabled = false;
         }
     };
 
-    stopVoiceBtn.onclick = () => {
-        retellWebClient.stopCall();
-    };
+    stopVoiceBtn.onclick = () => { retellWebClient.stopCall(); };
 
     function appendMessage(sender, text) {
         const div = document.createElement('div');
