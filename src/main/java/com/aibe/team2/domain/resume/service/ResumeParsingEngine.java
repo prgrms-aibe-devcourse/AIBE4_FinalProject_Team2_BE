@@ -19,7 +19,7 @@ public class ResumeParsingEngine {
         this.tika = new Tika();
     }
 
-    // 클라이언트가 업로드한 MultipartFile에서 텍스트를 추출합
+    // 클라이언트가 업로드한 MultipartFile에서 텍스트를 추출합니다
 
     public String extractText(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -35,7 +35,7 @@ public class ResumeParsingEngine {
 
         } catch (Exception e) {
             log.error("[Resume Parsing Error] 파일 명: {}, 오류: {}", file.getOriginalFilename(), e.getMessage());
-            throw new BusinessException(ErrorCode.FILE_UPLOAD_FAILED);
+            throw new BusinessException(ErrorCode.RESUME_PARSING_ERROR);
         }
     }
 }
