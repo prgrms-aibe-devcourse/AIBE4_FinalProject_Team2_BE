@@ -4,6 +4,7 @@ import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
+import com.aibe.team2.global.redis.lock.DistributedLock;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +20,6 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Service
@@ -38,7 +38,8 @@ public class AnalysisAsyncWorker {
     @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent}")
     private String geminiApiUrl;
 
-    @Async
+    @Async("aiAnalysisTaskExecutor")
+    @DistributedLock(key = "'resume_analysis_' + #reportId")
     @Transactional
     public void processAiAnalysisAsync(Long reportId, String resumeContent, String jobDescription) {
         log.info("[Async Worker] AI 분석 시작 - Report ID: {}", reportId);
@@ -47,10 +48,10 @@ public class AnalysisAsyncWorker {
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
         try {
-            // 1. 객관적 지표: 임베딩 기반 코사인 유사도 계산 (0~100점)
+            // 1. 객관적 지표: 임베딩 기반 코사인 유사도 계산
             int matchScore = similarityEngine.calculateCosineSimilarityScore(resumeContent, jobDescription);
 
-            // 2. 정성적 지표: Gemini API 호출 (첨삭, 키워드, 소제목 추출)
+            // 2. 정성적 지표: Gemini API 호출
             AiAnalysisResult result = callGeminiApiForCorrections(resumeContent, jobDescription);
 
             // 3. 분석 성공 처리 및 DB 업데이트
@@ -63,13 +64,13 @@ public class AnalysisAsyncWorker {
             );
             log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
 
-        } catch (WebClientRequestException | TimeoutException e) {
-            // 지연 // AI 서버 응답 지연 또는 타임아웃 발생 시 -> DELAYED 상태로 변경
+        } catch (WebClientRequestException e) {
+            // WebClient 타임아웃 및 요청 에러 처리
             log.warn("[Async Worker] AI API 호출 지연/타임아웃 발생 - Report ID: {}", reportId, e);
             statusManager.updateToDelayed(reportId);
 
         } catch (Exception e) {
-            // 실패 // 그 외 파싱 에러나 알 수 없는 에러 발생 시 -> FAILED 상태로 변경
+            // 파싱 에러 등 기타 서버 에러 처리
             log.error("[Async Worker] AI 분석 중 오류 발생 - Report ID: {}", reportId, e);
             statusManager.updateToFailed(reportId);
         }
