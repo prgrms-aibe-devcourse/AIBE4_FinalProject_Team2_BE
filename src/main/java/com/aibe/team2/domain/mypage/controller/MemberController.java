@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.mypage.controller;
 
+import com.aibe.team2.domain.file.service.S3ImageService;
 import com.aibe.team2.domain.mypage.dto.response.MemberResponse;
 import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponse;
 import com.aibe.team2.domain.mypage.dto.request.PasswordChangeRequest;
@@ -9,8 +10,10 @@ import com.aibe.team2.domain.mypage.service.MemberService;
 import com.aibe.team2.global.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/mypage")
@@ -49,6 +52,25 @@ public class MemberController {
                 .code("OK")
                 .message("프로필 수정이 완료되었습니다.")
                 .data(response)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    // 마이페이지 프로필 이미지 변경
+    @PatchMapping(value = "/profile/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<String>> updateProfileImage(
+            @RequestPart("file") MultipartFile file
+    ) {
+        Long memberId = getLoginMemberId();
+
+        String uploadedUrl = memberService.updateProfileImage(memberId, file);
+
+        ApiResponse<String> apiResponse = ApiResponse.<String> builder()
+                .success(true)
+                .code("OK")
+                .message("프로필 이미지 수정이 완료되었습니다.")
+                .data(uploadedUrl)
                 .build();
 
         return ResponseEntity.ok(apiResponse);

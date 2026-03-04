@@ -5,6 +5,8 @@ import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.entity.enums.Provider;
+import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.resume.entity.Resume;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
@@ -26,7 +28,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
-//@Component
+@Component
 @Profile("!prod") // 로컬이나 개발 환경에서만 이 빈이 활성화됨
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -129,7 +131,8 @@ public class DataInitializer implements CommandLineRunner {
                    "tester" + i + "@synctalk.com",
                    "encodedPassword!",
                    "테스터" + i,
-                   null, null
+                   Role.MEMBER,
+                   Provider.LOCAL
            );
            members.add(memberRepository.save(member));
        }
