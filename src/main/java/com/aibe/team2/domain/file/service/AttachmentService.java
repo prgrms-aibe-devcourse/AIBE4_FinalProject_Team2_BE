@@ -20,7 +20,7 @@ import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepo
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
-import com.aibe.team2.domain.interview.entity.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
 
 @Service
 @RequiredArgsConstructor

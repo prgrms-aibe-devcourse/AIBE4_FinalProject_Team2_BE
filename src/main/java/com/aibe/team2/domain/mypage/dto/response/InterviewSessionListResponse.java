@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.mypage.dto.response;
 
-import com.aibe.team2.domain.interview.entity.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
 import java.time.LocalDateTime;
 
 public record InterviewSessionListResponse(
