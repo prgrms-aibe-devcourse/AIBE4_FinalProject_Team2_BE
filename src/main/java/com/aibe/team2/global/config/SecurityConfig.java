@@ -1,6 +1,7 @@
 package com.aibe.team2.global.config;
 
 import com.aibe.team2.domain.auth.filter.JwtAuthenticationFilter;
+import com.aibe.team2.domain.auth.service.CustomMemberDetailsService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomMemberDetailsService customMemberDetailsService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -67,12 +69,11 @@ public class SecurityConfig {
                                 "/api/resumes/**",
                                 "/api/v1/mypage/**"
                         ).permitAll()
-                        .requestMatchers("/api/files/**").permitAll()
-                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/signup").permitAll()
+                        .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // UsernamePasswordAuthenticationFilter 이전에 JWT 필터 실행
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customMemberDetailsService),
                         UsernamePasswordAuthenticationFilter.class)
 
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))

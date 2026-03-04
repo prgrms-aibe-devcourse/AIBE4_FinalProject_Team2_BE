@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.auth.filter;
 
+import com.aibe.team2.domain.auth.service.CustomMemberDetailsService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -8,6 +9,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,30 +20,32 @@ import java.util.Collections;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomMemberDetailsService customMemberDetailsService;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, CustomMemberDetailsService customMemberDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.customMemberDetailsService = customMemberDetailsService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
-
-        // 로그인 경로는 토큰 검사 없이 통과시켜줌
-        if ("/api/login".equals(path)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String token = resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             String username = jwtTokenProvider.getUsername(token);
-            // 인증 객체 생성 (비밀번호는 null로 처리)
-            Authentication auth = new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
-            // SecurityContext에 인증 정보 저장
+
+            // 1. DB에서 사용자 정보를 로드 (권한 정보 포함)
+            UserDetails userDetails = customMemberDetailsService.loadUserByUsername(username);
+
+            // 2. userDetails.getAuthorities()를 통해 실제 권한을 부여
+            Authentication auth = new UsernamePasswordAuthenticationToken(
+                    userDetails,
+                    null,
+                    userDetails.getAuthorities() // 빈 리스트 대신 실제 권한 주입!
+            );
+
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
