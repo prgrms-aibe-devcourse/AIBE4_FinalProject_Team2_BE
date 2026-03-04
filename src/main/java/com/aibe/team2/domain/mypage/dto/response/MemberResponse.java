@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-public class MemberResponseDto {
+public class MemberResponse {
     private final String email;
     private final String nickname;
     private final String profileImageUrl;
 
     private final JobPreferencesDto  jobPreferences;
 
-    public MemberResponseDto(Member member) {
+    public MemberResponse(Member member) {
         this.email = member.getEmail();
         this.nickname = member.getNickname();
         this.profileImageUrl = member.getProfileImageUrl();

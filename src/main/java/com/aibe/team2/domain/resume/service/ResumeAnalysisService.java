@@ -10,6 +10,7 @@ import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
+import com.aibe.team2.global.redis.lock.DistributedLock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,6 +30,7 @@ public class ResumeAnalysisService {
     private final JobPostingRepository jobPostingRepository;
     private final ApplicationEventPublisher eventPublisher;
 
+    @DistributedLock(key = "resume-analysis", waitTime = 2, leaseTime = 3)
     @Transactional
     public Long analyzeResume(Long resumeId, Long jobPostingId, Long memberId) {
 

@@ -57,4 +57,11 @@ public class Resume {
     public void updateAnalysisStatus(boolean isAnalyzed) {
         this.isAnalyzed = isAnalyzed;
     }
+
+    // [추가] 자기소개서 수정 로직
+    public void update(String title, String contentJson) {
+        this.title = title;
+        this.content = contentJson;
+        this.isAnalyzed = false; // 내용이 수정되었으므로 기존 분석 결과는 무효화
+    }
 }

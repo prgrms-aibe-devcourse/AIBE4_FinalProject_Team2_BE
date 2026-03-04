@@ -4,12 +4,13 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class JobPreferenceUpdateRequestDto {
-    private List<String> targetJobRoles;
+public class ProfileUpdate {
 
-    private String preferredLocation;
+    private String nickname;
+
+    private String profileImageUrl; // 제거 시 null 또는 빈 값 전송
+
+    private JobPreferenceUpdateRequest jobPreferences;
 }

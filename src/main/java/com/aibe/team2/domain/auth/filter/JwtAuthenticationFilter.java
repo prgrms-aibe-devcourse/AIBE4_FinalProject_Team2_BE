@@ -5,33 +5,42 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
-@Component
-@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final JwtTokenProvider jwtTokenProvider; // 토큰 생성/검증 유틸리티 (직접 구현 필요)
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-        // 1. 헤더에서 토큰 추출
+        String path = request.getServletPath();
+
+        // 로그인 경로는 토큰 검사 없이 통과시켜줌
+        if ("/api/login".equals(path)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
-        // 2. 토큰 유효성 검사
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            // 3. 토큰이 유효하면 인증 객체 생성 및 Context에 저장
-            Authentication auth = jwtTokenProvider.getAuthentication(token);
+            String username = jwtTokenProvider.getUsername(token);
+            // 인증 객체 생성 (비밀번호는 null로 처리)
+            Authentication auth = new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+            // SecurityContext에 인증 정보 저장
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 

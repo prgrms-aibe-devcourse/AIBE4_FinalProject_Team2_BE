@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "member")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
@@ -81,6 +82,10 @@ public class Member {
         if (profileImageUrl != null && !profileImageUrl.isEmpty()) this.profileImageUrl = profileImageUrl;
     }
 
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
+    }
+
     public void updatePassword(String encodedNewPassword) {
         this.password = encodedNewPassword;
     }
@@ -89,6 +94,7 @@ public class Member {
         this.desiredJobRole = desiredJobRole;
         this.preferredLocation = preferredLocation;
     }
+
     public void updateCreditBalance(int newBalance) {
         this.creditBalance = newBalance;
     }

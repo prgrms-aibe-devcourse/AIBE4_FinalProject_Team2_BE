@@ -1,6 +1,8 @@
 spring:
   application:
     name: aibe-team2-api
+  profiles:
+    active: dev
 
   servlet:
     multipart:
@@ -59,3 +61,9 @@ aws:
 
   sqs:
     {}
+
+# JWT 관련 사용자 정의 설정 (JwtTokenProvider에서 불러다 쓸 용도)
+jwt:
+  # 충분히 긴 문자열(32자 이상)
+  secret: your-256-bit-secret-key-must-be-very-long-and-random-string-here
+  expiration-time: 86400000 # 토큰 만료 시간 (24시간)
