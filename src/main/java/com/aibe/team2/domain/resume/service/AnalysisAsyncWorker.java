@@ -64,7 +64,7 @@ public class AnalysisAsyncWorker {
             );
             log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
 
-        } catch (WebClientRequestException e) {
+        } catch (WebClientRequestException | java.util.concurrent.TimeoutException e) {
             // WebClient 타임아웃 및 요청 에러 처리
             log.warn("[Async Worker] AI API 호출 지연/타임아웃 발생 - Report ID: {}", reportId, e);
             statusManager.updateToDelayed(reportId);
