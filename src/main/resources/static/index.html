@@ -51,11 +51,12 @@
                 </select>
             </div>
             <div class="config-box">
-                <label for="personaSelect">👨‍🏫 면접관 성향</label>
-                <select id="personaSelect">
-                    <option value="SENIOR">10년차 시니어 개발자</option>
-                    <option value="KIND">친절한 멘토형</option>
-                    <option value="STERN">날카로운 압박 면접</option>
+                <!-- 🚀 면접관 성향에서 면접 모드로 명칭 변경 -->
+                <label for="modeSelect">🎯 면접 모드</label>
+                <select id="modeSelect">
+                    <option value="NORMAL">일반 면접</option>
+                    <option value="FOLLOW_UP">꼬리물기 질문 면접</option>
+                    <option value="STRESS">압박 면접</option>
                 </select>
             </div>
         </div>
@@ -98,7 +99,7 @@
     const stopVoiceBtn = document.getElementById('stopVoiceBtn');
     const voiceSubtitle = document.getElementById('voiceSubtitle');
     const modelSelect = document.getElementById('modelSelect');
-    const personaSelect = document.getElementById('personaSelect');
+    const modeSelect = document.getElementById('modeSelect');
 
     typeTextBtn.onclick = () => {
         currentType = 'TEXT';
@@ -128,10 +129,11 @@
         sendBtn.disabled = true;
 
         modelSelect.disabled = true;
-        personaSelect.disabled = true;
+        modeSelect.disabled = true;
 
         try {
             if (!textSessionId) {
+                // 1. 세션 생성 요청
                 const response = await fetch('/api/interviews/start', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -139,9 +141,8 @@
                         memberId: 1,
                         interviewType: 'TEXT',
                         aiProvider: 'GEMINI',
-                        interviewMode: 'NORMAL',
-                        modelVariant: modelSelect.value,
-                        personaType: personaSelect.value
+                        interviewMode: modeSelect.value,
+                        modelVariant: modelSelect.value
                     })
                 });
                 const session = await response.json();
@@ -149,8 +150,9 @@
             }
 
             const aiMsgDiv = appendMessage('ai', '');
-            // 🚀 SSE 요청 시 모델/페르소나 파라미터 전달
-            const url = `/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}&modelVariant=${modelSelect.value}&personaType=${personaSelect.value}`;
+
+            // 2. SSE 스트리밍 요청
+            const url = `/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}&modelVariant=${modelSelect.value}&interviewMode=${modeSelect.value}`;
             const eventSource = new EventSource(url);
 
             eventSource.onmessage = (event) => {
@@ -198,7 +200,7 @@
                     memberId: 1,
                     interviewType: 'VOICE',
                     aiProvider: 'RETELL',
-                    interviewMode: 'NORMAL'
+                    interviewMode: 'NORMAL' // 음성은 기본 NORMAL로 설정 (필요 시 수정 가능)
                 })
             });
             const session = await response.json();

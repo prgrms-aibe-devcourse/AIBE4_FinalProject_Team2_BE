@@ -4,7 +4,6 @@ import com.aibe.team2.domain.interview.dto.InterviewStartRequest;
 import com.aibe.team2.domain.interview.dto.VoiceSessionResponse;
 import com.aibe.team2.domain.interview.entity.InterviewSession;
 import com.aibe.team2.domain.interview.enums.InterviewMode;
-import com.aibe.team2.domain.interview.enums.PersonaType;
 import com.aibe.team2.domain.interview.service.ConversationManager;
 import com.aibe.team2.domain.interview.service.InterviewManager;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +29,7 @@ public class InterviewController {
                 InterviewMode.valueOf(request.getInterviewMode()),
                 request.getInterviewType(),
                 request.getAiProvider(),
-                request.getModelVariant(),
-                PersonaType.valueOf(request.getPersonaType())
+                request.getModelVariant()
         );
         return ResponseEntity.ok(session);
     }
@@ -40,11 +38,18 @@ public class InterviewController {
     public SseEmitter streamTextInterview(
             @PathVariable Long sessionId,
             @RequestParam String answer,
-            @RequestParam(required = false, defaultValue = "gemini-1.5-flash-latest") String modelVariant,
-            @RequestParam(required = false, defaultValue = "SENIOR") String personaType) {
+            @RequestParam(required = false, defaultValue = "gemini-flash-latest") String modelVariant,
+            @RequestParam(required = false, defaultValue = "NORMAL") String interviewMode) {
+
         SseEmitter emitter = new SseEmitter(120000L);
 
-        conversationManager.startTextStreaming(sessionId, answer, modelVariant, PersonaType.valueOf(personaType), emitter);
+        conversationManager.startTextStreaming(
+                sessionId,
+                answer,
+                modelVariant,
+                InterviewMode.valueOf(interviewMode),
+                emitter
+        );
 
         return emitter;
     }

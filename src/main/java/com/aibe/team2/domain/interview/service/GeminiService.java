@@ -1,6 +1,7 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.dto.InterviewRequestDto;
+import com.aibe.team2.domain.interview.enums.InterviewMode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -41,34 +43,58 @@ public class GeminiService {
         String model = (request.getModelVariant() != null && !request.getModelVariant().isEmpty())
                 ? request.getModelVariant() : "gemini-flash-latest";
 
-        // 정상 작동 확인된 URL 구조 (?alt=sse 포함)
         String fullUrl = String.format("%s/v1beta/models/%s:streamGenerateContent?alt=sse", rootUrl, model);
 
-        // Enum인 personaType을 .name()을 사용하여 String으로 변환 후 파일 로드
-        String personaPrompt = loadPromptFile(request.getPersonaType().name());
+        // 🚀 리팩토링 핵심: interviewMode.name()으로 프롬프트 파일 로드 (NORMAL, FOLLOW_UP, STRESS)
+        String atmospherePrompt = loadPromptFile(request.getInterviewMode().name());
         String constraints = loadPromptFile("constraints");
         String finalPrompt = String.format("%s\n\n%s\n\n[Candidate Answer]\n%s",
-                personaPrompt, constraints, request.getMessage());
+                atmospherePrompt, constraints, request.getMessage());
 
-        log.info("[Gemini-Success] Session: {}, Model: {}, Persona: {}", sessionId, model, request.getPersonaType());
+        log.info("[Gemini-Success] Session: {}, Atmosphere: {}", sessionId, request.getInterviewMode());
 
         return webClient.post()
                 .uri(URI.create(fullUrl))
                 .header("x-goog-api-key", apiKey)
                 .header("Content-Type", "application/json")
-                .bodyValue(Map.of("contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", finalPrompt))))))
+                .bodyValue(Map.of("contents", List.of(
+                        Map.of("role", "user",
+                                "parts", List.of(Map.of("text", finalPrompt)))
+                )))
                 .retrieve()
                 .bodyToFlux(String.class)
                 .doOnError(e -> log.error("=== 🚨 Gemini API 호출 에러: {} ===", e.getMessage()));
     }
 
+    /**
+     * 🚀 보안 리뷰 반영 (Remediation): Path Traversal 방어를 위한 허용 목록(Allow-list) 검증
+     */
     private String loadPromptFile(String fileName) {
+        // 1. 엄격한 허용 목록(Allow-list) 검증: Enum 상수에 정의된 이름이거나 'constraints'인 경우만 허용
+        // 에러 해결: fileName이 effectively final 상태를 유지할 수 있도록 직접 사용
+        boolean isAllowed = Arrays.stream(InterviewMode.values())
+                .anyMatch(mode -> mode.name().equals(fileName)) || "constraints".equals(fileName);
+
+        // 로드할 실제 파일명을 담을 변수 선언
+        String targetFileName = fileName;
+
+        if (!isAllowed) {
+            log.error("🚨 보안 위협 감지: 허용되지 않은 프롬프트 파일 접근 시도 - {}", fileName);
+            // 비정상적인 접근일 경우 안전한 기본값(NORMAL)으로 강제 전환
+            targetFileName = "NORMAL";
+        }
+
         try {
-            Resource resource = resourceLoader.getResource("classpath:prompts/" + fileName + ".txt");
-            if (!resource.exists()) resource = resourceLoader.getResource("classpath:prompts/SENIOR.txt");
+            Resource resource = resourceLoader.getResource("classpath:prompts/" + targetFileName + ".txt");
+            if (!resource.exists()) {
+                log.warn("⚠️ 프롬프트 파일이 존재하지 않아 기본 설정을 로드합니다: {}", targetFileName);
+                resource = resourceLoader.getResource("classpath:prompts/NORMAL.txt");
+            }
             return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            return "당신은 면접관입니다.";
+            // 2. 리뷰 반영: 예외 로깅 시 실제 에러 원인(e)을 포함하여 기록
+            log.error("❌ 프롬프트 파일 로드 중 오류 발생 [파일명: {}]: ", targetFileName, e);
+            return "면접관으로서 질문을 던져주세요.";
         }
     }
 }

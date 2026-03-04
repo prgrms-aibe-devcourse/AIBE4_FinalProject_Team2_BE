@@ -2,7 +2,6 @@ package com.aibe.team2.domain.interview.entity;
 
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
-import com.aibe.team2.domain.interview.enums.PersonaType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -31,7 +30,8 @@ public class InterviewSession {
 
     private Long jobPostingId;
 
-    @Enumerated(EnumType.STRING) // String -> InterviewMode Enum으로 변경
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private InterviewMode interviewMode;
 
     @Column(nullable = false)
@@ -40,9 +40,6 @@ public class InterviewSession {
     private String aiProvider;
 
     private String modelVariant;
-
-    @Enumerated(EnumType.STRING)
-    private PersonaType personaType;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -58,15 +55,14 @@ public class InterviewSession {
     private LocalDateTime updatedAt;
 
     @Builder
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, PersonaType personaType) {
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
-        this.interviewMode = interviewMode; // Enum 타입 반영
+        this.interviewMode = interviewMode;
         this.interviewType = interviewType;
         this.aiProvider = aiProvider;
         this.modelVariant = modelVariant;
-        this.personaType = personaType;
         this.status = InterviewSessionStatus.CREATED;
     }
 
