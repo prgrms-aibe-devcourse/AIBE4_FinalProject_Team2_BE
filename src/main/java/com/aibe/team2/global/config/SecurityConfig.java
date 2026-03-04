@@ -68,7 +68,7 @@ public class SecurityConfig {
                                 "/api/v1/mypage/**"
                         ).permitAll()
                         .requestMatchers("/api/files/**").permitAll()
-                        .requestMatchers("/api/v1/login", "/api/v1/login").permitAll()
+                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/signup").permitAll()
                         .anyRequest().authenticated()
                 )
                 // UsernamePasswordAuthenticationFilter 이전에 JWT 필터 실행
