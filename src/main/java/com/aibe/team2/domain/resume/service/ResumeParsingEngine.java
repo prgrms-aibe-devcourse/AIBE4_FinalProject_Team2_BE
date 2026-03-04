@@ -19,7 +19,7 @@ public class ResumeParsingEngine {
         this.tika = new Tika();
     }
 
-    // 클라이언트가 업로드한 MultipartFile에서 텍스트를 추출합
+    // 클라이언트가 업로드한 MultipartFile에서 텍스트를 추출합니다
 
     public String extractText(MultipartFile file) {
         if (file == null || file.isEmpty()) {
