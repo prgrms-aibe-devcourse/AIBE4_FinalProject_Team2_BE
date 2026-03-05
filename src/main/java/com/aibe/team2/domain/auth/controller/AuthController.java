@@ -41,7 +41,7 @@ public class AuthController {
             );
 
             // 2. 인증 성공 시 토큰 생성
-            String token = jwtTokenProvider.createToken(user.get("username"), 3600000);
+            String token = jwtTokenProvider.createAccessToken(user.get("username"));
             return ResponseEntity.ok(Collections.singletonMap("token", token));
 
         } catch (AuthenticationException e) {
@@ -87,7 +87,7 @@ public class AuthController {
         // 2. Redis에서 해당 토큰이 존재하는지 확인
         String username = jwtTokenProvider.getUsername(refreshToken);
         RefreshToken savedToken = refreshTokenRepository.findById(username)
-                .orElseThrow(() -> new RuntimeException("로그아웃된 사용자입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!savedToken.getRefreshToken().equals(refreshToken)) {
             return ResponseEntity.status(401).body("토큰 정보가 일치하지 않습니다.");
