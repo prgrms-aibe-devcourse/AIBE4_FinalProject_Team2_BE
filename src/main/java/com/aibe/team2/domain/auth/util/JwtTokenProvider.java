@@ -18,8 +18,8 @@ public class JwtTokenProvider {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Value("${jwt.access-expiration}") private long accessExp;
-    @Value("${jwt.refresh-expiration}") private long refreshExp;
+    @Value("${jwt.access-token-validity}") private long accessExp;
+    @Value("${jwt.refresh-token-validity}") private long refreshExp;
     private final Key key = Keys.hmacShaKeyFor("your-secret-key-32chars...".getBytes());
 
     // Access Token 생성
