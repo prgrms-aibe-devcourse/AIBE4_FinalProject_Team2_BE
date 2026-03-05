@@ -40,6 +40,7 @@ dependencies {
     // Spring AOP (DistributedLockAspect 사용을 위해 필요)
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     // Security & JWT
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'

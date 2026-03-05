@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.mypage.service;
 
+import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.file.service.S3ImageService;
 import com.aibe.team2.domain.mypage.dto.request.JobPreferenceUpdateRequest;
 import com.aibe.team2.domain.mypage.dto.request.PasswordChangeRequest;
@@ -7,6 +8,7 @@ import com.aibe.team2.domain.mypage.dto.request.ProfileUpdate;
 import com.aibe.team2.domain.mypage.dto.response.MemberResponse;
 import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponse;
 import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.domain.statistics.enums.ServiceType;
 import com.aibe.team2.domain.statistics.service.usage.UsageLogWriter;
@@ -14,6 +16,7 @@ import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import com.aibe.team2.global.exception.custom.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,7 +30,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     // TODO : Security Config에 PasswordEncoder Bean 등록 시 주석 풀기
-    // private final PasswordEncoder passwordEncoder;
+     private final PasswordEncoder passwordEncoder;
     private final UsageLogWriter usageLogWriter;
     private final S3ImageService s3ImageService;
 
@@ -150,5 +153,31 @@ public class MemberService {
         }
 
         return newImageUrl;
+    }
+
+    public void validateSignup(MemberDTO request) {
+        // 1. 닉네임 중복 검사
+        if (memberRepository.existsByNickname(request.getNickname())) {
+            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+        }
+
+        // 2. 이메일 중복 검사
+        if (memberRepository.existsByEmail(request.getEmail())) {
+            throw new IllegalArgumentException("이미 등록된 이메일입니다.");
+        }
+    }
+
+    @Transactional
+    public void join(MemberDTO request) {
+        validateSignup(request); // 가입 전 검증 수행
+
+        Member member = Member.builder()
+                .nickname(request.getNickname())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .email(request.getEmail())
+                .role(Role.MEMBER)
+                .build();
+
+        memberRepository.save(member);
     }
 }

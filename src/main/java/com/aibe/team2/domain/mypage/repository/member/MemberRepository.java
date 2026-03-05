@@ -34,4 +34,10 @@ public interface MemberRepository extends JpaRepository<Member,Long>, MemberRepo
         return findByIdForUpdate(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.USER_NOT_FOUND));
     }
+
+    // 닉네임(아이디) 중복 확인
+    boolean existsByNickname(String nickname);
+
+    // 이메일 중복 확인
+    boolean existsByEmail(String email);
 }
