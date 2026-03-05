@@ -1,8 +1,14 @@
 package com.aibe.team2.domain.statistics.controller;
 
 import com.aibe.team2.domain.statistics.dto.admin.DailyUsageAdminRow;
+import com.aibe.team2.domain.statistics.dto.admin.UsageLogAdminRow;
+import com.aibe.team2.domain.statistics.dto.admin.UsageLogAdminSearchCond;
+import com.aibe.team2.domain.statistics.enums.ServiceType;
 import com.aibe.team2.domain.statistics.service.AdminUsageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,5 +29,24 @@ public class AdminUsageController {
             @RequestParam("date") LocalDate date
     ) {
         return ResponseEntity.ok(adminUsageService.getDailyUsage(date));
+    }
+
+    @GetMapping("/logs")
+    public ResponseEntity<Page<UsageLogAdminRow>> searchUsageLogs(
+            @RequestParam(required = false) Long memberId,
+            @RequestParam(required = false) ServiceType serviceType,
+            @RequestParam(required = false) String targetType,
+            @RequestParam(required = false) LocalDate from,
+            @RequestParam(required = false) LocalDate to,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        UsageLogAdminSearchCond cond = new UsageLogAdminSearchCond();
+        cond.setMemberId(memberId);
+        cond.setServiceType(serviceType);
+        cond.setTargetType(targetType);
+        cond.setFrom(from);
+        cond.setTo(to);
+
+        return ResponseEntity.ok(adminUsageService.searchUsageLogs(cond, pageable));
     }
 }
