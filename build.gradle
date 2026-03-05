@@ -28,6 +28,11 @@ dependencies {
     runtimeOnly 'com.mysql:mysql-connector-j'
     runtimeOnly 'com.h2database:h2'
 
+    // Apache Tika 텍스트 추출
+    implementation 'org.apache.tika:tika-core:2.9.1'
+    implementation 'org.apache.tika:tika-parsers-standard-package:2.9.1'
+    // env
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     // Redisson
