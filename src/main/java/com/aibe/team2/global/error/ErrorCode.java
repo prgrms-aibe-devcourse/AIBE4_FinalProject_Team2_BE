@@ -86,6 +86,9 @@ public enum ErrorCode {
     CREDIT_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "CREDIT_002", "일일 기본 제공 무료 분석 횟수를 모두 소진했습니다."),
     CREDIT_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CREDIT_003", "크레딧 사용 내역을 찾을 수 없습니다."),
 
+    // Notification(알림)
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTI_001", "존재하지 않는 알림입니다."),
+
     // External API (외부 연동)
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI_001", "AI 서비스 연결이 지연되고 있습니다. 잠시 후 다시 시도해주세요."),
     AI_QUOTA_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI_002", "AI API 요청 할당량을 초과했습니다. 관리자에게 문의해주세요."),
