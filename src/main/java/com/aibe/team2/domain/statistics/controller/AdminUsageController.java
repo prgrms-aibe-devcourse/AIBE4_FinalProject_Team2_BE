@@ -33,20 +33,9 @@ public class AdminUsageController {
 
     @GetMapping("/logs")
     public ResponseEntity<Page<UsageLogAdminRow>> searchUsageLogs(
-            @RequestParam(required = false) Long memberId,
-            @RequestParam(required = false) ServiceType serviceType,
-            @RequestParam(required = false) String targetType,
-            @RequestParam(required = false) LocalDate from,
-            @RequestParam(required = false) LocalDate to,
+            @ModelAttribute UsageLogAdminSearchCond cond,
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        UsageLogAdminSearchCond cond = new UsageLogAdminSearchCond();
-        cond.setMemberId(memberId);
-        cond.setServiceType(serviceType);
-        cond.setTargetType(targetType);
-        cond.setFrom(from);
-        cond.setTo(to);
-
         return ResponseEntity.ok(adminUsageService.searchUsageLogs(cond, pageable));
     }
 }
