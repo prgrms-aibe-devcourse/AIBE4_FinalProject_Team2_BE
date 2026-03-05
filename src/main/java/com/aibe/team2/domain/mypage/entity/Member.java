@@ -3,6 +3,7 @@ package com.aibe.team2.domain.mypage.entity;
 import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.entity.enums.Provider;
 import com.aibe.team2.domain.mypage.entity.enums.SubscriptionPlan;
+import com.aibe.team2.domain.mypage.entity.enums.MemberStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -65,9 +66,13 @@ public class Member {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private MemberStatus status;
+
     public Member(
             String email, String password, String nickname, Role role, Provider provider
-    ){
+    ) {
         this.email = email;
         this.password = password;
         this.nickname = nickname;
@@ -75,6 +80,7 @@ public class Member {
         this.provider = provider;
         this.subscriptionPlan = SubscriptionPlan.FREE;
         this.creditBalance = 0;
+        this.status = MemberStatus.ACTIVE;
     }
 
     public void updateProfile(String nickname, String profileImageUrl) {
@@ -97,5 +103,15 @@ public class Member {
 
     public void updateCreditBalance(int newBalance) {
         this.creditBalance = newBalance;
+    }
+
+    public void updateStatus(MemberStatus status) {
+        this.status = status;
+
+        if (status == MemberStatus.DELETED) {
+            this.deletedAt = LocalDateTime.now();
+        } else {
+            this.deletedAt = null; // 복구 시 삭제 시간 제거
+        }
     }
 }
