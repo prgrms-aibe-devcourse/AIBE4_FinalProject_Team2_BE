@@ -24,7 +24,7 @@ public class AdminMemberService {
 
     @Transactional
     public MemberStatus updateMemberStatus(Long memberId, MemberStatus status) {
-        Member member = memberRepository.getByIdThrowForUpdate(memberId); // 네가 이미 추가한 락 메서드
+        Member member = memberRepository.getByIdThrowForUpdate(memberId);
         member.updateStatus(status);
         return member.getStatus();
     }
