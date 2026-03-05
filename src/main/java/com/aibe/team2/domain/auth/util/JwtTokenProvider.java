@@ -18,18 +18,19 @@ public class JwtTokenProvider {
 
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Value("${jwt.access-token-validity}") private long accessExp;
-    @Value("${jwt.refresh-token-validity}") private long refreshExp;
-    private final Key key = Keys.hmacShaKeyFor("your-secret-key-32chars...".getBytes());
+    @Value("${jwt.secret}") private String secret;
+    @Value("${jwt.access-token-validity}") private long accessTokenValidity;
+    @Value("${jwt.refresh-token-validity}") private long refreshTokenValidity;
+    private final Key key = Keys.hmacShaKeyFor(secret.getBytes());
 
     // Access Token 생성
     public String createAccessToken(String username) {
-        return createToken(username, accessExp);
+        return createToken(username, accessTokenValidity);
     }
 
     // Refresh Token 생성 및 Redis 저장
     public String createRefreshToken(String username) {
-        String token = createToken(username, refreshExp);
+        String token = createToken(username, refreshTokenValidity);
         refreshTokenRepository.save(new RefreshToken(username, token));
         return token;
     }
