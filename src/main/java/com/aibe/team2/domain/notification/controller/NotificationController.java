@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.notification.controller;
 
-import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
@@ -16,10 +15,12 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+    // TODO : Spring Security 확인 후 수정
+    // @PathVariable("memberId")나 @RequestParam("memberId") -> @AuthenticationPrincipal
     // 1. SSE 구독 - 클라이언트가 최초 로그인 시 실시간 알림 파이프 연결
     // GET http://localhost:8081/api/v1/notifications/subscribe/1
     @GetMapping(value = "/subscribe/{memberId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscirbe (@PathVariable("memberId") Long memberId) {
+    public SseEmitter subscribe (@PathVariable("memberId") Long memberId) {
         return notificationService.subscribe(memberId);
     }
 
@@ -44,8 +45,11 @@ public class NotificationController {
     // 4. 알림 관리(삭제) - 특정 알림을 목록에서 완전히 삭제
     // DELETE http://localhost:8081/api/v1/notifications/1
     @DeleteMapping("/{notificationId}")
-    public ResponseEntity<?> deleteNotification(@PathVariable ("notificationId") Long notificationId) {
-        notificationService.deleteNotification(notificationId);
+    public ResponseEntity<?> deleteNotification(
+            @PathVariable ("notificationId") Long notificationId,
+            @RequestParam("memberId") Long memberId
+    ) {
+        notificationService.deleteNotification(notificationId, memberId);
         return ResponseEntity.ok("알림이 삭제되었습니다.");
     }
 
@@ -64,15 +68,11 @@ public class NotificationController {
     public ResponseEntity<String> testSend(@RequestParam("memberId") Long memberId) {
         // 실제 운영 환경에서는 유저 정보를 DB에서 가져와야 하지만,
         // 테스트를 위해 임시로 Member 객체를 생성하여 전달합니다.
-        Member dummyMember = Member.builder()
-                .memberId(memberId)
-                .build();
-
         String testMessage = "축하합니다! AI 자기소개서 분석이 완료되었습니다. (테스트)";
         String notificationType = "AI_ANALYSIS";
 
         // 서비스의 send 메서드를 호출하여 [DB 저장] + [실시간 전송]을 한 번에 실행!
-        notificationService.send(dummyMember, notificationType, testMessage);
+        notificationService.send(memberId, notificationType, testMessage);
 
         return ResponseEntity.ok("테스트 알림 발송 성공!");
     }

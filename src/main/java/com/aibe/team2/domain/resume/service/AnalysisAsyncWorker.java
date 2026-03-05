@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.resume.service;
 
-import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.notification.event.ResumeAnalysisCompleteEvent;
 import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
@@ -80,8 +79,7 @@ public class AnalysisAsyncWorker {
 
             // [추가] 알림 연동
             Long memberId = report.getResume().getMemberId();
-            Member dummyMember = Member.builder().memberId(memberId).build();
-            notificationService.send(dummyMember, "AI_ANALYSIS_DELAYED", "AI 서버 응답이 지연되어 분석이 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
+            notificationService.send(memberId, "AI_ANALYSIS_DELAYED", "AI 서버 응답이 지연되어 분석이 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
 
         } catch (Exception e) {
             // 실패 // 그 외 파싱 에러나 알 수 없는 에러 발생 시 -> FAILED 상태로 변경
@@ -90,8 +88,7 @@ public class AnalysisAsyncWorker {
 
             // [추가] 알림 연동
             Long memberId = report.getResume().getMemberId();
-            Member dummyMember = Member.builder().memberId(memberId).build();
-            notificationService.send(dummyMember, "AI_ANALYSIS_FAILED", "죄송합니다. 이력서 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
+            notificationService.send(memberId, "AI_ANALYSIS_FAILED", "죄송합니다. 이력서 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
         }
     }
 
