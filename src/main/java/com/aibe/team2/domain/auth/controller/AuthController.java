@@ -2,15 +2,19 @@ package com.aibe.team2.domain.auth.controller;
 
 import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
+import com.aibe.team2.domain.auth.service.AuthService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import com.aibe.team2.domain.auth.util.RefreshToken;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
+import com.aibe.team2.global.error.ErrorCode;
+import com.aibe.team2.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,6 +35,7 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final AuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
@@ -96,5 +101,14 @@ public class AuthController {
         // 3. 새로운 Access Token 발급
         String newAccessToken = jwtTokenProvider.createAccessToken(username);
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            authService.logout(authentication.getName());
+            return ResponseEntity.ok("로그아웃 되었습니다.");
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
     }
 }
