@@ -53,7 +53,7 @@ public class NotificationService {
             log.info("SSE 연결 완료 및 더미 데이터 전송 성공! memberId: {}", memberId);
 
         } catch (IOException e) {
-            emitters.remove(memberId);
+            emitters.remove(emitterId);
             log.error("SSE 연결 오류 발생 memberId: {}", memberId, e);
         }
 
