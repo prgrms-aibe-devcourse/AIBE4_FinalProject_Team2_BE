@@ -19,7 +19,7 @@ public class JwtTokenProvider {
     // 생성자 주입 방식으로 @Value 사용 (권장)
     public JwtTokenProvider(
             @Value("${jwt.secret}") String secretKey,
-            @Value("${jwt.expiration-time}") long expirationTime) {
+            @Value("${jwt.access-token-validity}") long expirationTime) {
 
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.expirationTime = expirationTime;

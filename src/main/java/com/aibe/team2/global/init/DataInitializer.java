@@ -67,7 +67,7 @@ public class DataInitializer implements CommandLineRunner {
            // 3. 자기소개서 분석 결과 생성(자식 데이터)
            createResumeAnalysisReport(resume, jobPosting);
 
-           // 4. 회우너별 면접 세션 및 통계 데이터 생성(5~10건)
+           // 4. 회원별 면접 세션 및 통계 데이터 생성(5~10건)
            int sessionCount = random.nextInt(6) + 5;
            for (int i = 0; i < sessionCount; i++){
 
@@ -77,10 +77,12 @@ public class DataInitializer implements CommandLineRunner {
                // 4-1. InterviewSession
                InterviewSession session = InterviewSession.builder()
                        .memberId(member.getMemberId())
-                       .interviewMode(i % 3 == 0 ? InterviewMode.STRESS : (i % 3 == 1 ? InterviewMode.FOLLOW_UP : InterviewMode.NORMAL)) // 필수 필드 추가
-                       .interviewType(i % 2 == 0 ? "TEXT" : "VOICE") // 변경된 필드명에 맞게 수정
-                       .aiProvider(i % 2 == 0 ? "GEMINI" : "RETELL") // aiProvider 값도 함께 세팅 (Null 방지)
-                       .modelVariant("gemini-flash-latest")          // AI 엔진 파트이므로 함께 세팅
+                       .jobPostingId(jobPosting.getId())
+                       .resumeId(resume.getId())
+                       .interviewMode(i % 3 == 0 ? InterviewMode.STRESS : (i % 3 == 1 ? InterviewMode.FOLLOW_UP : InterviewMode.NORMAL))
+                       .interviewType(i % 2 == 0 ? "TEXT" : "VOICE")
+                       .aiProvider(i % 2 == 0 ? "GEMINI" : "RETELL")
+                       .modelVariant("gemini-flash-latest")
                        .build();
 
                setCreatedAt(session, pastDate);

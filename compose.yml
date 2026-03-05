@@ -75,7 +75,7 @@ services:
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-test}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-test}
 
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-dummy_key_for_now}
+      GEMINI_API_KEY: ${OPENAI_API_KEY:-dummy_key_for_now}
       RETELL_API_KEY: ${RETELL_API_KEY:-dummy_key_for_now}
       RETELL_AGENT_ID: ${RETELL_AGENT_ID:-dummy_agent_id}
     depends_on:

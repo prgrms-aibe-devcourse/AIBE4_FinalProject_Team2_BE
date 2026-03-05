@@ -20,10 +20,10 @@ public class RetellService {
 
     private final RestTemplate restTemplate;
 
-    @Value("${retell.api-key}")
+    @Value("${retell.api.key}")
     private String apiKey;
 
-    @Value("${retell.agent-id}")
+    @Value("${retell.agent.id}")
     private String agentId;
 
     public VoiceSessionResponse createVoiceCall(Long sessionId) {
