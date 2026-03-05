@@ -6,6 +6,7 @@ import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageStatResponse;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.core.types.dsl.NumberTemplate;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.time.LocalDateTime;
 
 import static com.aibe.team2.domain.statistics.entity.QUsageLog.usageLog;
 
@@ -50,7 +52,59 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
 
     @Override
     public Page<UsageLogAdminRow> searchAdminUsageLogs(UsageLogAdminSearchCond cond, Pageable pageable) {
-        // TODO: QueryDSL로 실제 검색 구현 예정
-        return new PageImpl<>(List.of(), pageable, 0);
+
+        BooleanBuilder where = new BooleanBuilder();
+
+        if (cond != null) {
+            if (cond.getMemberId() != null) {
+                where.and(usageLog.member.memberId.eq(cond.getMemberId()));
+            }
+            if (cond.getServiceType() != null) {
+                where.and(usageLog.serviceType.eq(cond.getServiceType()));
+            }
+            if (cond.getTargetType() != null && !cond.getTargetType().isBlank()) {
+                where.and(usageLog.targetType.eq(cond.getTargetType()));
+            }
+
+            if (cond.getFrom() != null) {
+                LocalDateTime from = cond.getFrom().atStartOfDay();
+                where.and(usageLog.createdAt.goe(from));
+            }
+            if (cond.getTo() != null) {
+                LocalDateTime toExclusive = cond.getTo().plusDays(1).atStartOfDay();
+                where.and(usageLog.createdAt.lt(toExclusive));
+            }
+        }
+
+        List<UsageLogAdminRow> content = queryFactory
+                .select(Projections.constructor(
+                        UsageLogAdminRow.class,
+                        usageLog.id,
+                        usageLog.member.memberId,
+                        usageLog.member.email,
+                        usageLog.serviceType,
+                        usageLog.amount,
+                        usageLog.tokenUsage,
+                        usageLog.balanceAfter,
+                        usageLog.requestTraceId,
+                        usageLog.targetType,
+                        usageLog.targetId,
+                        usageLog.description,
+                        usageLog.createdAt
+                ))
+                .from(usageLog)
+                .where(where)
+                .orderBy(usageLog.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = queryFactory
+                .select(usageLog.count())
+                .from(usageLog)
+                .where(where)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
 }
