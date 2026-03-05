@@ -88,7 +88,7 @@
     let currentType = 'TEXT';
     let textSessionId = null;
 
-    // 리뷰 반영: 소유권 검증을 위한 현재 사용자 ID (백엔드 보안 로직과 연동)
+    // 소유권 검증을 위한 현재 사용자 ID
     const MEMBER_ID = 1;
 
     const typeTextBtn = document.getElementById('typeText');
@@ -159,7 +159,9 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        memberId: MEMBER_ID, // 소유권 검증용 ID 전달
+                        memberId: MEMBER_ID,
+                        jobPostingId: 1, // DB 에러 우회를 위한 더미 값
+                        resumeId: 1,     // 추가: resume_id NOT NULL DB 에러 우회용 더미 이력서 ID
                         interviewType: 'TEXT',
                         aiProvider: 'GEMINI',
                         interviewMode: modeSelect.value,
@@ -172,7 +174,7 @@
 
             const aiMsgDiv = appendMessage('ai', '');
 
-            // 리뷰 반영: SSE 스트리밍 시 memberId 파라미터 추가 (Ownership Check)
+            // SSE 스트리밍 시 memberId 파라미터 추가
             const url = `/api/interviews/${textSessionId}/text/stream?answer=${encodeURIComponent(text)}&modelVariant=${modelSelect.value}&interviewMode=${modeSelect.value}&memberId=${MEMBER_ID}`;
             const eventSource = new EventSource(url);
 
@@ -195,7 +197,6 @@
                 chatBox.scrollTop = chatBox.scrollHeight;
             };
 
-            // 🚀 리뷰 반영: SSE 통신 에러 로깅 복구
             eventSource.onerror = (err) => {
                 console.error("SSE 스트리밍 중 에러 발생:", err);
                 eventSource.close();
@@ -203,7 +204,6 @@
             };
 
         } catch (error) {
-            // 🚀 리뷰 반영: API 호출 실패 에러 로깅 복구
             console.error("텍스트 면접 시작 또는 데이터 전송 실패:", error);
             alert("텍스트 서버 연결 실패");
             sendBtn.disabled = false;
@@ -221,7 +221,9 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    memberId: MEMBER_ID, // 소유권 검증용 ID 전달
+                    memberId: MEMBER_ID,
+                    jobPostingId: 1, // DB 에러 우회를 위한 더미 값
+                    resumeId: 1,     // 추가: resume_id NOT NULL DB 에러 우회용 더미 이력서 ID
                     interviewType: 'VOICE',
                     aiProvider: 'RETELL',
                     interviewMode: 'NORMAL'
@@ -229,7 +231,7 @@
             });
             const session = await response.json();
 
-            // 리뷰 반영: 음성 면접 시작 시 memberId 파라미터 추가 (Ownership Check)
+            // Retell 토큰 발급 요청
             const voiceRes = await fetch(`/api/interviews/${session.id}/voice/start?memberId=${MEMBER_ID}`, { method: 'POST' });
             const voiceData = await voiceRes.json();
 
@@ -240,7 +242,6 @@
             stopVoiceBtn.disabled = false;
 
         } catch (err) {
-            // 리뷰 반영: 에러 로깅 복구
             console.error("음성 대화 시작 실패:", err);
             alert("음성 연결에 실패했습니다.");
             startVoiceBtn.disabled = false;
