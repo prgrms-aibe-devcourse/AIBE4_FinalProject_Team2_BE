@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.file.service;
 
+import com.aibe.team2.domain.file.entity.AttachmentFileType;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import jakarta.annotation.PostConstruct;
@@ -42,6 +43,13 @@ public class S3PresignedService {
 
     @Value("${aws.s3.endpoint:#{null}}")
     private String endpoint;
+
+    // === 용량 제한(바이트) ===
+    @Value("${aws.s3.max-upload-bytes.resume:10485760}") // 10MB
+    private long maxResumeBytes;
+
+    @Value("${aws.s3.max-upload-bytes.audio:52428800}") // 50MB
+    private long maxAudioBytes;
 
     public S3PresignedService(S3Client s3Client, S3Presigner s3Presigner) {
         this.s3Client = s3Client;
@@ -101,16 +109,23 @@ public class S3PresignedService {
      * - contentType 검증
      * - 파일명 sanitize
      * - key를 회원별 prefix로 강제하여 IDOR 완화
+     * - fileSize를 사전 검증
      */
-    public PresignedUrlResponse generatePutPresignedUrl(Long ownerMemberId, String originalFileName, String contentType) {
+    public PresignedUrlResponse generatePutPresignedUrl(
+            Long ownerMemberId,
+            String originalFileName,
+            String contentType,
+            AttachmentFileType fileType,
+            Long fileSize
+    ) {
         if (ownerMemberId == null || ownerMemberId <= 0) {
             throw new BusinessException(ErrorCode.COMMON_400);
         }
 
         validateContentType(contentType);
+        validateFileSize(fileType, fileSize);
 
         String sanitizedFileName = sanitizeFileName(originalFileName);
-
         String key = buildMemberScopedKey(ownerMemberId, sanitizedFileName);
 
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -196,6 +211,25 @@ public class S3PresignedService {
 
     private String buildMemberScopedKey(Long ownerMemberId, String sanitizedFileName) {
         return "uploads/members/" + ownerMemberId + "/" + UUID.randomUUID() + "-" + sanitizedFileName;
+    }
+
+    private void validateFileSize(AttachmentFileType fileType, Long fileSize) {
+        if (fileType == null || fileSize == null || fileSize <= 0) {
+            throw new BusinessException(ErrorCode.COMMON_400);
+        }
+
+        long limit = switch (fileType) {
+            case RESUME_ORIGINAL, RESUME_REVISED -> maxResumeBytes;
+            case INTERVIEW_AUDIO -> maxAudioBytes;
+        };
+
+        if (fileSize > limit) {
+            throw new BusinessException(ErrorCode.FILE_SIZE_EXCEEDED);
+        }
+    }
+
+    public void validateUploadedSize(AttachmentFileType fileType, Long uploadedSize) {
+        validateFileSize(fileType, uploadedSize);
     }
 
     public record PresignedUrlResponse(String url, String key) {}

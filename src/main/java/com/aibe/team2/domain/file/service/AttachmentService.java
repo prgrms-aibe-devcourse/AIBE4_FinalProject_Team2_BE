@@ -42,8 +42,9 @@ public class AttachmentService {
         // 1) key가 내 prefix인지 검증 (IDOR 최소 방어)
         validateKeyOwnership(req.key(), ownerMemberId);
 
-        // 2) S3에 업로드 되었는지 검증
-        s3PresignedService.headObject(req.key());
+        // 2) S3 업로드 여부 + 실제 용량 검증
+        var head = s3PresignedService.headObject(req.key());
+        s3PresignedService.validateUploadedSize(req.fileType(), head.contentLength());
 
         // 3) DB 저장
         Attachment saved = attachmentRepository.save(
@@ -133,7 +134,6 @@ public class AttachmentService {
             case RESUME -> {
                 return;
             }
-
             case ANALYSIS_REPORT -> {
                 ResumeAnalysisReport report = resumeAnalysisRepository.findById(att.getTargetId())
                         .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_REPORT_NOT_FOUND));
@@ -142,7 +142,6 @@ public class AttachmentService {
                     throw new BusinessException(ErrorCode.ANALYSIS_IN_PROGRESS);
                 }
             }
-
             case INTERVIEW_RECORD -> {
                 InterviewRecord record = interviewRecordRepository.findById(att.getTargetId())
                         .orElseThrow(() -> new BusinessException(ErrorCode.INTERVIEW_RECORD_NOT_FOUND));
