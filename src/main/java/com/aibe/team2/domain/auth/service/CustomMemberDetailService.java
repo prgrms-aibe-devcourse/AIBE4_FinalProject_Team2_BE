@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.auth.service;
 
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,6 @@ public class CustomMemberDetailService implements UserDetailsService {
         Member member = memberRepository.findByNickname(nickname)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + nickname));
 
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(member.getNickname())
-                .password(member.getPassword())
-                .roles(member.getRole().name())
-                .build();
+        return new CustomUserDetails(member);
     }
 }
