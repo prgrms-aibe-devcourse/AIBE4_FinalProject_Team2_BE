@@ -26,7 +26,9 @@ public class FileController {
         var presigned = s3PresignedService.generatePutPresignedUrl(
                 ownerMemberId,
                 request.fileName(),
-                request.contentType()
+                request.contentType(),
+                request.fileType(),
+                request.fileSize()
         );
         return ResponseEntity.ok(new PresignedPutUrlResponse(presigned.url(), presigned.key()));
     }
