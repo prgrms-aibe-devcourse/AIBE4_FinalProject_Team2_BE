@@ -284,18 +284,22 @@
     };
 
     // 🚀 [FR-INT-02] 음성 대화 종료 시 PATCH /end 연동
+    // Gemini 리뷰 반영
     stopVoiceBtn.onclick = async () => {
         retellWebClient.stopCall();
-
         if (voiceSessionId) {
             try {
                 // 백엔드에 명시적으로 종료 상태(DONE) 전송
-                await fetch(`/api/interviews/${voiceSessionId}/end?memberId=${MEMBER_ID}`, {
+                const response = await fetch(`/api/interviews/${voiceSessionId}/end?memberId=${MEMBER_ID}`, {
                     method: 'PATCH'
                 });
+                if (!response.ok) {
+                    throw new Error('음성 세션 종료 API 호출 실패');
+                }
                 console.log("음성 세션 상태 DONE 변경 완료");
             } catch(err) {
                 console.error("상태 변경 실패:", err);
+                alert("음성 면접 종료 처리에 실패했습니다.");
             }
         }
     };

@@ -23,12 +23,11 @@ public class InterviewController {
 
     private final ConversationManager conversationManager;
     private final InterviewManager interviewManager;
-    private final InterviewRepository interviewRepository; // 세션 조회 및 상태 확인용 리포지토리 의존성 추가
+    private final InterviewRepository interviewRepository; // 세션 조회를 위해 Repository 의존성 추가
 
     @PostMapping("/start")
     public ResponseEntity<InterviewSession> startInterview(@RequestBody InterviewStartRequest request) {
         try {
-            // 안전한 from() 메서드 사용
             InterviewSession session = interviewManager.startInterview(
                     request.getMemberId(),
                     request.getResumeId(),
@@ -38,7 +37,7 @@ public class InterviewController {
                     request.getAiProvider(),
                     request.getModelVariant()
             );
-            return ResponseEntity.ok(session); // 초기 생성 시 상태는 내부적으로 CREATED
+            return ResponseEntity.ok(session);
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
@@ -48,20 +47,14 @@ public class InterviewController {
     public SseEmitter streamTextInterview(
             @PathVariable Long sessionId,
             @RequestParam String answer,
-            @RequestParam Long memberId, // 프론트엔드에서 넘긴 memberId 받기
+            @RequestParam Long memberId, // 프론트엔드 연동용 로그인 유저 ID
             @RequestParam(required = false, defaultValue = "gemini-flash-latest") String modelVariant,
             @RequestParam(required = false, defaultValue = "NORMAL") String interviewMode) {
 
-        // 1. 세션 존재 여부 확인
-        InterviewSession session = interviewRepository.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "면접 세션을 찾을 수 없습니다."));
+        // 리뷰 반영: 전용 private 메서드로 조회 및 권한 검증 위임 (코드 중복 제거 및 보안 강화)
+        InterviewSession session = validateAndGetSessionOwnership(sessionId, memberId);
 
-        // 2. 보안: 소유권 검증 (IDOR 방어) - 다른 사람의 세션 스트리밍 훔쳐보기 방지
-        if (!session.getMemberId().equals(memberId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 면접 세션에 접근할 권한이 없습니다.");
-        }
-
-        // 3. [FR-INT-02] 상태 전이: 생성된 세션이 처음 호출될 때 IN_PROGRESS 로 변경
+        // [FR-INT-02] 상태 전이 로직
         if (session.getStatus() == InterviewSessionStatus.CREATED) {
             interviewManager.advanceStatus(sessionId, InterviewSessionStatus.IN_PROGRESS);
         }
@@ -73,7 +66,7 @@ public class InterviewController {
                     sessionId,
                     answer,
                     modelVariant,
-                    InterviewMode.from(interviewMode), // 안전한 파싱
+                    InterviewMode.from(interviewMode),
                     emitter
             );
         } catch (IllegalArgumentException e) {
@@ -86,17 +79,11 @@ public class InterviewController {
     @PostMapping("/{sessionId}/voice/start")
     public VoiceSessionResponse startVoiceInterview(
             @PathVariable Long sessionId,
-            @RequestParam Long memberId) { // 프론트엔드 연동용 memberId
+            @RequestParam Long memberId) {
 
-        InterviewSession session = interviewRepository.findById(sessionId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "면접 세션을 찾을 수 없습니다."));
+        // 두 번째 리뷰 반영: startVoiceInterview 엔드포인트 역시 동일한 검증 위임
+        InterviewSession session = validateAndGetSessionOwnership(sessionId, memberId);
 
-        // 보안: 음성 통화 역시 소유권 철저히 검증
-        if (!session.getMemberId().equals(memberId)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 면접 세션에 접근할 권한이 없습니다.");
-        }
-
-        // [FR-INT-02] 상태 전이: 음성 세션 시작 시 IN_PROGRESS 로 변경
         if (session.getStatus() == InterviewSessionStatus.CREATED) {
             interviewManager.advanceStatus(sessionId, InterviewSessionStatus.IN_PROGRESS);
         }
@@ -109,15 +96,24 @@ public class InterviewController {
             @PathVariable Long sessionId,
             @RequestParam Long memberId) {
 
+        // 세 번째 리뷰 반영: 면접 종료 엔드포인트 역시 동일한 검증 위임
+        validateAndGetSessionOwnership(sessionId, memberId);
+
+        interviewManager.advanceStatus(sessionId, InterviewSessionStatus.DONE);
+        return ResponseEntity.ok().build();
+    }
+
+    // 보안 리뷰 및 팀원 피드백 반영: IDOR 취약점 방지 및 중복 로직 제거를 위한 전용 검증 메서드 (streamTextInterview, startVoiceInterview, endInterview 모든 엔드포인트에 공통 적용됨)
+     // 현재는 프론트엔드 연동을 위해 @RequestParam 으로 넘겨받은 memberId를 검증에 사용 중
+     // 추후 Spring Security 적용 시, 컨트롤러 파라미터를 삭제하고 @AuthenticationPrincipal SecurityContext에서 추출한 실제 로그인 사용자의 ID로 변경하여 완벽한 인가 처리를 수행
+    private InterviewSession validateAndGetSessionOwnership(Long sessionId, Long authenticatedMemberId) {
         InterviewSession session = interviewRepository.findById(sessionId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "면접 세션을 찾을 수 없습니다."));
 
-        if (!session.getMemberId().equals(memberId)) {
+        if (!session.getMemberId().equals(authenticatedMemberId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "해당 면접 세션에 접근할 권한이 없습니다.");
         }
 
-        // 상태 전이: 면접 종료 시 DONE 으로 변경
-        interviewManager.advanceStatus(sessionId, InterviewSessionStatus.DONE);
-        return ResponseEntity.ok().build();
+        return session;
     }
 }
