@@ -1,10 +1,12 @@
 package com.aibe.team2.domain.notification.controller;
 
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -15,19 +17,29 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    // TODO : Spring Security 확인 후 수정
-    // @PathVariable("memberId")나 @RequestParam("memberId") -> @AuthenticationPrincipal
-    // 1. SSE 구독 - 클라이언트가 최초 로그인 시 실시간 알림 파이프 연결
-    // GET http://localhost:8081/api/v1/notifications/subscribe/1
-    @GetMapping(value = "/subscribe/{memberId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe (@PathVariable("memberId") Long memberId) {
-        return notificationService.subscribe(memberId);
+    // Fallback 로직: 인증 정보가 없을 시 임시 ID 반환
+    private Long getMemberIdWithFallback(CustomUserDetails userDetails) {
+        if(userDetails == null || userDetails.getMember() == null) {
+            // TODO : 현재 개발 및 테스트 환경을 위한 Fallback ID 반환
+            return 1L;
+        }
+        return userDetails.getMember().getMemberId();
     }
 
+    // 1. SSE 구독 - 클라이언트가 최초 로그인 시 실시간 알림 파이프 연결
+    // GET http://localhost:8081/api/v1/notifications/subscribe/1
+    @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter subscribe(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long memberId = getMemberIdWithFallback(userDetails);
+        return notificationService.subscribe(memberId);
+    }
     // 2. 알림 조회 - 회원의 전체 알림 목록을 최신순으로 조회(종 모양 클릭 시 드롭다운 표시용)
     // GET http://localhost:8081/api/v1/notifications?memberId=1
     @GetMapping
-    public ResponseEntity<?> getNotifications (@RequestParam ("memberId") Long memberId) {
+    public ResponseEntity<?> getNotifications (@AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long memberId = getMemberIdWithFallback(userDetails);
         return ResponseEntity.ok(notificationService.getNotifications(memberId));
     }
 
@@ -35,9 +47,10 @@ public class NotificationController {
     // PATCH http://localhost:8081/api/v1/notifications/1?memberId=1
     @PatchMapping("/{notificationId}")
     public ResponseEntity<?> markAsRead(
-            @PathVariable ("notificationId") Long notificationId,
-            @RequestParam("memberId") Long memberId
+            @PathVariable("notificationId") Long notificationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        Long memberId = getMemberIdWithFallback(userDetails);
         notificationService.markAsRead(notificationId, memberId);
         return ResponseEntity.ok("알림이 읽음 처리되었습니다.");
     }
@@ -46,9 +59,10 @@ public class NotificationController {
     // DELETE http://localhost:8081/api/v1/notifications/1
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<?> deleteNotification(
-            @PathVariable ("notificationId") Long notificationId,
-            @RequestParam("memberId") Long memberId
+            @PathVariable("notificationId") Long notificationId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
+        Long memberId = getMemberIdWithFallback(userDetails);
         notificationService.deleteNotification(notificationId, memberId);
         return ResponseEntity.ok("알림이 삭제되었습니다.");
     }
@@ -56,7 +70,10 @@ public class NotificationController {
     // 5. 안읽은 알림 개수 조회 API - 알림 아이콘에 표시할 숫자 반환
     // GET http://localhost:8081/api/v1/notifications/unread-count?memberId=1
     @GetMapping("/unread-count")
-    public ResponseEntity<Long> getUnreadCount(@RequestParam("memberId") Long memberId) {
+    public ResponseEntity<Long> getUnreadCount(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long memberId = getMemberIdWithFallback(userDetails);
         long unreadCount = notificationService.getUnreadNotificationCount(memberId);
         return ResponseEntity.ok(unreadCount);
     }
@@ -65,13 +82,13 @@ public class NotificationController {
     // POST http://localhost:8081/api/v1/notifications/test-send?memberId=1
     @Profile("!prod")
     @PostMapping("/test-send")
-    public ResponseEntity<String> testSend(@RequestParam("memberId") Long memberId) {
-        // 실제 운영 환경에서는 유저 정보를 DB에서 가져와야 하지만,
-        // 테스트를 위해 임시로 Member 객체를 생성하여 전달합니다.
+    public ResponseEntity<String> testSend(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long memberId = getMemberIdWithFallback(userDetails);
         String testMessage = "축하합니다! AI 자기소개서 분석이 완료되었습니다. (테스트)";
         String notificationType = "AI_ANALYSIS";
 
-        // 서비스의 send 메서드를 호출하여 [DB 저장] + [실시간 전송]을 한 번에 실행!
         notificationService.send(memberId, notificationType, testMessage);
 
         return ResponseEntity.ok("테스트 알림 발송 성공!");

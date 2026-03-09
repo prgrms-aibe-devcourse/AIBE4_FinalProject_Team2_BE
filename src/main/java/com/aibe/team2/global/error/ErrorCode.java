@@ -38,6 +38,7 @@ public enum ErrorCode {
     USER_NICKNAME_DUPLICATION(HttpStatus.CONFLICT, "USER_003", "이미 존재하는 닉네임입니다."),
     USER_PASSWORD_INVALID(HttpStatus.BAD_REQUEST, "USER_004", "비밀번호 형식이 올바르지 않습니다."),
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_005", "탈퇴 처리된 회원입니다."),
+    USER_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "USER_006", "비밀번호가 일치하지 않습니다."),
 
     // File (파일)
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "FILE_001", "파일이 비어있습니다."),
