@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>자기소개서 & 공고 API 테스트 (resume.html)</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; margin: 20px; background-color: #f4f7f6; }
+        h1 { text-align: center; color: #333; }
+        .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+        .card { background: white; border-radius: 8px; padding: 20px; width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .card h3 { margin-top: 0; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input[type="text"], input[type="number"], textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #0056b3; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; }
+        button:hover { background-color: #004494; }
+        pre { background: #eef; padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; max-height: 200px; white-space: pre-wrap; word-wrap: break-word; }
+        .response-box { margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<h1>🚀 자기소개서 및 채용 공고 API 테스트</h1>
+
+<div class="container">
+
+    <div class="card">
+        <h3>1. 채용 공고 관리 (Job Posting)</h3>
+
+        <div class="form-group">
+            <label>공고 등록 (POST /api/v1/job-postings)</label>
+            <label for="jobPostingUrl"></label><input type="text" id="jobPostingUrl" placeholder="채용 공고 URL 입력">
+            <button onclick="createJobPosting()">등록하기</button>
+        </div>
+
+        <div class="form-group">
+            <label>단건 조회 (GET /api/v1/job-postings/{id})</label>
+            <label for="jobPostingId"></label><input type="number" id="jobPostingId" placeholder="조회할 공고 ID 입력">
+            <button onclick="getJobPosting()">조회하기</button>
+        </div>
+
+        <div class="form-group">
+            <label>관심 공고 목록 조회 (GET /api/v1/job-postings)</label>
+            <button onclick="getMySavedJobPostings()">내 공고 목록 조회하기</button>
+        </div>
+
+        <div class="response-box">
+            <strong>응답 결과:</strong>
+            <pre id="jobPostingResult">결과가 여기에 표시됩니다.</pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>2. 자기소개서 파일 추출 (Parsing)</h3>
+        <div class="form-group">
+            <label>파일 텍스트 추출 (POST /api/v1/resumes/extract)</label>
+            <input type="file" id="resumeFile" accept=".hwpx,.pdf,.doc,.docx">
+            <button onclick="extractResumeText()">파일 텍스트 추출</button>
+        </div>
+        <div class="response-box">
+            <strong>응답 결과:</strong>
+            <pre id="parsingResult">결과가 여기에 표시됩니다.</pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>3. 자기소개서 관리 (Resume)</h3>
+
+        <div class="form-group">
+            <label> 생성 (POST /api/v1/resumes)</label>
+            <label for="resumeContent"></label><textarea id="resumeContent" placeholder='JSON 형태 입력 예: {"title": "신입 백엔드 지원", "content": "열심히 하겠습니다."}' rows="4">{"title": "신입 지원서", "content": "스프링 부트 백엔드 개발자입니다."}</textarea>
+            <button onclick="createResume()">생성하기</button>
+        </div>
+
+        <div class="form-group">
+            <label>단건 조회 (GET /api/v1/resumes/{id})</label>
+            <label for="getResumeId"></label><input type="number" id="getResumeId" placeholder="자기소개서 ID 입력">
+            <button onclick="getResume()">조회하기</button>
+        </div>
+
+        <div class="form-group">
+            <label>내 자기소개서 목록 조회 (GET /api/v1/resumes)</label>
+            <button onclick="getMyResumes()">목록 조회하기</button>
+        </div>
+
+        <div class="response-box">
+            <strong>응답 결과:</strong>
+            <pre id="resumeResult">결과가 여기에 표시됩니다.</pre>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>4. 자기소개서 AI 분석 (Analysis)</h3>
+
+        <div class="form-group">
+            <label>자기소개서 AI 분석 요청 (POST /api/v1/resumes/{resumeId}/analysis?jobPostingId={id})</label>
+            <label for="ResumeId"></label><input type="number" id="ResumeId" placeholder="자기소개서 ID">
+            <label for="Job-PostingId"></label><input type="number" id="Job-PostingId" placeholder="채용 공고 ID" style="margin-top:5px;">
+            <button onclick="analyzeResume()">분석 요청하기</button>
+        </div>
+
+        <div class="form-group">
+            <label>자기소개서 AI 분석 결과 조회 (GET /api/v1/resumes/{resumeId}/analysis)</label>
+            <label for="resultAnalysisResumeId"></label><input type="number" id="resultAnalysisResumeId" placeholder="분석된 자기소개서 ID">
+            <button onclick="getAnalysisResult()">결과 조회하기</button>
+        </div>
+
+        <div class="response-box">
+            <strong>응답 결과:</strong>
+            <pre id="analysisResult">결과가 여기에 표시됩니다.</pre>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 현재 세션의 Authorization 토큰이 있다면 여기에 추가 (테스트용)
+    // Spring Security 설정에 따라 토큰이 필요할 수 있습니다.
+    const headers = {
+        'Content-Type': 'application/json'
+        // 'Authorization': 'Bearer 토큰값'
+    };
+
+    function printResult(elementId, data) {
+        document.getElementById(elementId).innerText = JSON.stringify(data, null, 2);
+    }
+
+    // --- 1. Job Posting API ---
+    async function createJobPosting() {
+        const url = document.getElementById('jobPostingUrl').value;
+        const requestBody = { postingUrl: url };
+        try {
+            const res = await fetch('/api/v1/job-postings', { method: 'POST', headers, body: JSON.stringify(requestBody) });
+            printResult('jobPostingResult', await res.json());
+        } catch (e) { printResult('jobPostingResult', { error: e.message }); }
+    }
+
+    async function getJobPosting() {
+        const id = document.getElementById('jobPostingId').value;
+        if (!id) return alert("ID를 입력하세요.");
+        try {
+            const res = await fetch(`/api/v1/job-postings/${id}`, { headers });
+            printResult('jobPostingResult', await res.json());
+        } catch (e) { printResult('jobPostingResult', { error: e.message }); }
+    }
+
+    async function getMySavedJobPostings() {
+        try {
+            const res = await fetch(`/api/v1/job-postings`, { headers });
+            printResult('jobPostingResult', await res.json());
+        } catch (e) { printResult('jobPostingResult', { error: e.message }); }
+    }
+
+    // --- 2. Resume Parsing API ---
+    async function extractResumeText() {
+        const fileInput = document.getElementById('resumeFile');
+        if (fileInput.files.length === 0) return alert("파일을 선택해주세요.");
+
+        const formData = new FormData();
+        formData.append("file", fileInput.files[0]);
+
+        try {
+            // 파일 업로드 시에는 Content-Type을 브라우저가 자동 설정하도록 headers를 비웁니다.
+            const res = await fetch('/api/v1/resumes/extract', { method: 'POST', body: formData });
+            printResult('parsingResult', await res.json());
+        } catch (e) { printResult('parsingResult', { error: e.message }); }
+    }
+
+    // --- 3. Resume API ---
+    async function createResume() {
+        const contentStr = document.getElementById('resumeContent').value;
+        try {
+            const requestBody = JSON.parse(contentStr);
+            const res = await fetch('/api/v1/resumes', { method: 'POST', headers, body: JSON.stringify(requestBody) });
+            printResult('resumeResult', await res.json());
+        } catch (e) { alert("JSON 형식이 올바르지 않습니다."); printResult('resumeResult', { error: e.message }); }
+    }
+
+    async function getResume() {
+        const id = document.getElementById('getResumeId').value;
+        if (!id) return alert("ID를 입력하세요.");
+        try {
+            const res = await fetch(`/api/v1/resumes/${id}`, { headers });
+            printResult('resumeResult', await res.json());
+        } catch (e) { printResult('resumeResult', { error: e.message }); }
+    }
+
+    async function getMyResumes() {
+        try {
+            const res = await fetch(`/api/v1/resumes`, { headers });
+            printResult('resumeResult', await res.json());
+        } catch (e) { printResult('resumeResult', { error: e.message }); }
+    }
+
+    // --- 4. Resume Analysis API ---
+    async function analyzeResume() {
+        const resumeId = document.getElementById('ResumeId').value;
+        const jobPostingId = document.getElementById('JobPostingId').value;
+        if (!resumeId || !jobPostingId) return alert("자기소개서 ID와 공고 ID를 모두 입력하세요.");
+        try {
+            const res = await fetch(`/api/v1/resumes/${resumeId}/analysis?jobPostingId=${jobPostingId}`, { method: 'POST', headers });
+            printResult('analysisResult', await res.json());
+        } catch (e) { printResult('analysisResult', { error: e.message }); }
+    }
+
+    async function getAnalysisResult() {
+        const resumeId = document.getElementById('resultAnalysisResumeId').value;
+        if (!resumeId) return alert("자기소개서 ID를 입력하세요.");
+        try {
+            const res = await fetch(`/api/v1/resumes/${resumeId}/analysis`, { headers });
+            printResult('analysisResult', await res.json());
+        } catch (e) { printResult('analysisResult', { error: e.message }); }
+    }
+</script>
+
+</body>
+</html>

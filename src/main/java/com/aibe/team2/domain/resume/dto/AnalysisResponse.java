@@ -1,13 +1,13 @@
 package com.aibe.team2.domain.resume.dto;
 
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
+import com.aibe.team2.domain.resume.entity.AnalysisStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.Map;
 
-public record ResumeAnalysisResponse(
+public record AnalysisResponse(
         Long id,
         Long resumeId,
         Long jobPostingId,
@@ -23,12 +23,12 @@ public record ResumeAnalysisResponse(
         @Schema(description = "문장 교정 데이터 (JSON 객체)")
         Map<String, Object> sentenceCorrection,
         String revisedFullContent,
-        ResumeAnalysisStatus status,
+        AnalysisStatus status,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
-    public static ResumeAnalysisResponse from(ResumeAnalysisReport report) {
-        return new ResumeAnalysisResponse(
+    public static AnalysisResponse from(AnalyzedReport report) {
+        return new AnalysisResponse(
                 report.getId(),
                 report.getResume().getId(),
                 report.getJobPosting().getId(),

@@ -28,7 +28,7 @@ public class JobPostingService {
 
     // 공고 등록 (URL 크롤링 기능 포함)
     @Transactional
-    public JobPostingResponse createJobPosting(JobPostingRequest request) {
+    public JobPostingResponse createJobPosting(Long memberId, JobPostingRequest request) {
         String finalDescription = request.jobDescription();
         String finalJobTitle = request.jobTitle();
 
@@ -56,6 +56,7 @@ public class JobPostingService {
 
         // 2. Entity 생성 (JobPosting)
         JobPosting jobPosting = JobPosting.builder()
+                .memberId(memberId)
                 .companyName(request.companyName())
                 .jobTitle(finalJobTitle)
                 .postingUrl(request.postingUrl())
@@ -88,6 +89,8 @@ public class JobPostingService {
     }
 
     public List<JobPostingResponse> getMySavedJobPostings(Long memberId) {
+        // 하드코딩중
+        // Long memberId = 1L;
         return jobPostingRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId).stream()
                 .map(JobPostingResponse::from)
                 .collect(Collectors.toList());

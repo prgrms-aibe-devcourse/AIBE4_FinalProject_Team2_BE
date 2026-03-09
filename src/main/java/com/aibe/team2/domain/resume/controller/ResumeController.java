@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/resumes")
@@ -24,7 +26,9 @@ public class ResumeController {
     @PostMapping
     public ApiResponse<ResumeResponse> createResume(@RequestBody @Valid ResumeRequest request) {
         log.info("Resume save requested. title: {}", request.title());
-        ResumeResponse response = resumeService.saveResume(request);
+        // 하드코딩중 로그인 연동 후 수정
+        Long currentMemberId = 1L;
+        ResumeResponse response = resumeService.saveResume(currentMemberId, request);
         return ApiResponse.success(response);
     }
 
@@ -37,15 +41,17 @@ public class ResumeController {
     }
 
     // 3. 내 자기소개서 목록 보기(마이페이지)
-    // 로그인 구현시
-//    @GetMapping
-//    public ApiResponse<List<ResumeResponse>> getMyResumes() {
-//        Long currentMemberId = getLoginMemberId();
-//        List<ResumeResponse> responses = resumeService.findMyResumes(currentMemberId);
-//        return ApiResponse.success(responses);
-//    }
+    // 로그인 구현시 currentMemberId 수정
+    @GetMapping
+    public ApiResponse<List<ResumeResponse>> getMyResumes() {
+        // 하드코딩중 로그인 연동 후 수정
+        Long currentMemberId = 1L;
 
-    // [추가] 자기소개서 수정 로직
+        // 서비스 호출 및 응답 반환
+        List<ResumeResponse> responseList = resumeService.getMyResumes(currentMemberId);
+        return ApiResponse.success(responseList);
+    }
+
     // 4. 자기소개서 수정
     @PatchMapping("{resumeId}")
     public ApiResponse<Long> updateResume(

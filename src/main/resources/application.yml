@@ -1,23 +1,71 @@
-server:
-  port: 8080
-
 spring:
   application:
-    name: aibe4-finalproject-team2
+    name: aibe-team2-api
 
   profiles:
-    active: dev
+    default: dev
 
-  # 파일 업로드 용량 제한 (공통)
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   servlet:
     multipart:
       max-file-size: 10MB
-      max-request-size: 10MB
+      max-request-size: 20MB
 
-  # Thymeleaf 공통 설정
-  thymeleaf:
-    prefix: classpath:/templates/
-    suffix: .html
-    mode: HTML
-    encoding: UTF-8
+server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    redis:
+      enabled: false
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs
+
+# 외부 API
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:}
+    url: ${GEMINI_API_URL:}
+
+retell:
+  api:
+    key: ${RETELL_API_KEY:dummy_key_for_local}
+  agent:
+    id: ${RETELL_AGENT_ID:dummy_agent_id_for_local}
+
+jwt:
+  secret: ${JWT_SECRET:}
+  access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:3600000}
+  refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY:604800000}
+
+aws:
+  region: ${AWS_REGION:ap-northeast-2}
+
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+
+  s3:
+    bucket: ${AWS_S3_BUCKET:aibe-bucket}
+    presign-expiration-minutes: ${AWS_S3_PRESIGN_EXPIRATION_MINUTES:10}
+    allowed-content-types: ${AWS_S3_ALLOWED_CONTENT_TYPES:application/pdf,image/png,image/jpeg}
+
+    max-upload-bytes:
+      resume: ${AWS_S3_MAX_UPLOAD_RESUME_BYTES:10485760}   # 10MB
+      audio: ${AWS_S3_MAX_UPLOAD_AUDIO_BYTES:52428800}

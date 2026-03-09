@@ -28,7 +28,7 @@ import java.util.Map;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
-public class ResumeAnalysisReport {
+public class AnalyzedReport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -68,7 +68,7 @@ public class ResumeAnalysisReport {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ResumeAnalysisStatus status; // DEFAULT 'PENDING'
+    private AnalysisStatus status; // DEFAULT 'PENDING'
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -79,15 +79,15 @@ public class ResumeAnalysisReport {
     private LocalDateTime updatedAt;
 
     @Builder
-    public ResumeAnalysisReport(Resume resume, JobPosting jobPosting) {
+    public AnalyzedReport(Resume resume, JobPosting jobPosting) {
         this.resume = resume;
         this.jobPosting = jobPosting;
-        this.status = ResumeAnalysisStatus.PENDING;
+        this.status = AnalysisStatus.PENDING;
     }
 
     // 분석
     public void startAnalysis() {
-        this.status = ResumeAnalysisStatus.PROCESSING;
+        this.status = AnalysisStatus.PROCESSING;
     }
 
     // 분석 완료
@@ -97,14 +97,14 @@ public class ResumeAnalysisReport {
         this.keywordAnalysis = keywordAnalysis;
         this.sentenceCorrection = sentenceCorrection;
         this.revisedFullContent = revisedFullContent;
-        this.status = ResumeAnalysisStatus.COMPLETED;
+        this.status = AnalysisStatus.COMPLETED;
     }
 
     public void failAnalysis() {
-        this.status = ResumeAnalysisStatus.FAILED;
+        this.status = AnalysisStatus.FAILED;
     }
 
-    public void updateStatus(ResumeAnalysisStatus resumeAnalysisStatus) {
+    public void updateStatus(AnalysisStatus resumeAnalysisStatus) {
         this.status = resumeAnalysisStatus;
     }
 

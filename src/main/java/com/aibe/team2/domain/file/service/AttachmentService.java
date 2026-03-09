@@ -6,6 +6,7 @@ import com.aibe.team2.domain.file.dto.PresignedDownloadResponse;
 import com.aibe.team2.domain.file.entity.Attachment;
 import com.aibe.team2.domain.file.entity.TargetType;
 import com.aibe.team2.domain.file.repository.AttachmentRepository;
+import com.aibe.team2.domain.resume.entity.AnalysisStatus;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import com.aibe.team2.global.exception.custom.FileException;
@@ -17,8 +18,7 @@ import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
 
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
 
@@ -135,10 +135,10 @@ public class AttachmentService {
                 return;
             }
             case ANALYSIS_REPORT -> {
-                ResumeAnalysisReport report = resumeAnalysisRepository.findById(att.getTargetId())
+                AnalyzedReport report = resumeAnalysisRepository.findById(att.getTargetId())
                         .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_REPORT_NOT_FOUND));
 
-                if (report.getStatus() != ResumeAnalysisStatus.COMPLETED) {
+                if (report.getStatus() != AnalysisStatus.COMPLETED) {
                     throw new BusinessException(ErrorCode.ANALYSIS_IN_PROGRESS);
                 }
             }

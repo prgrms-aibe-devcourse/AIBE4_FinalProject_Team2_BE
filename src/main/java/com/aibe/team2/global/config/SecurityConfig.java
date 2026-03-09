@@ -68,9 +68,10 @@ public class SecurityConfig {
                                 "/api-docs",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/api/resumes/**",
+                                "/api/v1/resumes/**",
                                 "/api/v1/mypage/**",
-                                "/resume.html"
+                                "/resume.html",
+                                "/api/v1/job-postings/**"
                         ).permitAll()
                         .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
@@ -80,6 +81,14 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2SuccessHandler) // 성공 시 실행할 로직
+                )
+
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.setStatus(401);
+                            response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"인증이 필요하거나 유효하지 않은 요청입니다.\"}");
+                        })
                 )
 
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))

@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.resume.service;
 
-import com.aibe.team2.domain.resume.dto.ResumeAnalysisEvent;
+import com.aibe.team2.domain.resume.dto.AnalysisEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +34,8 @@ public class AnalysisQueueConsumer {
             }
 
             try {
-                ResumeAnalysisEvent event;
-                event = objectMapper.readValue(jsonMessage.toString(), ResumeAnalysisEvent.class);
+                AnalysisEvent event;
+                event = objectMapper.readValue(jsonMessage.toString(), AnalysisEvent.class);
                 log.info("[QueueConsumer] 큐에서 작업 추출 성공! AI 분석 비동기 위임 - Report ID: {}", event.reportId());
                 // 비동기 워커 실행!
                 asyncWorker.processAiAnalysisAsync(

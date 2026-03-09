@@ -171,8 +171,8 @@
 | `member_agent` | `VARCHAR(255)` | 유저 에이전트 |
 | `created_at` | `DATETIME` | 발생 일시 |
 | `updated_at` | `DATETIME` | 수정 일시 |
-### 12. attachment (첨부 파일)
 
+### 12. attachment (첨부 파일)
 | **컬럼명** | **타입** | **설명**              |
 | :--- | :--- |:--------------------|
 | `id` | `BIGINT` | 파일 ID               |

@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.statistics.dto.resume;
 
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +13,7 @@ public record ResumeAnalysisListResponse(
         String status, // 분석 상태(COMPLETED, PROCESSING 등)
         LocalDateTime createdAt // 분석 요청 일시
 ) {
-    public static ResumeAnalysisListResponse from(ResumeAnalysisReport report){
+    public static ResumeAnalysisListResponse from(AnalyzedReport report){
         return new ResumeAnalysisListResponse(
                 report.getId(),
                 report.getResume().getTitle(),               // 연관된 이력서에서 제목 추출
