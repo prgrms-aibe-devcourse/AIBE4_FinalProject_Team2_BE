@@ -3,6 +3,8 @@ package com.aibe.team2.domain.auth.util;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -28,12 +30,21 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 우리 서버의 JWT 발급
         String token = jwtTokenProvider.createAccessToken(email);
 
-        // React 페이지로 리다이렉트하며 쿼리 스트링으로 토큰 전달
-        // (실무에서는 쿠키를 더 권장하지만, 테스트를 위해 URL 전달 예시)
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:5173/oauth/callback")
-                .queryParam("token", token)
-                .build().toUriString();
 
+        // 1. 쿠키 생성
+        ResponseCookie cookie = ResponseCookie.from("accessToken", token)
+                .path("/")
+                .httpOnly(true)    // JavaScript에서 접근 불가 (XSS 방어)
+                .secure(true)      // HTTPS 환경에서만 전송
+                .sameSite("Lax")   // CSRF 방어
+                .maxAge(3600)      // 유효 기간 설정
+                .build();
+
+        // 2. 응답 헤더에 쿠키 추가
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        // 3. 리다이렉트 (토큰 제외)
+        String targetUrl = "http://localhost:5173/oauth/callback";
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

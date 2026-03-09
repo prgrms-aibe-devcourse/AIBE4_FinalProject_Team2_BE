@@ -158,12 +158,12 @@ public class MemberService {
     public void validateSignup(MemberDTO request) {
         // 1. 닉네임 중복 검사
         if (memberRepository.existsByNickname(request.getNickname())) {
-            throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
+            throw new BusinessException(ErrorCode.AUTH_DUPLICATE_NICKNAME);
         }
 
         // 2. 이메일 중복 검사
         if (memberRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("이미 등록된 이메일입니다.");
+            throw new BusinessException(ErrorCode.AUTH_DUPLICATE_EMAIL);
         }
     }
 

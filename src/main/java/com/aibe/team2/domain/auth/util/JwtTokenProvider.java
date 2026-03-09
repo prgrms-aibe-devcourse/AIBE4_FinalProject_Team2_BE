@@ -4,6 +4,7 @@ import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,13 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}") private String secret;
     @Value("${jwt.access-token-validity}") private long accessTokenValidity;
     @Value("${jwt.refresh-token-validity}") private long refreshTokenValidity;
-    private final Key key = Keys.hmacShaKeyFor(secret.getBytes());
+
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     // Access Token 생성
     public String createAccessToken(String username) {
