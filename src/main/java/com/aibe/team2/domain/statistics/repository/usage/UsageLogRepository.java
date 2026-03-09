@@ -70,4 +70,22 @@ where u.member.memberId = :memberId
     Long sumTokenUsageByMemberId(Long memberId);
 
     long countByServiceType(ServiceType serviceType);
+
+    long countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(LocalDateTime start, LocalDateTime end);
+
+    long countByServiceTypeAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
+            ServiceType serviceType,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
+    @Query("""
+    select coalesce(sum(u.tokenUsage), 0)
+    from UsageLog u
+    where u.createdAt >= :start and u.createdAt < :end
+""")
+    Long sumTokenUsageByCreatedAtRange(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }

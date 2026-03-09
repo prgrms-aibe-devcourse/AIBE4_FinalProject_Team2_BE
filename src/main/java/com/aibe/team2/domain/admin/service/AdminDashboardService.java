@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -26,7 +25,7 @@ public class AdminDashboardService {
     public AdminDashboardSummaryResponse getSummary() {
         LocalDate today = LocalDate.now();
         LocalDateTime start = today.atStartOfDay();
-        LocalDateTime end = today.atTime(LocalTime.MAX);
+        LocalDateTime end = today.plusDays(1).atStartOfDay();
 
         Long activeMemberCount = memberRepository.countByStatus(MemberStatus.ACTIVE);
         Long dormancyMemberCount = memberRepository.countByStatus(MemberStatus.DORMANCY);
