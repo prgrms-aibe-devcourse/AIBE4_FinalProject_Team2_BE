@@ -107,4 +107,29 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
     }
+
+    @Override
+    public List<UsageLogAdminRow> findTop5AdminUsageLogs() {
+
+        return queryFactory
+                .select(Projections.constructor(
+                        UsageLogAdminRow.class,
+                        usageLog.id,
+                        usageLog.member.memberId,
+                        usageLog.member.email,
+                        usageLog.serviceType,
+                        usageLog.amount,
+                        usageLog.tokenUsage,
+                        usageLog.balanceAfter,
+                        usageLog.requestTraceId,
+                        usageLog.targetType,
+                        usageLog.targetId,
+                        usageLog.description,
+                        usageLog.createdAt
+                ))
+                .from(usageLog)
+                .orderBy(usageLog.createdAt.desc())
+                .limit(5)
+                .fetch();
+    }
 }

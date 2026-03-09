@@ -1,6 +1,7 @@
 package com.aibe.team2.domain.admin.service;
 
 import com.aibe.team2.domain.admin.dto.request.AdminMemberSearchCond;
+import com.aibe.team2.domain.admin.dto.response.AdminMemberDetailResponse;
 import com.aibe.team2.domain.admin.dto.response.AdminMemberRow;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.entity.enums.MemberStatus;
@@ -10,7 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -27,5 +27,11 @@ public class AdminMemberService {
         Member member = memberRepository.getByIdThrowForUpdate(memberId);
         member.updateStatus(status);
         return member.getStatus();
+    }
+
+    @Transactional(readOnly = true)
+    public AdminMemberDetailResponse getMemberDetail(Long memberId) {
+        Member member = memberRepository.getByIdThrow(memberId);
+        return new AdminMemberDetailResponse(member);
     }
 }

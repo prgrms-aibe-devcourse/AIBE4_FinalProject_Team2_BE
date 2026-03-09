@@ -16,4 +16,6 @@ public interface UsageLogRepositoryCustom {
             UsageLogAdminSearchCond cond,
             Pageable pageable
     );
+
+    List<UsageLogAdminRow> findTop5AdminUsageLogs();
 }

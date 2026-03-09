@@ -1,13 +1,15 @@
 package com.aibe.team2.domain.mypage.repository.member;
-import jakarta.persistence.LockModeType;
+
 import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.entity.enums.MemberStatus;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.NotFoundException;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -19,6 +21,8 @@ public interface MemberRepository extends JpaRepository<Member,Long>, MemberRepo
 
     // 2. 닉네임으로 회원 찾기(닉네임 중복 검사 시 사용)
     Optional<Member> findByNickname(String nickname);
+
+    long countByStatus(MemberStatus status);
 
     // 3. ID로 멤버 찾기(없으면 예외 발생)
     default Member getByIdThrow(Long memberId) {
