@@ -69,7 +69,11 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/api/resumes/**",
-                                "/api/v1/mypage/**"
+                                "/api/v1/mypage/**",
+                                "/resumes.html",
+                                "/api/v1/resumes",
+                                "/api/v1/job-postings",
+                                "/api/v1/resumes/extract"
                         ).permitAll()
                         .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
