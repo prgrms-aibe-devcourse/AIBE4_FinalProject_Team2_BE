@@ -57,13 +57,7 @@ public class ResumeService {
 
         // 2. Entity 리스트를 DTO 리스트로 변환하여 반환
         return resumes.stream()
-                .map(resume -> new ResumeResponse(
-                        resume.getId(),
-                        resume.getMemberId(),
-                        resume.getTitle(),
-                        resume.getContent(),
-                        resume.getIsAnalyzed()
-                ))
+                .map(ResumeResponse::from)
                 .collect(Collectors.toList());
     }
 
