@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
 @Getter
-@RedisHash(value = "refreshToken", timeToLive = 1209600) // 14일 후 자동 삭제
+@RedisHash(value = "refreshToken", timeToLive = 604800) // 일주일 후 자동 삭제
 public class RefreshToken {
     @Id
     private String username;
