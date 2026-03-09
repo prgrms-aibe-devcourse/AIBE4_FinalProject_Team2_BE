@@ -1,0 +1,378 @@
+/* 전역 설정 */
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: 'Pretendard', sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+/* 전체 앱 레이아웃 */
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* 사이드바 스타일 */
+.sidebar {
+    width: 260px;
+    background: white;
+    padding: 30px 20px;
+    border-right: 1px solid #eef0f4;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 40px;
+}
+
+.sidebar-logo h2 { margin: 0; font-size: 20px; color: #1a1a1a; }
+.sidebar-logo p { margin: 0; font-size: 12px; color: #888; }
+.logo-icon { width: 32px; height: 32px; background: #007bff; border-radius: 8px; }
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+}
+
+.nav-menu li {
+    padding: 12px 16px;
+    color: #555;
+    font-size: 15px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.nav-menu li.active {
+    background-color: #eef5ff;
+    color: #007bff;
+    font-weight: 600;
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #eef0f4;
+}
+
+.sidebar-user img { width: 40px; height: 40px; border-radius: 50%; }
+.sidebar-user strong { display: block; font-size: 14px; }
+.sidebar-user span { font-size: 12px; color: #888; }
+
+/* 메인 컨텐츠 영역 */
+.main-content {
+    flex: 1;
+    padding: 40px 60px;
+    max-width: 1000px;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.page-header h1 { margin: 0; font-size: 24px; color: #1a1a1a; }
+.page-header p { margin: 8px 0 0 0; color: #666; font-size: 14px; }
+
+/* 카드 공통 스타일 */
+.card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #eef0f4;
+    margin-bottom: 24px;
+}
+
+.card h3 {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* 폼 요소 스타일 */
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-group {
+    flex: 1;
+    margin-bottom: 0; /* form-row 안에서는 하단 여백 제거 */
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #dcdfe4;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.form-control:focus {
+    border-color: #007bff;
+}
+
+.form-control:disabled, .form-control[readonly] {
+    background-color: #f8f9fb;
+    color: #888;
+    cursor: not-allowed;
+}
+
+/* 프로필 사진 업로드 영역 */
+.profile-upload-section {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.profile-img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #eef0f4;
+}
+
+.upload-info { flex: 1; }
+.help-text { font-size: 13px; color: #888; margin: 0 0 12px 0; line-height: 1.5; }
+.action-buttons { display: flex; gap: 12px; align-items: center; }
+
+/* 버튼 스타일 */
+.btn-primary {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-outline {
+    display: inline-block;
+    background: white;
+    color: #444;
+    border: 1px solid #dcdfe4;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-text-danger {
+    background: none;
+    border: none;
+    color: #e53e3e;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.link-text { color: #007bff; font-size: 13px; text-decoration: none; }
+.mt-10 { margin-top: 10px; }
+.mt-5 { margin-top: 5px; }
+.text-right { text-align: right; }
+
+/* 태그 기본 디자인 (수정됨) */
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px; /* 글자와 x 버튼 사이 간격 */
+    background: #eef5ff;
+    color: #007bff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* 태그 안의 텍스트 영역 */
+.tag-text {
+    line-height: 1;
+}
+
+/* 태그 입력창 전체 컨테이너 (둥근 테두리) */
+.tag-input-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: 1px solid #dcdfe4;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: border-color 0.2s;
+}
+
+/* 입력창을 클릭(포커스) 했을 때 파란 테두리 효과 */
+.tag-input-container:focus-within {
+    border-color: #007bff;
+}
+
+/* 글씨를 입력하는 실제 Input 창 (투명하게) */
+.tag-input-field {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+    font-size: 14px;
+    background: transparent;
+    padding: 2px 0;
+}
+
+/* 직무 입력창의 placeholder 색상 연하게 */
+.tag-input-field::placeholder {
+    color: #a0aabf;
+}
+
+/* 태그의 x (닫기) 버튼 */
+.tag-close {
+    cursor: pointer;
+    font-weight: bold;
+    color: #0056b3;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 2px;
+    border-radius: 50%;
+}
+
+.tag-close:hover {
+    color: #e53e3e; /* 마우스 올리면 빨간색으로 변경 */
+}
+
+/* 데인저 존 (계정 삭제) */
+.danger-zone {
+    background-color: #fffafb;
+    border: 1px solid #ffe5e8;
+}
+
+.danger-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.danger-title { margin: 0 !important; color: #e53e3e; }
+.danger-desc { font-size: 13px; color: #e53e3e; margin: 0 0 16px 0; }
+
+.btn-danger-outline {
+    background: white;
+    color: #e53e3e;
+    border: 1px solid #ffcccc;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+/* =========================================
+   커스텀 지역 선택 모달 (Custom Region Modal)
+   ========================================= */
+.mt-20 { margin-top: 20px; }
+.custom-dropdown-wrapper { position: relative; }
+
+/* 트리거 (가짜 입력창) */
+.dropdown-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    background: white;
+}
+.placeholder-text { color: #888; }
+.dropdown-icon { font-size: 12px; color: #888; }
+
+/* 모달 컨테이너 */
+.region-modal {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    margin-top: 8px;
+    background: white;
+    border: 1px solid #dcdfe4;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 모달 본문 (좌우 분할) */
+.region-modal-body {
+    display: flex;
+    height: 250px;
+}
+
+.region-left {
+    width: 30%;
+    border-right: 1px solid #eef0f4;
+    overflow-y: auto;
+}
+
+.region-right {
+    width: 70%;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+/* 왼쪽 도/광역시 리스트 */
+.province-list { list-style: none; padding: 0; margin: 0; }
+.province-list li {
+    padding: 12px 15px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+    border-bottom: 1px solid #f5f6f8;
+}
+.province-list li:hover { background-color: #f8f9fb; }
+.province-list li.active { background-color: #eef5ff; color: #007bff; font-weight: 600; }
+
+/* 오른쪽 시/군/구 체크박스 그리드 */
+.city-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+.empty-msg { grid-column: 1 / -1; color: #888; font-size: 13px; text-align: center; margin-top: 20px; }
+
+/* 체크박스 라벨 디자인 */
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #444;
+    cursor: pointer;
+}
+
+/* 모달 푸터 */
+.region-modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-top: 1px solid #eef0f4;
+    background: #f8f9fb;
+    border-radius: 0 0 8px 8px;
+}
+.selected-count { font-size: 13px; color: #555; }
