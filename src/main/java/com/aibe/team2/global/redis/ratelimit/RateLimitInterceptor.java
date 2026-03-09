@@ -1,5 +1,6 @@
 package com.aibe.team2.global.redis.ratelimit;
 
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -52,19 +53,22 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     // 1. 클라이언트 식별자를 결정하는 메인 메서드
     private String getClientIdentifier(HttpServletRequest request) {
 
-        // TODO: Spring Security 구현 시, 주석을 해제하고 로그인 유저(ID) 식별 로직을 추가
-    /*
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (authentication != null && authentication.isAuthenticated()) {
-        Object principal = authentication.getPrincipal();
-        if (!"anonymousUser".equals(principal)) {
-            return authentication.getName();
-        }
-    }
-    */
+        // 1-1. SecurityContext에서 현재 인증된 사용자 정보 가져오기
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        // 현재는 Security가 없으므로, 모든 요청을 비로그인 사용자로 간주하고 '진짜 클라이언트 IP'를 반환
-        return getRealClientIp(request);
+        // 1-2. 인증 객체가 존재하고, 익명 사용자가 아닐 경우 (정상 로그인 상태)
+        if (authentication != null && authentication.isAuthenticated() && !authentication.getPrincipal().equals("anonymousUser")) {
+            Object principal = authentication.getPrincipal();
+
+            // 1-3. 우리가 만든 CustomUserDetails로 형변환(Casting)하여 memberId 추출
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                return "MEMBER_" + userDetails.getMember().getMemberId();
+            }
+        }
+
+        // 1-4. 비로그인 사용자이거나 인증 정보가 없을 경우, 실제 IP 주소 반환
+        return "IP_" + getRealClientIp(request);
     }
 
     // 2. 프록시 환경을 고려하여 실제 클라이언트 IP를 추출하는 헬퍼 메서드

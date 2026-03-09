@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.mypage.dto.response;
 
+import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
 import java.time.LocalDateTime;
 
@@ -8,7 +9,7 @@ public record InterviewSessionListResponse(
         String resumeTitle,     // QueryDSL이 가져올 자소서 제목
         String companyName,     // QueryDSL이 가져올 회사명
         String jobTitle,        // QueryDSL이 가져올 직무명
-        String interviewMode,
+       InterviewMode interviewMode,
         String interviewType,
         InterviewSessionStatus status,
         Integer finalScore,

@@ -29,8 +29,7 @@ import java.util.List;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    // TODO : Security Config에 PasswordEncoder Bean 등록 시 주석 풀기
-     private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final UsageLogWriter usageLogWriter;
     private final S3ImageService s3ImageService;
 
@@ -50,8 +49,7 @@ public class MemberService {
 
         // 2-2. 취업 선호 설정이 포함되어 있다면 기존 로직(4번) 재사용
         if (dto.getJobPreferences() != null) {
-            // 내부 메서드를 호출하여 로직 중복 방지 (DRY 원칙)
-            this.updateJobPreferences(memberId, dto.getJobPreferences());
+            applyJobPreferencesLogic(member, dto.getJobPreferences());
         }
 
         // 2-3. 수정이 완료된 엔티티를 Response DTO로 변환하여 반환
@@ -64,38 +62,25 @@ public class MemberService {
         Member member = memberRepository.getByIdThrow(memberId);
 
         // 3-1. 현재 비밀번호 검증
-        // TODO : [삭제] 임시 평문 비교
-        if(!dto.getCurrentPassword().equals(member.getPassword())){
-            throw new BadRequestException(ErrorCode.COMMON_400);
-        }
-        // TODO : [주석 해제] 최종 암호화 비교
-        // if (!passwordEncoder.matches(dto.getCurrentPassword(), member.getPassword())) {
-        //             throw new BadRequestException(ErrorCode.COMMON_400);
-        //         }
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), member.getPassword())) {
+                    throw new BadRequestException(ErrorCode.USER_PASSWORD_MISMATCH);
+                }
 
         // 3-2. 새 비밀번호 일치 검증
         if(!dto.getNewPassword().equals(dto.getConfirmPassword())){
-            throw new BadRequestException(ErrorCode.COMMON_400);
+            throw new BadRequestException(ErrorCode.USER_PASSWORD_MISMATCH);
         }
 
         // 3-3. 비밀번호 업데이트
-        // TODO : [삭제] 임시 평문 저장
-        member.updatePassword(dto.getNewPassword());
-        // TODO : [주석 해제] 최종 암호화 저장
-        // String encodedNewPassword = passwordEncoder.encode(dto.getNewPassword());
-        //         member.updatePassword(encodedNewPassword);
+        String encodedNewPassword = passwordEncoder.encode(dto.getNewPassword());
+                member.updatePassword(encodedNewPassword);
     }
 
-    // 4. 취업 선호 설정 수정
-    @Transactional
-    public void updateJobPreferences(Long memberId, JobPreferenceUpdateRequest dto){
-        Member member = memberRepository.getByIdThrow(memberId);
-
+    private void applyJobPreferencesLogic(Member member, JobPreferenceUpdateRequest dto) {
         List<String> rolesList = dto.getTargetJobRoles();
         String joinedRoles = (rolesList != null && !rolesList.isEmpty())
                 ? String.join(",", rolesList)
                 : null;
-
         member.updateJobPreferences(joinedRoles, dto.getPreferredLocation());
     }
 

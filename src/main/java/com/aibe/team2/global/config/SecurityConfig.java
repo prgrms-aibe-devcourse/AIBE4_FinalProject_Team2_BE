@@ -68,8 +68,11 @@ public class SecurityConfig {
                                 "/api-docs",
                                 "/swagger-resources/**",
                                 "/webjars/**",
-                                "/api/v1/resumes/**",
                                 "/api/v1/mypage/**",
+                                "/api/v1/notifications/**",
+                                "/api/v1/resumes",
+                                "/api/v1/job-postings",
+                                "/api/v1/resumes/extract",
                                 "/resume.html",
                                 "/api/v1/job-postings/**"
                         ).permitAll()

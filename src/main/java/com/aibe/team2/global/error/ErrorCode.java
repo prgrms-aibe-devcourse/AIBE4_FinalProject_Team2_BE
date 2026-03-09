@@ -38,6 +38,7 @@ public enum ErrorCode {
     USER_NICKNAME_DUPLICATION(HttpStatus.CONFLICT, "USER_003", "이미 존재하는 닉네임입니다."),
     USER_PASSWORD_INVALID(HttpStatus.BAD_REQUEST, "USER_004", "비밀번호 형식이 올바르지 않습니다."),
     USER_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "USER_005", "탈퇴 처리된 회원입니다."),
+    USER_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "USER_006", "비밀번호가 일치하지 않습니다."),
 
     // File (파일)
     FILE_EMPTY(HttpStatus.BAD_REQUEST, "FILE_001", "파일이 비어있습니다."),
@@ -86,6 +87,9 @@ public enum ErrorCode {
     CREDIT_INSUFFICIENT(HttpStatus.FORBIDDEN, "CREDIT_001", "잔여 크레딧(이용권)이 부족합니다. 크레딧을 충전해주세요."),
     CREDIT_DAILY_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "CREDIT_002", "일일 기본 제공 무료 분석 횟수를 모두 소진했습니다."),
     CREDIT_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "CREDIT_003", "크레딧 사용 내역을 찾을 수 없습니다."),
+
+    // Notification(알림)
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTI_001", "존재하지 않는 알림입니다."),
 
     // External API (외부 연동)
     AI_SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "AI_001", "AI 서비스 연결이 지연되고 있습니다. 잠시 후 다시 시도해주세요."),
