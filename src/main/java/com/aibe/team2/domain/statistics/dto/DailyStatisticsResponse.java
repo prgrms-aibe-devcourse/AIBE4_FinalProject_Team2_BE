@@ -1,12 +1,16 @@
 package com.aibe.team2.domain.statistics.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class DailyStatisticsResponse {
     private String targetDate; // 집계 기준 일자
     private int resumeReviewCount; // 자기소개서 첨삭 건수

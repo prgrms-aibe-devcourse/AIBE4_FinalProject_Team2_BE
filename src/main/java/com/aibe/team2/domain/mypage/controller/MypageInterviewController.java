@@ -3,6 +3,7 @@ package com.aibe.team2.domain.mypage.controller;
 import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import com.aibe.team2.domain.mypage.service.MypageInterviewService;
+import com.aibe.team2.global.common.annotation.LoginMemberId;
 import com.aibe.team2.global.redis.ratelimit.RateLimit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,25 +23,15 @@ public class MypageInterviewController {
 
     private final MypageInterviewService mypageInterviewService;
 
-    // Fallback 로직
-    private Long getMemberIdWithFallback(CustomUserDetails userDetails) {
-        if(userDetails == null || userDetails.getMember() == null) {
-            // TODO : 개발 및 테스트 환경을 위한 Fallback ID 반환
-            return 1L;
-        }
-        return userDetails.getMember().getMemberId();
-    }
-
     @RateLimit
     @GetMapping
     public ResponseEntity<Page<InterviewSessionListResponse>> getInterviewSessionList(
-            @AuthenticationPrincipal CustomUserDetails customUserDetails,
+            @LoginMemberId Long memberId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        Long currentUserId = getMemberIdWithFallback(customUserDetails);
         Pageable pageRequest = PageRequest.of(page, size);
-        Page<InterviewSessionListResponse> response = mypageInterviewService.getInterviewSessionList(currentUserId, pageRequest);
+        Page<InterviewSessionListResponse> response = mypageInterviewService.getInterviewSessionList(memberId, pageRequest);
 
         return ResponseEntity.ok(response);
     }

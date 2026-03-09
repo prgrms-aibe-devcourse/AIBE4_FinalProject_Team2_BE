@@ -3,6 +3,7 @@ package com.aibe.team2.domain.mypage.controller;
 import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.dto.response.BookmarkResponse;
 import com.aibe.team2.domain.mypage.service.QuestionScrapService;
+import com.aibe.team2.global.common.annotation.LoginMemberId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +25,6 @@ public class QuestionScrapController {
 
     private final QuestionScrapService questionScrapService;
 
-    private Long getMemberIdWithFallback(CustomUserDetails userDetails) {
-        if(userDetails == null || userDetails.getMember() == null) {
-            // TODO : 현재 개발 및 테스트 환경을 위한 Fallback ID 반환
-            return 1L;
-        }
-        return userDetails.getMember().getMemberId();
-    }
-
     /*
      * [북마크 토글]
      * POST /api/v1/mypage/questions/{questionId}/bookmarks
@@ -40,9 +33,8 @@ public class QuestionScrapController {
     @PostMapping("/questions/{questionId}/bookmarks")
     public ResponseEntity<Boolean> toggleBookmark(
             @PathVariable Long questionId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @LoginMemberId Long memberId
     ){
-        Long memberId = getMemberIdWithFallback(userDetails);
         log.info("[북마크 토글 요청] MemberId: {}, QuestionId: {}", memberId, questionId);
 
         boolean isBookmarked = questionScrapService.toggleBookmark(memberId, questionId);
@@ -57,10 +49,9 @@ public class QuestionScrapController {
     @Operation(summary = "내 북마크 목록 조회", description = "내가 저장한 질문 리스트를 페이징하여 조회합니다.")
     @GetMapping("/bookmarks")
     public ResponseEntity<Page<BookmarkResponse>> getMyBookmarks(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @LoginMemberId Long memberId,
             @PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
-        Long memberId = getMemberIdWithFallback(userDetails); // 하드코딩 대체
         log.info("[북마크 목록 조회] MemberId: {}",  memberId);
 
         Page<BookmarkResponse> response = questionScrapService.getMyBookmarks(memberId, pageable);
