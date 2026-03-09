@@ -85,6 +85,8 @@ dependencies {
 
     // AWS S3 Presigner 의존성
     implementation 'software.amazon.awssdk:s3:2.20.162'
+
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs:3.1.0'
 }
 
 // Q-Class
