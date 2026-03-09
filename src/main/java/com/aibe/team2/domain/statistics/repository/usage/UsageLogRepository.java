@@ -34,19 +34,40 @@ public interface UsageLogRepository extends JpaRepository<UsageLog, Long>, Usage
             @Param("end") LocalDateTime end
     );
 
+    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+
+    long countByServiceTypeAndCreatedAtBetween(ServiceType serviceType, LocalDateTime start, LocalDateTime end);
+
+    @Query("SELECT COALESCE(SUM(u.tokenUsage), 0) FROM UsageLog u WHERE u.createdAt BETWEEN :start AND :end")
+    Long sumTokenUsageByCreatedAtBetween(@Param("start") LocalDateTime start,
+                                         @Param("end") LocalDateTime end);
+
     @Query("""
     select new com.aibe.team2.domain.statistics.dto.admin.DailyUsageAdminRow(
         u.serviceType,
-        coalesce(sum(u.amount), 0),
-        coalesce(sum(u.tokenUsage), 0),
+        coalesce(sum(u.amount), 0L),
+        coalesce(sum(u.tokenUsage), 0L),
         count(u)
     )
     from UsageLog u
-    where u.createdAt between :start and :end
+    where u.createdAt >= :start and u.createdAt < :end
     group by u.serviceType
 """)
     List<DailyUsageAdminRow> aggregateDailyAdmin(
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    long countByMember_MemberId(Long memberId);
+
+    long countByMember_MemberIdAndServiceType(Long memberId, ServiceType serviceType);
+
+    @Query("""
+select coalesce(sum(u.tokenUsage), 0)
+from UsageLog u
+where u.member.memberId = :memberId
+""")
+    Long sumTokenUsageByMemberId(Long memberId);
+
+    long countByServiceType(ServiceType serviceType);
 }

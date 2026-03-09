@@ -2,6 +2,7 @@ package com.aibe.team2.domain.admin.controller;
 
 import com.aibe.team2.domain.admin.dto.request.AdminMemberSearchCond;
 import com.aibe.team2.domain.admin.dto.request.AdminMemberStatusUpdateRequest;
+import com.aibe.team2.domain.admin.dto.response.AdminMemberDetailResponse;
 import com.aibe.team2.domain.admin.dto.response.AdminMemberRow;
 import com.aibe.team2.domain.admin.dto.response.AdminMemberStatusUpdateResponse;
 import com.aibe.team2.domain.admin.service.AdminMemberService;
@@ -40,5 +41,12 @@ public class AdminMemberController {
     ) {
         var updated = adminMemberService.updateMemberStatus(memberId, request.getStatus());
         return ResponseEntity.ok(ApiResponse.success(new AdminMemberStatusUpdateResponse(memberId, updated)));
+    }
+
+    @GetMapping("/{memberId}")
+    public ResponseEntity<AdminMemberDetailResponse> getMemberDetail(
+            @PathVariable Long memberId
+    ) {
+        return ResponseEntity.ok(adminMemberService.getMemberDetail(memberId));
     }
 }

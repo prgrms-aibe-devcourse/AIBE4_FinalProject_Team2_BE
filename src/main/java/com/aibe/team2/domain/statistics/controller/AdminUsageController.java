@@ -1,10 +1,8 @@
 package com.aibe.team2.domain.statistics.controller;
 
-import com.aibe.team2.domain.statistics.dto.admin.DailyUsageAdminRow;
-import com.aibe.team2.domain.statistics.dto.admin.UsageLogAdminRow;
-import com.aibe.team2.domain.statistics.dto.admin.UsageLogAdminSearchCond;
-import com.aibe.team2.domain.statistics.enums.ServiceType;
+import com.aibe.team2.domain.statistics.dto.admin.*;
 import com.aibe.team2.domain.statistics.service.AdminUsageService;
+import com.aibe.team2.domain.statistics.dto.admin.AdminServiceUsageSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,5 +35,17 @@ public class AdminUsageController {
             @PageableDefault(size = 20) Pageable pageable
     ) {
         return ResponseEntity.ok(adminUsageService.searchUsageLogs(cond, pageable));
+    }
+
+    @GetMapping("/members/{memberId}/summary")
+    public ResponseEntity<AdminMemberUsageSummaryResponse> getMemberUsageSummary(
+            @PathVariable Long memberId
+    ) {
+        return ResponseEntity.ok(adminUsageService.getMemberUsageSummary(memberId));
+    }
+
+    @GetMapping("/service-summary")
+    public ResponseEntity<AdminServiceUsageSummaryResponse> getServiceUsageSummary() {
+        return ResponseEntity.ok(adminUsageService.getServiceUsageSummary());
     }
 }
