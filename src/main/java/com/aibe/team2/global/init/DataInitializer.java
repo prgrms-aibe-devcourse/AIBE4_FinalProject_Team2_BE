@@ -9,8 +9,8 @@ import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.entity.enums.Provider;
 import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.entity.Resume;
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
@@ -29,7 +28,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
-@Component
+// @Component
 @Profile("!prod") // 로컬이나 개발 환경에서만 이 빈이 활성화됨
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -169,7 +168,7 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createResumeAnalysisReport(Resume resume, JobPosting jobPosting) {
-        ResumeAnalysisReport report = ResumeAnalysisReport.builder()
+        AnalyzedReport report = AnalyzedReport.builder()
                 .resume(resume)
                 .jobPosting(jobPosting)
                 .build();

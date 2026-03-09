@@ -1,16 +1,13 @@
 package com.aibe.team2.domain.jobposting.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotBlank;
 
 import java.util.List;
 
 public record JobPostingRequest(
-        @NotBlank(message = "회사명은 필수입니다.")
         @Schema(description = "기업명", example = "원티드랩")
         String companyName,
 
-        @NotBlank(message = "직무명은 필수입니다.")
         @Schema(description = "직무명", example = "백엔드 개발자")
         String jobTitle,
 

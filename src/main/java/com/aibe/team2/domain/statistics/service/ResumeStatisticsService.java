@@ -1,7 +1,7 @@
 package com.aibe.team2.domain.statistics.service;
 
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisStatus;
+import com.aibe.team2.domain.resume.entity.AnalysisStatus;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisListResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
@@ -46,7 +46,7 @@ public class ResumeStatisticsService {
     public ResumeAnalysisResultResponse getResumeAnalysisReport(Long analysisId, Long currentUserId) {
 
         // 1. 분석 리포트 단건 조회
-        ResumeAnalysisReport report = resumeAnalysisRepository.findById(analysisId)
+        AnalyzedReport report = resumeAnalysisRepository.findById(analysisId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
 
         // 2. 권한 검증 (내 자기소개서가 맞는지 확인)
@@ -58,7 +58,7 @@ public class ResumeStatisticsService {
         }
 
         // 3. 비즈니스 룰 처리 (분석 중인지 확인)
-        boolean isProcessing = report.getStatus() == ResumeAnalysisStatus.PROCESSING;
+        boolean isProcessing = report.getStatus() == AnalysisStatus.PROCESSING;
 
         // 4. JSON 데이터 파싱 (안전한 메서드 사용)
         // 분석 중일 때는 빈 리스트 반환, 완료되면 DB JSON 파싱

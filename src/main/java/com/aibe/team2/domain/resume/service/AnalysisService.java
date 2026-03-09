@@ -3,9 +3,9 @@ package com.aibe.team2.domain.resume.service;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
-import com.aibe.team2.domain.resume.dto.ResumeAnalysisEvent;
+import com.aibe.team2.domain.resume.dto.AnalysisEvent;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.entity.Resume;
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.global.error.ErrorCode;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ResumeAnalysisService {
+public class AnalysisService {
 
     private final ResumeRepository resumeRepository;
     private final ResumeAnalysisRepository resumeAnalysisRepository;
@@ -39,16 +39,15 @@ public class ResumeAnalysisService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
         if (!resume.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.COMMON_403); // 권한 없음 에러
+            throw new BusinessException(ErrorCode.COMMON_403);
         }
 
         // 2. 채용 공고 조회
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.JOB_POSTING_NOT_FOUND));
 
-
         if (!jobPosting.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.COMMON_403); // 내 공고가 아니면 차단!
+            throw new BusinessException(ErrorCode.COMMON_403);
         }
 
         String jobSkillsText = jobPosting.getJobSkills().stream()
@@ -60,15 +59,15 @@ public class ResumeAnalysisService {
             fullJobDescription += "\n\n[요구 기술 스택]\n" + jobSkillsText;
         }
 
-        Optional<ResumeAnalysisReport> existingReport = resumeAnalysisRepository
+        Optional<AnalyzedReport> existingReport = resumeAnalysisRepository
                 .findTopByResumeIdOrderByCreatedAtDesc(resumeId);
 
-        ResumeAnalysisReport report;
+        AnalyzedReport report;
         if (existingReport.isPresent() && existingReport.get().getJobPosting().getId().equals(jobPostingId)) {
             report = existingReport.get();
             report.startAnalysis();
         } else {
-            report = ResumeAnalysisReport.builder()
+            report = AnalyzedReport.builder()
                     .resume(resume)
                     .jobPosting(jobPosting)
                     .build();
@@ -76,11 +75,11 @@ public class ResumeAnalysisService {
         }
 
         // 1. 상태를 PROCESSING으로 DB에 먼저 확정(Save) 합니다.
-        ResumeAnalysisReport savedReport = resumeAnalysisRepository.save(report);
+        AnalyzedReport savedReport = resumeAnalysisRepository.save(report);
 
         // Redis Queue에 직접 넣지 않고, 이벤트를 발행합니다.
         // 이 트랜잭션이 무사히 Commit 된 이후에 리스너가 동작하게 됩니다.
-        eventPublisher.publishEvent(new ResumeAnalysisEvent(
+        eventPublisher.publishEvent(new AnalysisEvent(
                 savedReport.getId(),
                 resume.getContent(),
                 fullJobDescription
@@ -90,7 +89,7 @@ public class ResumeAnalysisService {
     }
 
     @Transactional(readOnly = true)
-    public ResumeAnalysisReport getAnalysisResult(Long resumeId, Long memberId) {
+    public AnalyzedReport getAnalysisResult(Long resumeId, Long memberId) {
 
         // 1. 이력서 조회 및 내 이력서가 맞는지 보안 검증
         Resume resume = resumeRepository.findById(resumeId)

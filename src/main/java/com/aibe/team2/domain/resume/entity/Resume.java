@@ -58,7 +58,7 @@ public class Resume {
         this.isAnalyzed = isAnalyzed;
     }
 
-    // [추가] 자기소개서 수정 로직
+
     public void update(String title, String contentJson) {
         this.title = title;
         this.content = contentJson;

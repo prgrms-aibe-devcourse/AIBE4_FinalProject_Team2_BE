@@ -14,6 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,12 +28,12 @@ public class ResumeService {
 
     // 1. 자기소개서 저장
     @Transactional
-    public ResumeResponse saveResume(ResumeRequest request) {
+    public ResumeResponse saveResume(Long memberId, ResumeRequest request) {
+
         Resume resume = Resume.builder()
-                .memberId(request.memberId())
+                .memberId(memberId)
                 .title(request.title())
                 .content(request.content())
-                .s3FileUrl(null)
                 .build();
 
         Resume savedResume = resumeRepository.save(resume);
@@ -45,16 +48,19 @@ public class ResumeService {
         return ResumeResponse.from(resume);
     }
 
-    // 3. 자기소개서 목록 보기
-    // 로그인 구현시
-//    @GetMapping
-//    public ApiResponse<List<ResumeResponse>> getMyResumes() {
-//        Long currentMemberId = getLoginMemberId();
-//        List<ResumeResponse> responses = resumeService.findMyResumes(currentMemberId);
-//        return ApiResponse.success(responses);
-//    }
 
-    // [추가] 자기소개서 수정 로직
+    public List<ResumeResponse> getMyResumes(Long memberId) {
+        // 1. 유저 ID로 이력서 목록 조회
+        // 하드코딩 개발용
+        // Long memberId = 1L;
+        List<Resume> resumes = resumeRepository.findAllByMemberId(memberId);
+
+        // 2. Entity 리스트를 DTO 리스트로 변환하여 반환
+        return resumes.stream()
+                .map(ResumeResponse::from)
+                .collect(Collectors.toList());
+    }
+
     // 4. 자기소개서 수정
     @Transactional
     public void updateResume(Long resumeId, Long memberId, ResumeUpdateRequest request) {

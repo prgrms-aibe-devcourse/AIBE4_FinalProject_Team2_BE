@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.resume.service;
 
-import com.aibe.team2.domain.resume.entity.ResumeAnalysisReport;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
@@ -44,7 +44,7 @@ public class AnalysisAsyncWorker {
     public void processAiAnalysisAsync(Long reportId, String resumeContent, String jobDescription) {
         log.info("[Async Worker] AI 분석 시작 - Report ID: {}", reportId);
 
-        ResumeAnalysisReport report = resumeAnalysisRepository.findById(reportId)
+        AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
         try {

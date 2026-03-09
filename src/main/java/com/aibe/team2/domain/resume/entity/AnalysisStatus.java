@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.resume.entity;
 
-public enum ResumeAnalysisStatus {
+public enum AnalysisStatus {
     PENDING,      // 대기
     PROCESSING,   // 처리
     DELAYED,      // 지연
