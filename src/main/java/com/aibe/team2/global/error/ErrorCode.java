@@ -30,7 +30,8 @@ public enum ErrorCode {
     AUTH_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_003", "이메일 또는 비밀번호가 일치하지 않습니다."),
     AUTH_ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH_004", "접근 권한이 없습니다."),
     AUTH_SOCIAL_LOGIN_FAILED(HttpStatus.BAD_REQUEST, "AUTH_005", "소셜 로그인에 실패했습니다."),
-
+    AUTH_DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "AUTH_006", "이미 사용중인 닉네임입니다."),
+    AUTH_DUPLICATE_EMAIL(HttpStatus.CONFLICT, "AUTH_007", "이미 사용중인 이메일입니다."),
     // User (회원)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_001", "존재하지 않는 사용자입니다."),
     USER_EMAIL_DUPLICATION(HttpStatus.CONFLICT, "USER_002", "이미 존재하는 이메일입니다."),

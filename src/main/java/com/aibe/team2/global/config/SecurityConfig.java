@@ -3,6 +3,7 @@ package com.aibe.team2.global.config;
 import com.aibe.team2.domain.auth.filter.JwtAuthenticationFilter;
 import com.aibe.team2.domain.auth.service.CustomMemberDetailService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
+import com.aibe.team2.domain.auth.util.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,7 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomMemberDetailService customMemberDetailService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -69,6 +71,11 @@ public class SecurityConfig {
                                 "/api/resumes/**",
                                 "/api/v1/mypage/**",
                                 "/api/v1/notifications/**"
+                                "/resumes.html",
+                                "/api/v1/resumes",
+                                "/api/v1/job-postings",
+                                "/api/v1/resumes/extract"
+
                         ).permitAll()
                         .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
@@ -76,6 +83,9 @@ public class SecurityConfig {
                 // UsernamePasswordAuthenticationFilter 이전에 JWT 필터 실행
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customMemberDetailService),
                         UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler) // 성공 시 실행할 로직
+                )
 
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .httpBasic(basic -> basic.disable())
