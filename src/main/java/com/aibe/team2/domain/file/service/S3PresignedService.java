@@ -214,12 +214,8 @@ public class S3PresignedService {
     }
 
     private void validateFileSize(AttachmentFileType fileType, Long fileSize) {
-        if (fileType == null || fileSize == null || fileSize < 0) {
+        if (fileType == null || fileSize == null || fileSize <= 0) {
             throw new BusinessException(ErrorCode.COMMON_400);
-        }
-
-        if (fileSize == 0) {
-            throw new BusinessException(ErrorCode.FILE_EMPTY);
         }
 
         long limit = switch (fileType) {
