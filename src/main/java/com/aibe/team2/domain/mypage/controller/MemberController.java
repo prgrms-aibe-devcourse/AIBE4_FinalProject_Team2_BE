@@ -27,8 +27,7 @@ public class MemberController {
     // [FR-MYP-05] 프로필 조회
     @GetMapping("/profile")
     public ResponseEntity<MemberResponse> getProfile(
-            @LoginMemberId Long memberId,
-            @AuthenticationPrincipal CustomUserDetails userDetails
+            @LoginMemberId Long memberId
     ){
         MemberResponse response = memberService.getMemberInfo(memberId);
         return ResponseEntity.ok(response);

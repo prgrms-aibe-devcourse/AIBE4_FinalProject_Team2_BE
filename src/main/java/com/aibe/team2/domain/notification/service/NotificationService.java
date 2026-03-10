@@ -78,8 +78,8 @@ public class NotificationService {
                 .message(message)
                 .build();
 
-        notificationRepository.save(notification);
-        sendToClient(memberId, message);
+        Notification savedNotification = notificationRepository.save(notification);
+        sendToClient(memberId, new NotificationResponse(savedNotification));
     }
 
     // 3. 클라이언트 전송 내부 로직
