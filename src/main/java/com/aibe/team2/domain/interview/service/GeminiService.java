@@ -54,8 +54,15 @@ public class GeminiService {
             resumeContext = "\n\n[Candidate's Resume]\n다음은 지원자의 자기소개서 내용입니다. 이를 바탕으로 지원자의 경험을 묻는 꼬리 질문을 생성하세요.\n" + request.getResumeContent();
         }
 
-        String finalPrompt = String.format("%s%s\n\n%s\n\n[Candidate Answer]\n%s",
-                atmospherePrompt, resumeContext, constraints, request.getMessage());
+        // [FR-INT-07] 채용 공고 기반 맞춤형 질문 생성을 위한 컨텍스트 동적 주입
+        String jobContext = "";
+        if (request.getJobDescription() != null && !request.getJobDescription().isBlank()) {
+            jobContext = "\n\n[Job Posting Requirements]\n다음은 지원자가 지원한 채용 공고의 상세 내용(요구 역량 및 주요 업무)입니다. 이를 바탕으로 직무 적합성을 검증하는 질문을 생성하세요.\n" + request.getJobDescription();
+        }
+
+        // 최종 프롬프트 조립 (분위기 + 이력서 + 채용공고 + 제약조건 + 사용자 답변)
+        String finalPrompt = String.format("%s%s%s\n\n%s\n\n[Candidate Answer]\n%s",
+                atmospherePrompt, resumeContext, jobContext, constraints, request.getMessage());
 
         log.info("[Gemini-Streaming] Session: {}, Mode: {}", sessionId, request.getInterviewMode());
 
