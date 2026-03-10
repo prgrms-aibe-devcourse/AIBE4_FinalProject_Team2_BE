@@ -1,10 +1,13 @@
 package com.aibe.team2.domain.statistics.controller;
 
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageResponse;
 import com.aibe.team2.domain.statistics.service.MemberStatisticsService;
+import com.aibe.team2.global.common.annotation.LoginMemberId;
 import com.aibe.team2.global.redis.ratelimit.RateLimit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,13 +27,9 @@ public class MemberStatisticsController {
     @RateLimit
     @GetMapping("/ai-usage")
     public ResponseEntity<MonthlyUsageResponse> getMonthlyAiUsage(
-            // TODO : Spring Security 구현 후 주석 해제 및 임시 memberId 파라미터 삭제 필요
-            // @AuthenticationPrincipal UserDetails userDetails,
+            @LoginMemberId Long memberId,
             @RequestParam(name = "year", required = false) Integer year
     ) {
-        // 임시 아이디 지정 -> 보완이 완성되면 이 줄만 userDetails.getId()로 변경
-        Long memberId = 1L;
-
         int targetYear = (year != null ? year : LocalDate.now().getYear());
         MonthlyUsageResponse response = memberStatisticsService.getMonthlyUsageStatistics(memberId, targetYear);
 

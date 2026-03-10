@@ -1,7 +1,9 @@
 package com.aibe.team2.domain.resume.service;
 
+import com.aibe.team2.domain.notification.event.ResumeAnalysisCompleteEvent;
 import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
+import com.aibe.team2.domain.notification.service.NotificationService;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import com.aibe.team2.global.redis.lock.DistributedLock;
@@ -11,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,9 @@ public class AnalysisAsyncWorker {
     private final ObjectMapper objectMapper;
     private final WebClient.Builder webClientBuilder;
     private final AnalysisStatusManager statusManager;
+    // [추가] 알림 연동
+    private final ApplicationEventPublisher eventPublisher;
+    private final NotificationService notificationService;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -64,15 +70,27 @@ public class AnalysisAsyncWorker {
             );
             log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
 
+            // [추가] 알림 연동
+            Long memberId = report.getResume().getMemberId();
+            eventPublisher.publishEvent(new ResumeAnalysisCompleteEvent(memberId));
+
         } catch (WebClientRequestException | java.util.concurrent.TimeoutException e) {
             // WebClient 타임아웃 및 요청 에러 처리
             log.warn("[Async Worker] AI API 호출 지연/타임아웃 발생 - Report ID: {}", reportId, e);
             statusManager.updateToDelayed(reportId);
 
+            // [추가] 알림 연동
+            Long memberId = report.getResume().getMemberId();
+            notificationService.send(memberId, "AI_ANALYSIS_DELAYED", "AI 서버 응답이 지연되어 분석이 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
+
         } catch (Exception e) {
             // 파싱 에러 등 기타 서버 에러 처리
             log.error("[Async Worker] AI 분석 중 오류 발생 - Report ID: {}", reportId, e);
             statusManager.updateToFailed(reportId);
+
+            // [추가] 알림 연동
+            Long memberId = report.getResume().getMemberId();
+            notificationService.send(memberId, "AI_ANALYSIS_FAILED", "죄송합니다. 이력서 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
         }
     }
 
