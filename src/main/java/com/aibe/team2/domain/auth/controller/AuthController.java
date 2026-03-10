@@ -9,8 +9,12 @@ import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -104,11 +108,34 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            authService.logout(authentication.getName());
-            return ResponseEntity.ok("로그아웃 되었습니다.");
+    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        // 1. Redis에서 RefreshToken 삭제 (보안 핵심)
+        if (authentication != null) {
+            refreshTokenRepository.deleteById(authentication.getName());
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
+
+        // 2. AccessToken 쿠키 만료 설정
+        ResponseCookie deleteAccessCookie = ResponseCookie.from("accessToken", null)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .maxAge(0) // 즉시 만료
+                .build();
+
+        // 3. RefreshToken 쿠키 만료 설정
+        ResponseCookie deleteRefreshCookie = ResponseCookie.from("refreshToken", null)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .maxAge(0) // 즉시 만료
+                .build();
+
+        // 4. 응답 헤더에 담아 전송
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString())
+                .body("로그아웃 성공");
     }
 }
