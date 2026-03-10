@@ -53,6 +53,8 @@ public class AnalysisAsyncWorker {
         AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
+        Long memberId = report.getResume().getMemberId();
+
         try {
             // 1. 객관적 지표: 임베딩 기반 코사인 유사도 계산
             int matchScore = similarityEngine.calculateCosineSimilarityScore(resumeContent, jobDescription);
@@ -71,7 +73,6 @@ public class AnalysisAsyncWorker {
             log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
 
             // [추가] 알림 연동
-            Long memberId = report.getResume().getMemberId();
             eventPublisher.publishEvent(new ResumeAnalysisCompleteEvent(memberId));
 
         } catch (WebClientRequestException | java.util.concurrent.TimeoutException e) {
@@ -80,7 +81,6 @@ public class AnalysisAsyncWorker {
             statusManager.updateToDelayed(reportId);
 
             // [추가] 알림 연동
-            Long memberId = report.getResume().getMemberId();
             notificationService.send(memberId, "AI_ANALYSIS_DELAYED", "AI 서버 응답이 지연되어 분석이 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
 
         } catch (Exception e) {
@@ -89,7 +89,6 @@ public class AnalysisAsyncWorker {
             statusManager.updateToFailed(reportId);
 
             // [추가] 알림 연동
-            Long memberId = report.getResume().getMemberId();
             notificationService.send(memberId, "AI_ANALYSIS_FAILED", "죄송합니다. 이력서 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
         }
     }
