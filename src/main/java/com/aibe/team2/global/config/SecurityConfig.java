@@ -2,6 +2,7 @@ package com.aibe.team2.global.config;
 
 import com.aibe.team2.domain.auth.filter.JwtAuthenticationFilter;
 import com.aibe.team2.domain.auth.service.CustomMemberDetailService;
+import com.aibe.team2.domain.auth.service.CustomOAuth2UserService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import com.aibe.team2.domain.auth.util.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomMemberDetailService customMemberDetailService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -81,7 +83,10 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customMemberDetailService),
                         UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler) // 성공 시 실행할 로직
+                        .authorizationEndpoint(auth -> auth.baseUri("/oauth2/authorization")) // 기본값
+                        .redirectionEndpoint(redirection -> redirection.baseUri("/login/oauth2/code/*"))
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService)) // 유저 정보 처리
+                        .successHandler(oAuth2SuccessHandler) // 로그인 성공 후 JWT 발급 로직
                 )
 
                 .exceptionHandling(exceptions -> exceptions

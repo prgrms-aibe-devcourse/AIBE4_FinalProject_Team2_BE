@@ -6,9 +6,11 @@ import com.aibe.team2.domain.auth.service.AuthService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import com.aibe.team2.domain.auth.util.RefreshToken;
 import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,12 +23,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -59,6 +59,7 @@ public class AuthController {
 
             return ResponseEntity.ok(Map.of("accessToken", accessToken, "refreshToken", refreshToken));
 
+
         } catch (AuthenticationException e) {
             // 상세 에러 확인을 위해 콘솔에 로그를 남기는 것이 좋습니다.
             System.out.println("Login Failed: " + e.getMessage());
@@ -84,7 +85,7 @@ public class AuthController {
                 request.getEmail(),
                 passwordEncoder.encode(request.getPassword()),
                 request.getNickname(),
-                null,
+                Role.MEMBER,
                 request.getProvider()
         );
 
@@ -115,8 +116,8 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(Authentication authentication, HttpServletResponse response) {
         // 1. Redis에서 RefreshToken 삭제 (보안 핵심)
         if (authentication != null) {
             refreshTokenRepository.deleteById(authentication.getName());
@@ -140,10 +141,32 @@ public class AuthController {
                 .maxAge(0) // 즉시 만료
                 .build();
 
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
+
         // 4. 응답 헤더에 담아 전송
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString())
-                .body("로그아웃 성공");
+        return ResponseEntity.ok("로그아웃 성공");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
+        // 1. 요청의 쿠키에서 accessToken 추출
+        String token = Arrays.stream(request.getCookies())
+                .filter(c -> "accessToken".equals(c.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(null);
+
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 2. 토큰이 유효하면 유저 정보와 함께 토큰을 JSON으로 반환 (프론트가 저장할 수 있도록)
+        String email = jwtTokenProvider.getUsername(token);
+        Map<String, String> response = new HashMap<>();
+        response.put("email", email);
+        response.put("accessToken", token);
+
+        return ResponseEntity.ok(response);
     }
 }
