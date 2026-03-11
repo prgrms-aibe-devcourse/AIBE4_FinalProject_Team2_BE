@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -39,6 +41,10 @@ public class JobPosting {
     @Column(name = "job_description", columnDefinition = "TEXT")
     private String jobDescription;
 
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Column(name = "embedding", columnDefinition = "vector(768)")
+    private float[] embedding;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -51,15 +57,15 @@ public class JobPosting {
     private List<JobSkill> jobSkills = new ArrayList<>();
 
     @Builder
-    public JobPosting(Long memberId, String companyName, String jobTitle, String postingUrl, String jobDescription, String requiredSkills) {
+    public JobPosting(Long memberId, String companyName, String jobTitle, String postingUrl, String jobDescription, float[] embedding) {
         this.memberId = memberId;
         this.companyName = (companyName == null || companyName.isEmpty()) ? "Self-Input" : companyName;
         this.jobTitle = jobTitle;
         this.postingUrl = postingUrl;
         this.jobDescription = jobDescription;
+        this.embedding = embedding; // 벡터 데이터 초기화 추가
     }
 
-    // 연관관계 편의 메서드 추가 (공고에 스킬을 추가할 때 사용)
     public void addJobSkill(JobSkill jobSkill) {
         this.jobSkills.add(jobSkill);
     }

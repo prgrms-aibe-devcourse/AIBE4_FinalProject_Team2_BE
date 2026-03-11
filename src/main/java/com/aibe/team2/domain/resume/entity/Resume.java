@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -37,6 +39,10 @@ public class Resume {
     @Column(name = "is_analyzed")
     private Boolean isAnalyzed;
 
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Column(name = "embedding", columnDefinition = "vector(768)")
+    private float[] embedding;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -46,11 +52,12 @@ public class Resume {
     private LocalDateTime updatedAt;
 
     @Builder
-    public Resume(Long memberId, String title, String s3FileUrl, String content) {
+    public Resume(Long memberId, String title, String s3FileUrl, String content, float[] embedding) {
         this.memberId = memberId;
         this.title = title;
         this.s3FileUrl = s3FileUrl;
         this.content = content;
+        this.embedding = embedding; // 벡터 데이터 초기화
         this.isAnalyzed = false;
     }
 
@@ -58,10 +65,11 @@ public class Resume {
         this.isAnalyzed = isAnalyzed;
     }
 
-
-    public void update(String title, String contentJson) {
+    // 수정 시 텍스트가 바뀌므로 벡터(임베딩)도 새롭게 업데이트
+    public void update(String title, String contentJson, float[] embedding) {
         this.title = title;
         this.content = contentJson;
-        this.isAnalyzed = false; // 내용이 수정되었으므로 기존 분석 결과는 무효화
+        this.embedding = embedding;
+        this.isAnalyzed = false;
     }
 }
