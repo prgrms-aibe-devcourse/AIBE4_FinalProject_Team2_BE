@@ -34,7 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // 비밀번호 암호화 빈 등록
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -69,12 +69,9 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/api/v1/mypage/**",
                                 "/api/v1/notifications/**",
-                                "/resumes.html",
-                                "/api/v1/resumes",
-                                "/api/v1/job-postings",
-                                "/resume.html",
+                                "/api/v1/resumes/**",
                                 "/api/v1/job-postings/**",
-                                "/api/v1/resumes/extract"
+                                "/resume.html"
 
                         ).permitAll()
                         .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
