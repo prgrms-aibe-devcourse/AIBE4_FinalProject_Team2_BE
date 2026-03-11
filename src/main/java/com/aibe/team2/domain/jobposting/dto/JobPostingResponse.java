@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record JobPostingResponse(
-        Long id,
+        Long jobPostingId,
         Long memberId,
         String companyName,
         String jobTitle,
