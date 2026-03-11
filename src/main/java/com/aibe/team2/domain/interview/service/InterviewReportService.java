@@ -29,15 +29,14 @@ public class InterviewReportService {
         // 이력서 제목 조회
         String resumeTitle = null;
         if (session.getResumeId() != null) {
-            resumeTitle = resumeRepository.findById(session.getResumeId())
+            resumeTitle = resumeRepository.findByIdAndMemberId(session.getResumeId(), session.getMemberId())
                     .map(Resume::getTitle)
                     .orElse("삭제된 이력서");
         }
-
         // 채용 공고 제목 조회
         String jobTitle = null;
         if (session.getJobPostingId() != null) {
-            jobTitle = jobPostingRepository.findById(session.getJobPostingId())
+            jobTitle = jobPostingRepository.findByIdAndMemberId(session.getJobPostingId(), session.getMemberId())
                     .map(JobPosting::getJobTitle)
                     .orElse("삭제된 공고");
         }

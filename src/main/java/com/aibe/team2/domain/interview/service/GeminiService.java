@@ -60,26 +60,38 @@ public class GeminiService {
             jobContext = "\n\n[Job Posting Requirements]\n다음은 지원자가 지원한 채용 공고의 상세 내용(요구 역량 및 주요 업무)입니다. 이를 바탕으로 직무 적합성을 검증하는 질문을 생성하세요.\n" + request.getJobDescription();
         }
 
-        // 최종 프롬프트 조립 (분위기 + 이력서 + 채용공고 + 제약조건 + 사용자 답변)
-        String finalPrompt = String.format("%s%s%s\n\n%s\n\n[Candidate Answer]\n%s",
-                atmospherePrompt, resumeContext, jobContext, constraints, request.getMessage());
+        // 🚀 보안 리뷰 반영 (Prompt Injection 방어):
+        // 1. AI가 절대적으로 따라야 할 시스템 지시사항 (분위기, 이력서, 공고, 제약조건)
+        String systemPrompt = String.format("%s%s%s\n\n%s",
+                atmospherePrompt, resumeContext, jobContext, constraints);
+
+        // 2. 순수한 사용자 입력값 분리
+        String userMessage = request.getMessage();
 
         log.info("[Gemini-Streaming] Session: {}, Mode: {}", sessionId, request.getInterviewMode());
+
+        // 🚀 JSON Payload 조립 시 systemInstruction 속성을 명시적으로 분리하여 전송
+        Map<String, Object> requestBody = Map.of(
+                "systemInstruction", Map.of(
+                        "parts", List.of(Map.of("text", systemPrompt))
+                ),
+                "contents", List.of(
+                        Map.of("role", "user",
+                                "parts", List.of(Map.of("text", userMessage)))
+                )
+        );
 
         return webClient.post()
                 .uri(URI.create(fullUrl))
                 .header("x-goog-api-key", apiKey)
                 .header("Content-Type", "application/json")
-                .bodyValue(Map.of("contents", List.of(
-                        Map.of("role", "user",
-                                "parts", List.of(Map.of("text", finalPrompt)))
-                )))
+                .bodyValue(requestBody)
                 .retrieve()
                 .bodyToFlux(String.class)
                 .doOnError(e -> log.error("=== 🚨 Gemini API 호출 에러: {} ===", e.getMessage()));
     }
 
-    //보안 리뷰 반영 (Remediation): Path Traversal 방어를 위한 허용 목록(Allow-list) 검증
+    // Path Traversal 방어를 위한 허용 목록(Allow-list) 검증
     private String loadPromptFile(String fileName) {
         final String currentFileName = fileName;
 
@@ -101,7 +113,6 @@ public class GeminiService {
             }
             return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            // 리뷰 반영: 에러 로깅 시 실제 원인(e) 기록
             log.error("❌ 프롬프트 파일 로드 실패 [파일명: {}]: ", targetFileName, e);
             return "면접관으로서 질문을 생성하세요.";
         }
