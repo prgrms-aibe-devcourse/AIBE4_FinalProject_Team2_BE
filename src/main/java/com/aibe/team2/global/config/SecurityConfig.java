@@ -5,6 +5,7 @@ import com.aibe.team2.domain.auth.service.CustomMemberDetailService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import com.aibe.team2.domain.auth.util.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -28,6 +29,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${cors.allowed-origins}")
+    private String allowedOrigins;
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomMemberDetailService customMemberDetailService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
@@ -106,7 +109,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-       configuration.setAllowedOrigins(List.of("http://localhost:5173")); // CORS 설정
+        configuration.setAllowedOrigins(List.of(allowedOrigins)); // CORS 설정
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
