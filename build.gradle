@@ -25,8 +25,9 @@ dependencies {
 
     // Database & JPA
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    runtimeOnly 'com.h2database:h2'
+    runtimeOnly 'org.postgresql:postgresql'
+    testRuntimeOnly 'com.h2database:h2'
+    implementation 'org.hibernate.orm:hibernate-vector:6.4.1.Final'
 
     // Apache Tika 텍스트 추출
     implementation 'org.apache.tika:tika-core:2.9.1'
@@ -82,9 +83,6 @@ dependencies {
     implementation platform("software.amazon.awssdk:bom:2.25.52")
     implementation "software.amazon.awssdk:s3"
     implementation "software.amazon.awssdk:auth"
-
-    // AWS S3 Presigner 의존성
-    implementation 'software.amazon.awssdk:s3:2.20.162'
 
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-sqs:3.1.0'
 }
