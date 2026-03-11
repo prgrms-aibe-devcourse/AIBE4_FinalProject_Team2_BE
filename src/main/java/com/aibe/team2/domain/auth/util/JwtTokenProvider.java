@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
@@ -23,7 +24,7 @@ public class JwtTokenProvider {
     @Value("${jwt.access-token-validity}") private long accessTokenValidity;
     @Value("${jwt.refresh-token-validity}") private long refreshTokenValidity;
 
-    private Key key;
+    private SecretKey key;
 
     @PostConstruct
     public void init() {
@@ -45,25 +46,42 @@ public class JwtTokenProvider {
     // 토큰 생성
     public String createToken(String username, long exp) {
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + exp))
+                .subject(username)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + exp))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // 토큰에서 사용자 아이디 추출
+    // 토큰에서 사용자 아이디(Subject) 추출
     public String getUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser()                    // 1. parserBuilder() 대신 parser() 사용
+                .verifyWith(key)               // 2. setSigningKey() 대신 verifyWith()
+                .build()
+                .parseSignedClaims(token)      // 3. parseClaimsJws() 대신 parseSignedClaims()
+                .getPayload()                  // 4. getBody() 대신 getPayload()
+                .getSubject();
     }
 
     // 토큰 유효성 검사
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);     // 서명이나 만료 시간에 문제가 있으면 예외 발생
             return true;
-        } catch (Exception e) {
-            return false;
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            System.out.println("잘못된 JWT 서명입니다.");
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("만료된 JWT 토큰입니다.");
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
+            System.out.println("지원되지 않는 JWT 토큰입니다.");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            System.out.println("구조가 잘못된 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("JWT 토큰이 비어있거나 잘못되었습니다.");
         }
+        return false;
     }
 }

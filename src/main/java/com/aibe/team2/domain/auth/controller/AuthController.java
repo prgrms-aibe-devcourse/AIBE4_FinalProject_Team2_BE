@@ -44,16 +44,24 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
         try {
-            // 1. 아이디/비번으로 인증 시도
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.get("username"), user.get("password"))
+            // 1. 인증 시도 (Postman에서 보내는 키 "email" 사용)
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(user.get("email"), user.get("password"))
             );
 
-            // 2. 인증 성공 시 토큰 생성
-            String token = jwtTokenProvider.createAccessToken(user.get("username"));
-            return ResponseEntity.ok(Collections.singletonMap("token", token));
+            // 2. 인증 성공 시, 인증 객체에서 실제 유저의 아이디(email)를 가져옴
+            // authentication.getName()은 Principal에 설정된 유저 식별자(보통 email)를 반환합니다.
+            String userEmail = authentication.getName();
+
+            // 3. 토큰 생성
+            String accessToken = jwtTokenProvider.createAccessToken(userEmail);
+            String refreshToken = jwtTokenProvider.createRefreshToken(userEmail);
+
+            return ResponseEntity.ok(Map.of("accessToken", accessToken, "refreshToken", refreshToken));
 
         } catch (AuthenticationException e) {
+            // 상세 에러 확인을 위해 콘솔에 로그를 남기는 것이 좋습니다.
+            System.out.println("Login Failed: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("아이디 또는 비밀번호가 틀렸습니다.");
         }
     }
