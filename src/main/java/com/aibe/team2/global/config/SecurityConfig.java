@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,7 +34,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // 비밀번호 암호화 빈 등록
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -47,7 +46,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(Customizer.withDefaults()) // CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -70,12 +69,9 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/api/v1/mypage/**",
                                 "/api/v1/notifications/**",
-                                "/resumes.html",
-                                "/api/v1/resumes",
-                                "/api/v1/job-postings",
-                                "/resume.html",
+                                "/api/v1/resumes/**",
                                 "/api/v1/job-postings/**",
-                                "/api/v1/resumes/extract"
+                                "/resume.html"
 
                         ).permitAll()
                         .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
@@ -107,9 +103,9 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-//        configuration.setAllowedOrigins(List.of("http://localhost:5173")); // CORS 설정
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+       configuration.setAllowedOrigins(List.of("http://localhost:5173")); // CORS 설정
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
