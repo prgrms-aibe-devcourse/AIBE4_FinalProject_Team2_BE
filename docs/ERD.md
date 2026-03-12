@@ -8,6 +8,7 @@
 | `nickname` | `VARCHAR(50)` | 닉네임 |
 | `role` | `ENUM('MEMBER', 'ADMIN')` | 권한 |
 | `desired_job` | `VARCHAR(100)` | 희망 직무 |
+| `status` | `ENUM('ACTIVE', 'DORMANCY', 'DELETED')` | 유저 상태 |
 | `preferred_location` | `VARCHAR(100)` | 선호 근무 지역 |
 | `subscription_plan` | `ENUM('FREE', 'PRO', 'ENTERPRISE')` | 구독 등급 |
 | `credit_balance` | `INT` | 크레딧 잔액 (자산) |
@@ -19,15 +20,15 @@
 
 ### 2. social_auth (소셜 인증)
 
-| **컬럼명** | **타입** | **설명** |
-| :--- | :--- | :--- |
-| `id` | `BIGINT` | 소셜 인증 ID |
-| `member_id` | `BIGINT` | 회원 ID |
-| `provider_MEMBER_id` | `VARCHAR(255)` | 제공자 측 유저 ID |
-| `provider_type` | `VARCHAR(50)` | 제공자 타입 (Google, Kakao 등) |
-| `created_at` | `DATETIME` | 연동 일시 |
-| `updated_at` | `DATETIME` | 수정 일시 |
-| `deleted_at` | `DATETIME` | 탈퇴 일시 (Soft Delete) |
+| **컬럼명**              | **타입** | **설명** |
+|:---------------------| :--- | :--- |
+| `id`                 | `BIGINT` | 소셜 인증 ID |
+| `member_id`          | `BIGINT` | 회원 ID |
+| `provider_member_id` | `VARCHAR(255)` | 제공자 측 유저 ID |
+| `provider_type`      | `VARCHAR(50)` | 제공자 타입 (Google, Kakao 등) |
+| `created_at`         | `DATETIME` | 연동 일시 |
+| `updated_at`         | `DATETIME` | 수정 일시 |
+| `deleted_at`         | `DATETIME` | 탈퇴 일시 (Soft Delete) |
 
 ### 3. resume (자기소개서)
 
@@ -38,6 +39,7 @@
 | `title` | `VARCHAR(255)` | 자기소개서 제목        |
 | `s3_file_url` | `VARCHAR(500)` | 자기소개서 파일 URL    |
 | `content` | `TEXT` | 자기소개서 텍스트 추출 내용 |
+| `embedding` | `VECTOR(384)` | 임베딩 벡터 데이터 |
 | `is_analyzed` | `BOOLEAN` | 분석 완료 여부        |
 | `created_at` | `DATETIME` | 생성 일시           |
 | `updated_at` | `DATETIME` | 수정 일시           |
@@ -52,6 +54,7 @@
 | `job_title` | `VARCHAR(100)` | 직무명 (공고 제목) |
 | `posting_url` | `TEXT` | 공고 URL |
 | `job_description` | `TEXT` | 직무 상세 내용 (JD) |
+| `embedding` | `VECTOR(384)` | 임베딩 벡터 데이터 |
 | `created_at` | `DATETIME` | 생성 일시 |
 | `updated_at` | `DATETIME` | 수정 일시 |
 
@@ -67,19 +70,21 @@
 
 ### 5. analysis_report (분석 리포트)
 
-| **컬럼명**                | **타입** | **설명**          |
-|:-----------------------| :--- |:----------------|
-| `id`                   | `BIGINT` | 리포트 ID          |
-| `resume_id`            | `BIGINT` | 자기소개서 ID        |
-| `job_posting_id`       | `BIGINT` | 채용 공고 ID        |
-| `match_score`          | `INT` | 매칭 점수           |
-| `keyword_analysis`     | `JSON` | 키워드 분석 데이터      |
-| `sentence_correction`  | `JSON` | 문장 교정 데이터       |
-| `generated_subtitle`   | `JSON` | 생성된 소제목         |
-| `revised_full_content` | `TEXT` | 수정 제안된 자기소개서 내용 |
-| `status`               | `ENUM(...)` | 진행 상태           |
-| `created_at`           | `DATETIME` | 생성 일시           |
-| `updated_at`           | `DATETIME` | 수정 일시           |
+| **컬럼명** | **타입** | **설명** |
+| :--- | :--- | :--- |
+| `id` | `BIGINT` | 리포트 ID |
+| `resume_id` | `BIGINT` | 자기소개서 ID |
+| `job_posting_id` | `BIGINT` | 채용 공고 ID (일반 첨삭 시 NULL) |
+| `analysis_type` | `ENUM('...)` | 분석 유형 (일반 첨삭 / 공고 매칭) |
+| `status` | `ENUM('...')` | 진행 상태 |
+| `overall_feedback` | `TEXT` | 전반적인 자소서 피드백 (공통) |
+| `sentence_corrections` | `JSON` | 문장별 교정 내역 (공통) |
+| `revised_full_content` | `TEXT` | 수정 제안된 자기소개서 전체 내용 (공통) |
+| `match_score` | `INT` | 매칭 점수 (매칭 분석 전용) |
+| `matching_feedback` | `TEXT` | 채용 공고 핏에 대한 평가 (매칭 분석 전용) |
+| `keyword_analysis` | `JSON` | 키워드 분석 데이터 (매칭 분석 전용) |
+| `created_at` | `DATETIME` | 생성 일시 |
+| `updated_at` | `DATETIME` | 수정 일시 |
 
 ### 6. interview_session (면접 세션)
 
@@ -89,9 +94,9 @@
 | `member_id` | `BIGINT` | 회원 ID                |
 | `resume_id` | `BIGINT` | 자기소개서 ID             |
 | `job_posting_id` | `BIGINT` | 채용 공고 ID             |
-| `interview_mode` | `ENUM(...)` | 면접 모드 (일반, 꼬리질문, 압박) |
+| `interview_mode` | `ENUM('NORMAL', 'FOLLOW_UP', 'STRESS')` | 면접 모드 (일반, 꼬리질문, 압박) |
 | `interview_type` | `ENUM('TEXT', 'VOICE')` | 면접 방식 (텍스트, 음성)      |
-| `status` | `ENUM('IN_PROGRESS', 'COMPLETED')` | 진행 상태                |
+| `status` | `ENUM('CREATED', 'IN_PROGRESS', 'DONE', 'ABORTED')` | 진행 상태 |
 | `final_score` | `INT` | 최종 점수                |
 | `created_at` | `DATETIME` | 시작 일시                |
 | `updated_at` | `DATETIME` | 수정 일시                |

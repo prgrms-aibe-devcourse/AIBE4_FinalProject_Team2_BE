@@ -1,45 +1,54 @@
 package com.aibe.team2.domain.resume.dto;
 
-import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.entity.AnalysisStatus;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.aibe.team2.domain.resume.entity.AnalysisType;
+import com.aibe.team2.domain.resume.entity.AnalyzedReport;
+import lombok.Builder;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 
+@Builder
 public record AnalysisResponse(
-        Long id,
+        Long reportId,
         Long resumeId,
-        Long jobPostingId,
-        Integer matchScore,
+        Long jobPostingId,            // 일반 첨삭일 경우 null
+        AnalysisType analysisType,    // NORMAL or FIT_MATCH
+        AnalysisStatus status,        // PENDING, COMPLETED, FAILED 등
 
-        // JSON 형식의 String -> JSON 객체
-        @Schema(description = "AI가 생성한 소제목 (JSON 객체)", example = "{\"title\": \"...\", \"reason\": \"...\"}")
-        Map<String, Object> generatedSubtitle,
-
-        @Schema(description = "키워드 분석 결과 (JSON 객체)")
-        Map<String, Object> keywordAnalysis,
-
-        @Schema(description = "문장 교정 데이터 (JSON 객체)")
-        Map<String, Object> sentenceCorrection,
+        // [공통 영역]
+        String overallFeedback,
+        String sentence_corrections,           // JSON String (문장별 교정 내역)
         String revisedFullContent,
-        AnalysisStatus status,
+
+        // [매칭 전용 영역] (일반 첨삭일 경우 null)
+        Integer matchScore,
+        String matchingFeedback,
+        String keywordAnalysis,       // JSON String (키워드 분석)
+
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
     public static AnalysisResponse from(AnalyzedReport report) {
-        return new AnalysisResponse(
-                report.getId(),
-                report.getResume().getId(),
-                report.getJobPosting().getId(),
-                report.getMatchScore(),
-                report.getGeneratedSubtitle(),
-                report.getKeywordAnalysis(),
-                report.getSentenceCorrection(),
-                report.getRevisedFullContent(),
-                report.getStatus(),
-                report.getCreatedAt(),
-                report.getUpdatedAt()
-        );
+        return AnalysisResponse.builder()
+                .reportId(report.getId())
+                .resumeId(report.getResume().getId())
+                // JobPosting이 있으면 ID를, 없으면 null을 반환
+                .jobPostingId(report.getJobPosting() != null ? report.getJobPosting().getId() : null)
+                .analysisType(report.getAnalysisType())
+                .status(report.getStatus())
+
+                // 공통 영역
+                .overallFeedback(report.getOverallFeedback())
+                .sentence_corrections(report.getSentenceCorrections())
+                .revisedFullContent(report.getRevisedFullContent())
+
+                // 매칭 전용 영역
+                .matchScore(report.getMatchScore())
+                .matchingFeedback(report.getMatchingFeedback())
+                .keywordAnalysis(report.getKeywordAnalysis())
+
+                .createdAt(report.getCreatedAt())
+                .updatedAt(report.getUpdatedAt())
+                .build();
     }
 }

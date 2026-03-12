@@ -40,22 +40,26 @@ springdoc:
 # 외부 API
 gemini:
   api:
-    key: ${GEMINI_API_KEY:}
-    url: ${GEMINI_API_URL:}
+    key: ${GEMINI_API_KEY}
+    url: ${GEMINI_API_URL}
 
 retell:
   api:
-    key: ${RETELL_API_KEY:dummy_key_for_local}
+    key: ${RETELL_API_KEY}
   agent:
-    id: ${RETELL_AGENT_ID:dummy_agent_id_for_local}
+    id: ${RETELL_AGENT_ID}
 
 jwt:
-  secret: ${JWT_SECRET:}
-  access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:3600000}
-  refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY:604800000}
+  secret: ${JWT_SECRET}
+  access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY}
+  refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY}
 
 aws:
   region: ${AWS_REGION:ap-northeast-2}
+
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:test}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
 
   s3:
     bucket: ${AWS_S3_BUCKET:aibe-bucket}
@@ -64,4 +68,11 @@ aws:
 
     max-upload-bytes:
       resume: ${AWS_S3_MAX_UPLOAD_RESUME_BYTES:10485760}   # 10MB
-      audio: ${AWS_S3_MAX_UPLOAD_AUDIO_BYTES:52428800}     # 50MB
+      audio: ${AWS_S3_MAX_UPLOAD_AUDIO_BYTES:52428800}
+
+cors:
+  allowed-origins: http://localhost:5173
+
+app:
+  frontend:
+    oauth-redirect-uri: http://localhost:5173/AIBE4_FinalProject_Team2_FE/oauth/callback

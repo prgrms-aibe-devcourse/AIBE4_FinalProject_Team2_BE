@@ -162,7 +162,7 @@ public class DataInitializer implements CommandLineRunner {
                 .companyName("싱크테크")
                 .jobTitle("주니어 백엔드 엔지니어")
                 .jobDescription("대용량 트래픽 처리를 경험할 백엔드 개발자를 모십니다.")
-                .requiredSkills(jsonSkills)
+                //.jobskills(jsonSkills)
                 .build();
         return jobPostingRepository.save(jobPosting);
     }
@@ -185,13 +185,13 @@ public class DataInitializer implements CommandLineRunner {
         sentenceCorrection.put("corrected", "다양한 실무 프로젝트를 통해 경험을 쌓았습니다.");
 
         report.startAnalysis();
-        report.completeAnalysis(
-                85,
-                generatedSubtitle,
-                keywordAnalysis,
-                sentenceCorrection,
-                "첨삭이 완료된 전체 자기소개서 내용입니다. ..."
-        );
+        //report.completeNormalAnalysis(
+          //      85,
+            //    generatedSubtitle,
+                //keywordAnalysis,
+              //  sentenceCorrection,
+                //"첨삭이 완료된 전체 자기소개서 내용입니다. ..."
+        //);
 
         resumeAnalysisRepository.save(report);
     }

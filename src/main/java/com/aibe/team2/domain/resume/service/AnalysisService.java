@@ -1,40 +1,57 @@
 package com.aibe.team2.domain.resume.service;
 
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
-import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
-import com.aibe.team2.domain.resume.dto.AnalysisEvent;
+import com.aibe.team2.domain.resume.entity.AnalysisType;
 import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.entity.Resume;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
-import com.aibe.team2.global.redis.lock.DistributedLock;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AnalysisService {
 
     private final ResumeRepository resumeRepository;
-    private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final JobPostingRepository jobPostingRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ResumeAnalysisRepository analysisRepository;
+    private final AnalysisAsyncWorker analysisAsyncWorker;
 
-@DistributedLock(key = "'resume-analysis-' + #resumeId", waitTime = 1, leaseTime = 5)
+    // 1. 일반 첨삭 요청 로직
     @Transactional
-    public Long analyzeResume(Long resumeId, Long jobPostingId, Long memberId) {
+    public Long requestNormalAnalysis(Long resumeId, Long memberId) {
+        // 이력서 조회 및 소유권 검증
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
-        // 1. 자기소개서 조회 및 권한 검증
+        if (!resume.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.COMMON_403); // 본인 글만 분석 가능
+        }
+
+        // 일반 첨삭용 리포트 생성 (JobPosting 은 null)
+        AnalyzedReport report = AnalyzedReport.builder()
+                .resume(resume)
+                .analysisType(AnalysisType.NORMAL)
+                .jobPosting(null)
+                .build();
+
+        analysisRepository.save(report);
+
+        // 비동기 AI 분석 워커 호출
+        analysisAsyncWorker.processAiAnalysisAsync(report.getId(), resume.getContent());
+
+        return report.getId();
+    }
+
+    // 2. 채용 공고 매칭 요청 로직
+    @Transactional
+    public Long requestMatchAnalysis(Long resumeId, Long memberId, Long jobPostingId) {
+        // 이력서 조회 및 소유권 검증
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
@@ -42,65 +59,38 @@ public class AnalysisService {
             throw new BusinessException(ErrorCode.COMMON_403);
         }
 
-        // 2. 채용 공고 조회
+        // 채용 공고 조회
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.JOB_POSTING_NOT_FOUND));
 
-        if (!jobPosting.getMemberId().equals(memberId)) {
-            throw new BusinessException(ErrorCode.COMMON_403);
-        }
+        // 매칭 분석용 리포트 생성 (JobPosting 연관관계 맺기)
+        AnalyzedReport report = AnalyzedReport.builder()
+                .resume(resume)
+                .analysisType(AnalysisType.FIT_MATCH)
+                .jobPosting(jobPosting)
+                .build();
 
-        String jobSkillsText = jobPosting.getJobSkills().stream()
-                .map(JobSkill::getSkillName)
-                .collect(Collectors.joining(", "));
+        analysisRepository.save(report);
 
-        String fullJobDescription = jobPosting.getJobDescription();
-        if (!jobSkillsText.isEmpty()) {
-            fullJobDescription += "\n\n[요구 기술 스택]\n" + jobSkillsText;
-        }
+        // 비동기 AI 분석 워커 호출
+        analysisAsyncWorker.processAiAnalysisAsync(report.getId(), resume.getContent());
 
-        Optional<AnalyzedReport> existingReport = resumeAnalysisRepository
-                .findTopByResumeIdOrderByCreatedAtDesc(resumeId);
-
-        AnalyzedReport report;
-        if (existingReport.isPresent() && existingReport.get().getJobPosting().getId().equals(jobPostingId)) {
-            report = existingReport.get();
-            report.startAnalysis();
-        } else {
-            report = AnalyzedReport.builder()
-                    .resume(resume)
-                    .jobPosting(jobPosting)
-                    .build();
-            report.startAnalysis();
-        }
-
-        // 1. 상태를 PROCESSING으로 DB에 먼저 확정(Save) 합니다.
-        AnalyzedReport savedReport = resumeAnalysisRepository.save(report);
-
-        // Redis Queue에 직접 넣지 않고, 이벤트를 발행합니다.
-        // 이 트랜잭션이 무사히 Commit 된 이후에 리스너가 동작하게 됩니다.
-        eventPublisher.publishEvent(new AnalysisEvent(
-                savedReport.getId(),
-                resume.getContent(),
-                fullJobDescription
-        ));
-
-        return savedReport.getId();
+        return report.getId();
     }
-
+    // 3. 첨삭 요청한 자기소개서 조회
     @Transactional(readOnly = true)
-    public AnalyzedReport getAnalysisResult(Long resumeId, Long memberId) {
-
-        // 1. 이력서 조회 및 내 이력서가 맞는지 보안 검증
+    public Long getAnalysisReport(Long resumeId, Long memberId) {
+        // 이력서 조회 및 소유권 검증
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
-
-        if (!resume.getMemberId().equals(memberId)) {
+        if (!resume.getMemberId().equals(memberId))
             throw new BusinessException(ErrorCode.COMMON_403);
-        }
 
-        // 2. 검증 통과 시에만 결과 반환
-        return resumeAnalysisRepository.findTopByResumeIdOrderByCreatedAtDesc(resumeId)
+        // 최신 분석 결과 조회
+        AnalyzedReport report = analysisRepository.findTopByResumeIdOrderByCreatedAtDesc(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ANALYSIS_REPORT_NOT_FOUND));
+
+        return report.getId();
+
     }
 }

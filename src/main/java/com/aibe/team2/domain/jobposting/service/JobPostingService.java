@@ -5,6 +5,7 @@ import com.aibe.team2.domain.jobposting.dto.JobPostingResponse;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
+import com.aibe.team2.domain.resume.service.SimilarityEngine;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -25,78 +26,75 @@ import java.util.stream.Collectors;
 public class JobPostingService {
 
     private final JobPostingRepository jobPostingRepository;
+    private final SimilarityEngine similarityEngine; // 임베딩 API 호출용 추가
 
-    // 공고 등록 (URL 크롤링 기능 포함)
     @Transactional
     public JobPostingResponse createJobPosting(Long memberId, JobPostingRequest request) {
         String finalDescription = request.jobDescription();
         String finalJobTitle = request.jobTitle();
 
-        // 1. URL이 있고, 본문 내용이 비어있다면 크롤링 시도
+        // 1. URL 크롤링
         if (hasUrl(request.postingUrl()) && isEmpty(finalDescription)) {
             log.info("Crawling requested for URL: {}", request.postingUrl());
+
             try {
                 Document doc = Jsoup.connect(request.postingUrl())
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                        .timeout(5000)
-                        .get();
-
-                String crawledText = doc.body().text();
-                finalDescription = crawledText;
-                log.info("Crawling success. Text length: {}", crawledText.length());
-
-                if (isEmpty(finalJobTitle)) {
-                    finalJobTitle = doc.title();
-                }
-
+                        .userAgent("Mozilla/5.0")
+                        .timeout(5000).get();
+                finalDescription = doc.body().text();
+                if (isEmpty(finalJobTitle)) finalJobTitle = doc.title();
             } catch (IOException e) {
                 log.error("Failed to crawl URL: {}", request.postingUrl(), e);
+
             }
         }
 
-        // 2. Entity 생성 (JobPosting)
+        // 2. 공고 내용 텍스트를 벡터(Embedding)로 변환
+        float[] embedding = null;
+        if (!isEmpty(finalDescription)) {
+            try {
+                List<Double> vector = similarityEngine.getEmbeddingVector(finalDescription);
+                embedding = new float[vector.size()];
+                for (int i = 0; i < vector.size(); i++) {
+                    embedding[i] = vector.get(i).floatValue();
+                }
+            } catch (Exception e) {
+                log.warn("채용공고 임베딩 생성 실패", e);
+            }
+        }
+
+        // 3. Entity 생성
         JobPosting jobPosting = JobPosting.builder()
                 .memberId(memberId)
                 .companyName(request.companyName())
                 .jobTitle(finalJobTitle)
                 .postingUrl(request.postingUrl())
                 .jobDescription(finalDescription)
+                .embedding(embedding) // 추출한 벡터값 삽입
                 .build();
 
-        // 3. 스킬 목록(JobSkill) 엔티티 생성
+        // 4. 스킬 목록 생성
         if (request.requiredSkills() != null && !request.requiredSkills().isEmpty()) {
             request.requiredSkills().forEach(skillName -> {
-                JobSkill jobSkill = JobSkill.builder()
-                        .jobPosting(jobPosting) // 연관관계 설정
-                        .skillName(skillName)
-                        .build();
-
-                // 편의 메서드를 통해 양방향 매핑 설정
+                JobSkill jobSkill = JobSkill.builder().jobPosting(jobPosting).skillName(skillName).build();
                 jobPosting.addJobSkill(jobSkill);
             });
         }
 
-        // 4. 저장 (JobPosting 엔티티에 cascade = CascadeType.ALL이 설정되어 있으므로 JobSkill도 함께 DB에 저장됨)
         JobPosting savedPosting = jobPostingRepository.save(jobPosting);
-
         return JobPostingResponse.from(savedPosting);
     }
 
     public JobPostingResponse getJobPosting(Long id) {
-        JobPosting jobPosting = jobPostingRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
+        JobPosting jobPosting = jobPostingRepository.findById(id).orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
         return JobPostingResponse.from(jobPosting);
     }
 
     public List<JobPostingResponse> getMySavedJobPostings(Long memberId) {
-        // 하드코딩중
-        // Long memberId = 1L;
         return jobPostingRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId).stream()
-                .map(JobPostingResponse::from)
-                .collect(Collectors.toList());
+                .map(JobPostingResponse::from).collect(Collectors.toList());
     }
 
-    // Helper Methods
     private boolean hasUrl(String url) {
         return url != null && !url.isBlank() && (url.startsWith("http") || url.startsWith("https"));
     }
