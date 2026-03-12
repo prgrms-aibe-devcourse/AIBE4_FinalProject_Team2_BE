@@ -1,5 +1,7 @@
 package com.aibe.team2.domain.mypage.service;
 
+import com.aibe.team2.domain.interview.enums.InterviewMode;
+import com.aibe.team2.domain.interview.enums.InterviewType;
 import com.aibe.team2.domain.interview.repository.InterviewSessionRepository;
 import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +17,8 @@ public class MypageInterviewService {
 
     private final InterviewSessionRepository interviewSessionRepository;
 
-    public Page<InterviewSessionListResponse> getInterviewSessionList(Long memberId, Pageable pageable) {
+    public Page<InterviewSessionListResponse> getInterviewSessionList(Long memberId, InterviewType type, String keyword, Pageable pageable) {
 
-        return interviewSessionRepository.findInterviewSessionList(memberId, pageable);
+        return interviewSessionRepository.findInterviewSessionList(memberId, type, keyword, pageable);
     }
 }
