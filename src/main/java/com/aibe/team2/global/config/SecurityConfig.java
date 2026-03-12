@@ -5,7 +5,6 @@ import com.aibe.team2.domain.auth.service.CustomMemberDetailService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import com.aibe.team2.domain.auth.util.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -18,20 +17,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-
-import java.util.List;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    @Value("${cors.allowed-origins}")
-    private String allowedOrigins;
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomMemberDetailService customMemberDetailService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -47,7 +43,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 적용
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -62,7 +58,6 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/h2-console/**",
-
                                 "/swagger-ui.html",
                                 "/api-docs/**",
                                 "/api-docs",
@@ -80,13 +75,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // UsernamePasswordAuthenticationFilter 이전에 JWT 필터 실행
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, customMemberDetailService),
-                        UsernamePasswordAuthenticationFilter.class)
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(oAuth2SuccessHandler) // 성공 시 실행할 로직
+                .addFilterBefore(
+                        new JwtAuthenticationFilter(jwtTokenProvider, customMemberDetailService),
+                        UsernamePasswordAuthenticationFilter.class
                 )
-
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(oAuth2SuccessHandler)
+                )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setContentType("application/json;charset=UTF-8");
@@ -94,7 +89,6 @@ public class SecurityConfig {
                             response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"인증이 필요하거나 유효하지 않은 요청입니다.\"}");
                         })
                 )
-
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .httpBasic(basic -> basic.disable())
                 .formLogin(login -> login.disable());

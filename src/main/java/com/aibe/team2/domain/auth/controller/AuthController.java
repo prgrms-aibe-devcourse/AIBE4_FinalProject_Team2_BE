@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.auth.controller;
 
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.auth.dto.LoginRequest;
 import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
@@ -41,30 +42,23 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
         try {
-
             String email = request.getEmail();
             String password = request.getPassword();
 
             // 1. 인증 시도
-            authenticationManager.authenticate(
+            Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
             );
 
-            // 2. 사용자 조회
-            Member member = memberRepository.findByEmail(email)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+            // 2. 인증 객체에서 사용자 정보 꺼내기
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            Member member = userDetails.getMember();
 
             // 3. 토큰 생성
-            String accessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
-            String refreshToken = jwtTokenProvider.createRefreshToken(email, member.getRole().name());
+            String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().name());
+            String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getRole().name());
 
-            // 4. RefreshToken Redis 저장
-            refreshTokenRepository.save(
-                    new RefreshToken(email, refreshToken)
-            );
-
-            // 5. 응답 반환
-
+            // 4. 응답 반환
             return ResponseEntity.ok(
                     new com.aibe.team2.domain.auth.dto.response.LoginResponse(
                             accessToken,
@@ -76,11 +70,9 @@ public class AuthController {
             );
 
         } catch (AuthenticationException e) {
-
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("이메일 또는 비밀번호가 틀렸습니다.");
-
         }
     }
 
@@ -131,10 +123,8 @@ public class AuthController {
         }
 
         // 3. 새로운 Access Token 발급
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
-
-        String newAccessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
+        String role = jwtTokenProvider.getRole(refreshToken);
+        String newAccessToken = jwtTokenProvider.createAccessToken(email, role);
         return ResponseEntity.ok(java.util.Map.of("accessToken", newAccessToken));
     }
 
