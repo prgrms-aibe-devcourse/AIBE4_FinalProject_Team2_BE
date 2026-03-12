@@ -33,7 +33,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
                 .path("/")
                 .httpOnly(false)
-                .secure(false)      // HTTPS 환경에서만 전송
+                .secure(false)      // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")   // CSRF 방어
                 .maxAge(3600)      // 유효 기간 설정 - 1시간
                 .build();
@@ -43,7 +43,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .path("/")
                 .httpOnly(false)
-                .secure(false)      // HTTPS 환경에서만 전송
+                .secure(false)      // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")   // CSRF 방어
                 .maxAge(7 * 24 * 3600)      // 유효 기간 설정 - 일주일
                 .build();

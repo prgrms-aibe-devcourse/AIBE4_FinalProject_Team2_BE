@@ -126,8 +126,8 @@ public class AuthController {
         // 2. AccessToken 쿠키 만료 설정
         ResponseCookie deleteAccessCookie = ResponseCookie.from("accessToken", null)
                 .path("/")
-                .httpOnly(true)
-                .secure(true)
+                .httpOnly(false)
+                .secure(false) // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")
                 .maxAge(0) // 즉시 만료
                 .build();
@@ -135,8 +135,8 @@ public class AuthController {
         // 3. RefreshToken 쿠키 만료 설정
         ResponseCookie deleteRefreshCookie = ResponseCookie.from("refreshToken", null)
                 .path("/")
-                .httpOnly(true)
-                .secure(true)
+                .httpOnly(false)
+                .secure(false) // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")
                 .maxAge(0) // 즉시 만료
                 .build();
