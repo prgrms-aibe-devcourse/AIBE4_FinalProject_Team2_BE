@@ -66,10 +66,10 @@ public class ResumeService {
         try {
             String contentJson = objectMapper.writeValueAsString(request.getItems());
 
-            // ★ 수정된 본문 내용을 바탕으로 새로운 Vector 생성
-            float[] newEmbedding = getEmbeddingForText(contentJson);
+            // 새로운 임베딩 생성
+            float[] newEmbedding = similarityEngine.getEmbeddingAsFloatArray(contentJson);
 
-            resume.update(request.getTitle(), contentJson, newEmbedding); // 엔티티 수정 (더티체킹)
+            resume.update(request.getTitle(), contentJson, newEmbedding); // 엔티티 수정
         } catch (JsonProcessingException e) {
             log.error("자기소개서 항목 JSON 직렬화 실패 - resumeId: {}, error: {}", resumeId, e.getMessage(), e);
             throw new BusinessException(ErrorCode.COMMON_JSON_CONVERSION_ERROR);
@@ -78,17 +78,6 @@ public class ResumeService {
 
     // Helper: 텍스트를 받아서 float 배열(벡터)로 반환
     private float[] getEmbeddingForText(String text) {
-        if (text == null || text.isBlank()) return null;
-        try {
-            List<Double> vector = similarityEngine.getEmbeddingVector(text);
-            float[] embedding = new float[vector.size()];
-            for (int i = 0; i < vector.size(); i++) {
-                embedding[i] = vector.get(i).floatValue();
-            }
-            return embedding;
-        } catch (Exception e) {
-            log.warn("이력서 임베딩 생성 중 실패 (내용이 너무 길거나 API 한도 초과). null로 저장합니다.", e);
-            return null;
-        }
+        return similarityEngine.getEmbeddingAsFloatArray(text);
     }
 }

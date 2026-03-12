@@ -50,18 +50,7 @@ public class JobPostingService {
         }
 
         // 2. 공고 내용 텍스트를 벡터(Embedding)로 변환
-        float[] embedding = null;
-        if (!isEmpty(finalDescription)) {
-            try {
-                List<Double> vector = similarityEngine.getEmbeddingVector(finalDescription);
-                embedding = new float[vector.size()];
-                for (int i = 0; i < vector.size(); i++) {
-                    embedding[i] = vector.get(i).floatValue();
-                }
-            } catch (Exception e) {
-                log.warn("채용공고 임베딩 생성 실패", e);
-            }
-        }
+        float[] embedding = similarityEngine.getEmbeddingAsFloatArray(finalDescription);
 
         // 3. Entity 생성
         JobPosting jobPosting = JobPosting.builder()

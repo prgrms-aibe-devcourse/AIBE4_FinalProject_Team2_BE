@@ -13,11 +13,11 @@ public record AnalysisResponse(
         Long resumeId,
         Long jobPostingId,            // 일반 첨삭일 경우 null
         AnalysisType analysisType,    // NORMAL or FIT_MATCH
-        AnalysisStatus status,        // PENDING, COMPLETED, FAILED 등
+        AnalysisStatus status,
 
         // [공통 영역]
         String overallFeedback,
-        String sentence_corrections,           // JSON String (문장별 교정 내역)
+        String sentenceCorrections,           // JSON String (문장별 교정 내역)
         String revisedFullContent,
 
         // [매칭 전용 영역] (일반 첨삭일 경우 null)
@@ -39,7 +39,7 @@ public record AnalysisResponse(
 
                 // 공통 영역
                 .overallFeedback(report.getOverallFeedback())
-                .sentence_corrections(report.getSentenceCorrections())
+                .sentenceCorrections(report.getSentenceCorrections())
                 .revisedFullContent(report.getRevisedFullContent())
 
                 // 매칭 전용 영역
