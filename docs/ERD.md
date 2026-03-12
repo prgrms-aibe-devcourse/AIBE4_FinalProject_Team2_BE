@@ -94,7 +94,7 @@
 | `member_id` | `BIGINT` | 회원 ID                |
 | `resume_id` | `BIGINT` | 자기소개서 ID             |
 | `job_posting_id` | `BIGINT` | 채용 공고 ID             |
-| `interview_mode` | `ENUM(...)` | 면접 모드 (일반, 꼬리질문, 압박) |
+| `interview_mode` | `ENUM('NORMAL', 'FOLLOW_UP', 'STRESS')` | 면접 모드 (일반, 꼬리질문, 압박) |
 | `interview_type` | `ENUM('TEXT', 'VOICE')` | 면접 방식 (텍스트, 음성)      |
 | `status` | `ENUM('CREATED', 'IN_PROGRESS', 'DONE', 'ABORTED')` | 진행 상태 |
 | `final_score` | `INT` | 최종 점수                |

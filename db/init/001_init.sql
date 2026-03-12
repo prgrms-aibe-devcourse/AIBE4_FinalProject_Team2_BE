@@ -116,7 +116,7 @@ CREATE TABLE interview_session (
                                    resume_id BIGINT NOT NULL,
                                    job_posting_id BIGINT NOT NULL,
                                    interview_mode VARCHAR(20) NOT NULL DEFAULT 'GENERAL'
-                                       CHECK (interview_mode IN ('GENERAL', 'TAIL_BITING', 'PRESSURE')),
+                                       CHECK (interview_mode IN ('NORMAL', 'FOLLOW_UP', 'STRESS')),
                                    interview_type VARCHAR(20) NOT NULL DEFAULT 'TEXT'
                                        CHECK (interview_type IN ('TEXT', 'VOICE')),
                                    status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
