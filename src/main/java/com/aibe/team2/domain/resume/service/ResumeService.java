@@ -78,17 +78,6 @@ public class ResumeService {
 
     // Helper: 텍스트를 받아서 float 배열(벡터)로 반환
     private float[] getEmbeddingForText(String text) {
-        if (text == null || text.isBlank()) return null;
-        try {
-            List<Double> vector = similarityEngine.getEmbeddingVector(text);
-            float[] embedding = new float[vector.size()];
-            for (int i = 0; i < vector.size(); i++) {
-                embedding[i] = vector.get(i).floatValue();
-            }
-            return embedding;
-        } catch (Exception e) {
-            log.warn("이력서 임베딩 생성 중 실패 (내용이 너무 길거나 API 한도 초과). null로 저장합니다.", e);
-            return null;
-        }
+        return similarityEngine.getEmbeddingAsFloatArray(text);
     }
 }

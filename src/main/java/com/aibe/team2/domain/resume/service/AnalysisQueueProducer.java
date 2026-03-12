@@ -28,25 +28,19 @@ public class AnalysisQueueProducer {
     public static class AnalysisMessage {
         private Long reportId;
         private String resumeContent;
-        private String fullJobDescription;
     }
 
-    // 이전 트랜잭션이 완벽하게 Commit(완료)된 직후(AFTER_COMMIT)에만 이 메서드가 실행됩니다
-    // 만약 DB 저장 중 에러가 나서 롤백되면 이 메서드는 아예 실행되지 않으므로 안전합니다.
+    // DB 트랜잭션이 성공적으로 커밋된 직후에만 실행됨 (데이터 유실 완벽 방지)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleResumeAnalysisEvent(AnalysisEvent event) {
-        AnalysisMessage message = new AnalysisMessage(
-                event.reportId(),
-                event.resumeContent(),
-                event.fullJobDescription()
-        );
+        AnalysisMessage message = new AnalysisMessage(event.reportId(), event.resumeContent());
 
         try {
             String jsonMessage = objectMapper.writeValueAsString(message);
             redisTemplate.opsForList().rightPush(QUEUE_KEY, jsonMessage);
-            log.info("[QueueProducer] DB 커밋 확인! 큐 대기열에 분석 요청 안전하게 등록 완료 - Report ID: {}", event.reportId());
+            log.info("📦 [QueueProducer] DB 커밋 확인! Redis 대기열에 등록 완료 - Report ID: {}", event.reportId());
         } catch (JsonProcessingException e) {
-            log.error("[QueueProducer] 메시지 직렬화 실패 - Report ID: {}", event.reportId(), e);
+            log.error("❌ [QueueProducer] 메시지 직렬화 실패 - Report ID: {}", event.reportId(), e);
         }
     }
 }
