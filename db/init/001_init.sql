@@ -1,11 +1,14 @@
 -- db/init/001_init.sql
 -- 목적: Docker PostgreSQL 최초 기동 시 스키마를 확정해서 생성
 
+-- pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- 1) member
 CREATE TABLE member (
                         id BIGSERIAL PRIMARY KEY,
                         email VARCHAR(255) NOT NULL UNIQUE,
-                        password VARCHAR(255),
+                        password_hash VARCHAR(255),
                         nickname VARCHAR(50) NOT NULL,
                         role VARCHAR(20) NOT NULL DEFAULT 'MEMBER'
                             CHECK (role IN ('MEMBER', 'ADMIN')),
@@ -15,7 +18,7 @@ CREATE TABLE member (
                             CHECK (subscription_plan IN ('FREE', 'PRO', 'ENTERPRISE')),
                         credit_balance INT DEFAULT 0,
                         auth_provider VARCHAR(20) NOT NULL DEFAULT 'LOCAL'
-                            CHECK (auth_provider IN ('LOCAL', 'GITHUB', 'GOOGLE', 'KAKAO')),
+                            CHECK (auth_provider IN ('LOCAL', 'GOOGLE', 'KAKAO')),
                         profile_image_url VARCHAR(500),
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -45,6 +48,7 @@ CREATE TABLE resume (
                         title VARCHAR(255) NOT NULL,
                         s3_file_url VARCHAR(500),
                         content TEXT,
+                        embedding VECTOR(384),
                         is_analyzed BOOLEAN DEFAULT FALSE,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -58,8 +62,9 @@ CREATE TABLE job_posting (
                              member_id BIGINT NOT NULL,
                              company_name VARCHAR(100) NOT NULL DEFAULT 'Self-Input',
                              job_title VARCHAR(100) NOT NULL,
-                             job_description TEXT,
                              posting_url TEXT,
+                             job_description TEXT,
+                             embedding VECTOR(384),
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                              CONSTRAINT fk_job_member
@@ -72,6 +77,7 @@ CREATE TABLE job_skill (
                            job_posting_id BIGINT NOT NULL,
                            skill_name VARCHAR(50) NOT NULL,
                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                            CONSTRAINT fk_skill_job
                                FOREIGN KEY (job_posting_id) REFERENCES job_posting(id) ON DELETE CASCADE
 );
@@ -82,14 +88,18 @@ CREATE INDEX idx_skill_name ON job_skill(skill_name);
 CREATE TABLE analysis_report (
                                  id BIGSERIAL PRIMARY KEY,
                                  resume_id BIGINT NOT NULL,
-                                 job_posting_id BIGINT NOT NULL,
-                                 match_score INT,
-                                 keyword_analysis JSONB,
-                                 sentence_correction JSONB,
-                                 generated_subtitle JSONB,
-                                 revised_full_content TEXT,
+                                 job_posting_id BIGINT,
+                                 analysis_type VARCHAR(20) NOT NULL
+                                     CHECK (analysis_type IN ('GENERAL', 'JOB_MATCHING')),
                                  status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
                                      CHECK (status IN ('PENDING', 'PROCESSING', 'DELAYED', 'COMPLETED', 'FAILED')),
+                                 overall_feedback TEXT,
+                                 sentence_corrections JSONB,
+                                 generated_subtitle JSONB,
+                                 revised_full_content TEXT,
+                                 match_score INT,
+                                 matching_feedback TEXT,
+                                 keyword_analysis JSONB,
                                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                  CONSTRAINT fk_report_resume
@@ -106,7 +116,7 @@ CREATE TABLE interview_session (
                                    resume_id BIGINT NOT NULL,
                                    job_posting_id BIGINT NOT NULL,
                                    interview_mode VARCHAR(20) NOT NULL DEFAULT 'GENERAL'
-                                       CHECK (interview_mode IN ('GENERAL', 'TAIL_BITING', 'PRESSURE')),
+                                       CHECK (interview_mode IN ('NORMAL', 'FOLLOW_UP', 'STRESS')),
                                    interview_type VARCHAR(20) NOT NULL DEFAULT 'TEXT'
                                        CHECK (interview_type IN ('TEXT', 'VOICE')),
                                    status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
