@@ -33,10 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            String username = jwtTokenProvider.getUsername(token);
+            String email = jwtTokenProvider.getEmail(token);
 
             // 1. DB에서 사용자 정보를 로드 (권한 정보 포함)
-            UserDetails userDetails = customMemberDetailService.loadUserByUsername(username);
+            UserDetails userDetails = customMemberDetailService.loadUserByUsername(email);
 
             // 2. userDetails.getAuthorities()를 통해 실제 권한을 부여
             Authentication auth = new UsernamePasswordAuthenticationToken(
