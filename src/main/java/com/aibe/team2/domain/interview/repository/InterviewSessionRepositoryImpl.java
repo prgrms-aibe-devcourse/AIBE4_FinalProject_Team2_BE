@@ -7,7 +7,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.StringUtils;
@@ -24,7 +23,7 @@ public class InterviewSessionRepositoryImpl implements InterviewSessionRepositor
     private final JPAQueryFactory  queryFactory;
 
     @Override
-    public Page<InterviewSessionListResponse> findInterviewSessionList(
+    public List<InterviewSessionListResponse> findInterviewSessionList(
             Long memberId,
             InterviewType type,
             String keyword,
@@ -41,24 +40,23 @@ public class InterviewSessionRepositoryImpl implements InterviewSessionRepositor
                         containsKeyword(keyword)
                 );
 
-        // 2. 실제 데이터 조회 쿼리 (기본 쿼리를 복제한 후 select, orderBy, offset, limit 추가)
-        List<InterviewSessionListResponse> content = baseQuery.clone()
+        // 2. 실제 데이터 조회 쿼리 후 곧바로 List 반환
+        return baseQuery.clone()
                 .select(Projections.constructor(InterviewSessionListResponse.class,
                         interviewSession.id,
                         resume.title,
-                        // ... 나머지 필드들 ...
+                        jobPosting.companyName,
+                        jobPosting.jobTitle,
+                        interviewSession.interviewMode,
+                        interviewSession.interviewType,
+                        interviewSession.status,
+                        interviewSession.finalScore,
                         interviewSession.createdAt
                 ))
                 .orderBy(interviewSession.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetch();
-
-        // 3. 전체 개수 조회 쿼리 (기본 쿼리를 복제한 후 count 추가)
-        JPAQuery<Long> countQuery = baseQuery.clone().select(interviewSession.count());
-
-        // 4. 결과 반환
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+                .fetch(); // fetch()는 List를 반환합니다.
     }
 
     // 검색어 포함 여부 확인
