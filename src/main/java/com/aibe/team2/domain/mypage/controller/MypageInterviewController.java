@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/mypage/interviews")
@@ -24,7 +26,7 @@ public class MypageInterviewController {
 
     @RateLimit
     @GetMapping
-    public ResponseEntity<Page<InterviewSessionListResponse>> getInterviewSessionList(
+    public ResponseEntity<List<InterviewSessionListResponse>> getInterviewSessionList(
             @LoginMemberId Long memberId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -32,7 +34,7 @@ public class MypageInterviewController {
             @RequestParam(required = false) String keyword
     ) {
         Pageable pageRequest = PageRequest.of(page, size);
-        Page<InterviewSessionListResponse> response =
+        List<InterviewSessionListResponse> response =
                 mypageInterviewService.getInterviewSessionList(memberId, type, keyword, pageRequest);
 
         return ResponseEntity.ok(response);

@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -17,7 +19,7 @@ public class MypageInterviewService {
 
     private final InterviewSessionRepository interviewSessionRepository;
 
-    public Page<InterviewSessionListResponse> getInterviewSessionList(Long memberId, InterviewType type, String keyword, Pageable pageable) {
+    public List<InterviewSessionListResponse> getInterviewSessionList(Long memberId, InterviewType type, String keyword, Pageable pageable) {
 
         return interviewSessionRepository.findInterviewSessionList(memberId, type, keyword, pageable);
     }
