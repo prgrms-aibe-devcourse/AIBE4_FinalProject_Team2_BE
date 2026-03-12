@@ -38,7 +38,7 @@ public class AnalysisAsyncWorker {
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent}")
+    @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent}")
     private String geminiApiUrl;
 
     @Async("aiAnalysisTaskExecutor")
@@ -68,7 +68,7 @@ public class AnalysisAsyncWorker {
             if (type == AnalysisType.NORMAL) {
                 report.completeNormalAnalysis(
                         parsedResult.path("overallFeedback").asText(""),
-                        parsedResult.path("SentenceCorrections").toString(),
+                        parsedResult.path("sentenceCorrections").toString(),
                         parsedResult.path("revisedFullContent").asText("")
                 );
             } else {
@@ -129,7 +129,7 @@ public class AnalysisAsyncWorker {
                 응답은 반드시 아래 JSON 형식으로 작성하세요.
                 {
                   "overallFeedback": "전체적인 글의 흐름은 좋으나, 성과 수치가 부족합니다.",
-                  "corrections": [
+                  "sentenceCorrections": [
                     { "original": "열심히 했습니다", "corrected": "주도적으로 참여했습니다", "reason": "전문적인 어휘 사용" }
                   ],
                   "revisedFullContent": "전체 교정 완료된 텍스트..."

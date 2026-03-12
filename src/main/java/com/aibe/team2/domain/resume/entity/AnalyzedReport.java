@@ -44,7 +44,7 @@ public class AnalyzedReport {
     @Column(name = "overall_feedback", columnDefinition = "TEXT")
     private String overallFeedback;
 
-    @Column(name = "sentence_Corrections", columnDefinition = "JSON")
+    @Column(name = "sentence_corrections", columnDefinition = "JSON")
     private String sentenceCorrections;
 
     @Column(name = "revised_full_content", columnDefinition = "TEXT")

@@ -54,7 +54,6 @@ public class SimilarityEngine {
                 throw new RuntimeException("임베딩 결과를 파싱할 수 없습니다.");
             }
 
-            // ★ 핵심 변경 포인트: List<Double> 대신 float[] 배열로 변환
             JsonNode valuesNode = responseNode.get("embedding").get("values");
             float[] vector = new float[valuesNode.size()];
 
@@ -66,7 +65,7 @@ public class SimilarityEngine {
 
         } catch (WebClientResponseException e) {
             log.error("[SimilarityEngine] 임베딩 API 호출 실패 - 상태코드: {}, 에러: {}", e.getStatusCode(), e.getResponseBodyAsString());
-            return null; // 에러 시 파이프라인 중단 방지를 위해 null 반환
+            return null;
         } catch (Exception e) {
             log.error("[SimilarityEngine] 임베딩 변환 중 예기치 않은 오류 발생", e);
             return null;
