@@ -19,10 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -104,12 +101,16 @@ public class AuthController {
 
 
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
+    public ResponseEntity<?> reissue(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken
+    ) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token이 없습니다.");
+        }
 
         // 1. Refresh Token 유효성 검사
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            return ResponseEntity.status(401).body("Refresh Token이 만료되었습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token이 만료되었습니다.");
         }
 
         // 2. Redis에서 해당 토큰이 존재하는지 확인
@@ -119,13 +120,14 @@ public class AuthController {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!savedToken.getRefreshToken().equals(refreshToken)) {
-            return ResponseEntity.status(401).body("토큰 정보가 일치하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰 정보가 일치하지 않습니다.");
         }
 
         // 3. 새로운 Access Token 발급
         String role = jwtTokenProvider.getRole(refreshToken);
         String newAccessToken = jwtTokenProvider.createAccessToken(email, role);
-        return ResponseEntity.ok(java.util.Map.of("accessToken", newAccessToken));
+
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
     @PostMapping("/logout")
