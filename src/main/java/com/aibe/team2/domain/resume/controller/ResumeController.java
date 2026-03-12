@@ -26,6 +26,8 @@ public class ResumeController {
     @PostMapping
     public ApiResponse<ResumeResponse> createResume(@RequestBody @Valid ResumeRequest request) {
         log.info("Resume save requested. title: {}", request.title());
+        // 성공 시
+        log.info("Resume save success. title: {}", request.title());
         // 하드코딩중 로그인 연동 후 수정
         Long currentMemberId = 1L;
         ResumeResponse response = resumeService.saveResume(currentMemberId, request);

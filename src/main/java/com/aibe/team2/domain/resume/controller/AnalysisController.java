@@ -1,46 +1,43 @@
 package com.aibe.team2.domain.resume.controller;
 
-import com.aibe.team2.domain.resume.dto.AnalysisResponse;
-import com.aibe.team2.domain.resume.entity.AnalyzedReport;
+import com.aibe.team2.domain.resume.dto.AnalysisMatchRequest;
 import com.aibe.team2.domain.resume.service.AnalysisService;
 import com.aibe.team2.global.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@Slf4j
 @RestController
 @RequestMapping("/api/v1/resumes")
 @RequiredArgsConstructor
 public class AnalysisController {
 
-    private final AnalysisService resumeAnalysisService;
+    private final AnalysisService analysisService;
 
-    // TODO: 나중에 Spring Security 로그인 연동되면 지우고 @AuthenticationPrincipal 쓸 임시 메서드
-    private Long getLoginMemberId() {
-        return 1L;
+    // 1. 일반 자기소개서 첨삭 요청
+    @PostMapping("/{resumeId}/analyze/normal")
+    public ResponseEntity<ApiResponse<Long>> analyzeNormalResume(@PathVariable Long resumeId) {
+        Long memberId = 1L; // 임시 하드코딩 (테스트용)
+        Long reportId = analysisService.requestNormalAnalysis(resumeId, memberId);
+        return ResponseEntity.ok(ApiResponse.success(reportId));
     }
 
-    @PostMapping("/{resumeId}/analysis")
-    public ApiResponse<Long> analyzeResume(
+    // 2. 채용 공고 기반 매칭 및 첨삭 요청
+    @PostMapping("/{resumeId}/analyze/match")
+    public ResponseEntity<ApiResponse<Long>> analyzeMatchResume(
             @PathVariable Long resumeId,
-            @RequestParam Long jobPostingId
-    ) {
-        Long memberId = getLoginMemberId();
-        log.info("유저 ID: {}, 자기소개서 ID: {}, 채용공고 ID: {} 에 대한 분석 요청", memberId, resumeId, jobPostingId);
-        Long reportId = resumeAnalysisService.analyzeResume(memberId, resumeId, jobPostingId);
-        return ApiResponse.success(reportId);
+            @RequestBody AnalysisMatchRequest request) {
+        Long memberId = 1L; // 임시 하드코딩 (테스트용)
+        Long reportId = analysisService.requestMatchAnalysis(resumeId, memberId, request.jobPostingId());
+        return ResponseEntity.ok(ApiResponse.success(reportId));
     }
 
+    // 3. 요청 한 자기소개서 조회
     @GetMapping("/{resumeId}/analysis")
-    public ApiResponse<AnalysisResponse> getAnalysisResult(@PathVariable Long resumeId, Long reportId) {
-        log.info("자기소개서 ID: {} 에 대한 분석 결과 조회 요청", resumeId);
-        // 조회 성공 시 로그 출력
-        log.info("자기소개서 ID: {} 에 대한 분석 결과 조회 성공 - 결과 리포트 ID: {}", resumeId, reportId);
-        // 하드코딩
-        Long memberId = 1L;
-        // Long memberId = getLoginMemberId();
-        AnalyzedReport report = resumeAnalysisService.getAnalysisResult(resumeId, memberId);
-        return ApiResponse.success(AnalysisResponse.from(report));
+    public ResponseEntity<ApiResponse<Long>> getAnalysisReport(@PathVariable Long resumeId) {
+        Long memberId = 1L; // 임시 하드코딩 (테스트용)
+        Long reportId = analysisService.getAnalysisReport(resumeId, memberId);
+        return ResponseEntity.ok(ApiResponse.success(reportId));
     }
+
 }
