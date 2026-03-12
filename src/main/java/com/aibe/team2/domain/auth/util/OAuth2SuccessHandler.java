@@ -1,11 +1,16 @@
 package com.aibe.team2.domain.auth.util;
 
+import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.entity.enums.Provider;
+import com.aibe.team2.domain.mypage.entity.enums.Role;
+import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -16,17 +21,20 @@ import java.io.IOException;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final MemberRepository memberRepository;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-
+        // 0 - 1. 서비스(LoadUser)에서 반환한 인증 객체 꺼내기
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String email = userDetails.getUsername(); // 또는 설정하신 이메일 필드 getter
+
+        // 0 - 2. 이제 안전하게 데이터 추출 (null 걱정 없음!)
+        String email = userDetails.getName();
 
         // 우리 서버의 JWT 발급
-        String accessToken = jwtTokenProvider.createAccessToken(email);
-        String refreshToken = jwtTokenProvider.createRefreshToken(email);
+        String accessToken = jwtTokenProvider.createAccessToken(email, Role.MEMBER.name());
+        String refreshToken = jwtTokenProvider.createRefreshToken(email, Role.MEMBER.name());
 
 
         // 1 - 1. access token 쿠키 생성

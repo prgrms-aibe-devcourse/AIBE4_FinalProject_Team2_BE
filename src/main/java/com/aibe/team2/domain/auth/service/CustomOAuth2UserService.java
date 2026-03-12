@@ -47,9 +47,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             name = (String) attributes.get("name");
         }
         else if ("GITHUB".equals(providerType)) {
-            email = (String) attributes.get("email");
-            // 깃허브는 name이 null일 수 있으므로 login(ID)을 대안으로 사용
-            name = (attributes.get("name") != null) ? (String) attributes.get("name") : (String) attributes.get("login");
+            email = attributes.get("email") != null ? String.valueOf(attributes.get("email")) : null;
+            name = attributes.get("name") != null ? String.valueOf(attributes.get("name")) : String.valueOf(attributes.get("login"));
         }
         else if ("KAKAO".equals(providerType)) {
             // 카카오는 kakao_account -> profile -> nickname 구조입니다.

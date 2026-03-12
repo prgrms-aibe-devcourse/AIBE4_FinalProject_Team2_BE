@@ -1,5 +1,7 @@
 package com.aibe.team2.domain.auth.controller;
 
+import com.aibe.team2.domain.auth.dto.LoginRequest;
+import com.aibe.team2.domain.auth.dto.LoginResponse;
 import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
 import com.aibe.team2.domain.auth.service.AuthService;
@@ -42,28 +44,49 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+
         try {
-            // 1. 인증 시도 (Postman에서 보내는 키 "email" 사용)
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.get("email"), user.get("password"))
+
+            String email = request.getEmail();
+            String password = request.getPassword();
+
+            // 1. 인증 시도
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, password)
             );
 
-            // 2. 인증 성공 시, 인증 객체에서 실제 유저의 아이디(email)를 가져옴
-            // authentication.getName()은 Principal에 설정된 유저 식별자(보통 email)를 반환합니다.
-            String userEmail = authentication.getName();
+            // 2. 사용자 조회
+            Member member = memberRepository.findByEmail(email)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
             // 3. 토큰 생성
-            String accessToken = jwtTokenProvider.createAccessToken(userEmail);
-            String refreshToken = jwtTokenProvider.createRefreshToken(userEmail);
+            String accessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
+            String refreshToken = jwtTokenProvider.createRefreshToken(email, member.getRole().name());
 
-            return ResponseEntity.ok(Map.of("accessToken", accessToken, "refreshToken", refreshToken));
+            // 4. RefreshToken Redis 저장
+            refreshTokenRepository.save(
+                    new RefreshToken(email, refreshToken)
+            );
 
+            // 5. 응답 반환
+
+            return ResponseEntity.ok(
+                    new LoginResponse(
+                            accessToken,
+                            refreshToken,
+                            member.getRole().name(),
+                            member.getEmail(),
+                            member.getNickname()
+                    )
+            );
 
         } catch (AuthenticationException e) {
-            // 상세 에러 확인을 위해 콘솔에 로그를 남기는 것이 좋습니다.
-            System.out.println("Login Failed: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("아이디 또는 비밀번호가 틀렸습니다.");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("이메일 또는 비밀번호가 틀렸습니다.");
+
         }
     }
 
@@ -103,8 +126,9 @@ public class AuthController {
         }
 
         // 2. Redis에서 해당 토큰이 존재하는지 확인
-        String username = jwtTokenProvider.getUsername(refreshToken);
-        RefreshToken savedToken = refreshTokenRepository.findById(username)
+        String email = jwtTokenProvider.getEmail(refreshToken);
+
+        RefreshToken savedToken = refreshTokenRepository.findById(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!savedToken.getRefreshToken().equals(refreshToken)) {
@@ -112,8 +136,11 @@ public class AuthController {
         }
 
         // 3. 새로운 Access Token 발급
-        String newAccessToken = jwtTokenProvider.createAccessToken(username);
-        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
+        return ResponseEntity.ok(java.util.Map.of("accessToken", newAccessToken));
     }
 
     @GetMapping("/logout")
@@ -162,7 +189,7 @@ public class AuthController {
         }
 
         // 2. 토큰이 유효하면 유저 정보와 함께 토큰을 JSON으로 반환 (프론트가 저장할 수 있도록)
-        String email = jwtTokenProvider.getUsername(token);
+        String email = jwtTokenProvider.getEmail(token);
         Map<String, String> response = new HashMap<>();
         response.put("email", email);
         response.put("accessToken", token);

@@ -1,6 +1,7 @@
 package com.aibe.team2.domain.auth.util;
 
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -30,35 +31,42 @@ public class JwtTokenProvider {
     }
 
     // Access Token 생성
-    public String createAccessToken(String username) {
-        return createToken(username, accessTokenValidity);
+    public String createAccessToken(String email, String role) {
+        return createToken(email, role, accessTokenValidity);
     }
 
     // Refresh Token 생성 및 Redis 저장
-    public String createRefreshToken(String username) {
-        String token = createToken(username, refreshTokenValidity);
-        refreshTokenRepository.save(new RefreshToken(username, token));
+    public String createRefreshToken(String email, String role) {
+        String token = createToken(email, role, refreshTokenValidity);
+        refreshTokenRepository.save(new RefreshToken(email, token));
         return token;
     }
 
     // 토큰 생성
-    public String createToken(String username, long exp) {
+    public String createToken(String email, String role, long exp) {
         return Jwts.builder()
-                .subject(username)
+                .subject(email)
+                .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + exp))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // 토큰에서 사용자 아이디(Subject) 추출
-    public String getUsername(String token) {
-        return Jwts.parser()                    // 1. parserBuilder() 대신 parser() 사용
-                .verifyWith(key)               // 2. setSigningKey() 대신 verifyWith()
+    public String getEmail(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    public String getRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseSignedClaims(token)      // 3. parseClaimsJws() 대신 parseSignedClaims()
-                .getPayload()                  // 4. getBody() 대신 getPayload()
-                .getSubject();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     // 토큰 유효성 검사
