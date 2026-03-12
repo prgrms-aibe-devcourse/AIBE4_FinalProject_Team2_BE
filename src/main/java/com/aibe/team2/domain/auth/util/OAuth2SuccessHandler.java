@@ -7,11 +7,13 @@ import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 
@@ -21,6 +23,15 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
+
+    @Value("${app.frontend.oauth-redirect-uri}")
+    private String redirectUri;
+
+    @Value("${jwt.access-token-validity:3600000}")
+    private long accessTokenValidity;
+
+    @Value("${jwt.refresh-token-validity:604800000}")
+    private long refreshTokenValidity;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -48,13 +59,25 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtTokenProvider.createAccessToken(email, role);
         String refreshToken = jwtTokenProvider.createRefreshToken(email, role);
 
-        String targetUrl = UriComponentsBuilder
-                .fromUriString("http://localhost:5173/AIBE4_FinalProject_Team2_FE/oauth/callback")
-                .queryParam("accessToken", accessToken)
-                .queryParam("refreshToken", refreshToken)
-                .build()
-                .toUriString();
+        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .maxAge(accessTokenValidity / 1000)
+                .build();
 
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .path("/")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .maxAge(refreshTokenValidity / 1000)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
+        getRedirectStrategy().sendRedirect(request, response, redirectUri);
     }
 }

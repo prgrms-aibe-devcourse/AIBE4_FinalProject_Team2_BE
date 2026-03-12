@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.auth.controller;
 
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.auth.dto.LoginRequest;
 import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
@@ -18,10 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -41,30 +39,23 @@ public class AuthController {
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
         try {
-
             String email = request.getEmail();
             String password = request.getPassword();
 
             // 1. 인증 시도
-            authenticationManager.authenticate(
+            Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
             );
 
-            // 2. 사용자 조회
-            Member member = memberRepository.findByEmail(email)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+            // 2. 인증 객체에서 사용자 정보 꺼내기
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            Member member = userDetails.getMember();
 
             // 3. 토큰 생성
-            String accessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
-            String refreshToken = jwtTokenProvider.createRefreshToken(email, member.getRole().name());
+            String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().name());
+            String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getRole().name());
 
-            // 4. RefreshToken Redis 저장
-            refreshTokenRepository.save(
-                    new RefreshToken(email, refreshToken)
-            );
-
-            // 5. 응답 반환
-
+            // 4. 응답 반환
             return ResponseEntity.ok(
                     new com.aibe.team2.domain.auth.dto.response.LoginResponse(
                             accessToken,
@@ -76,11 +67,9 @@ public class AuthController {
             );
 
         } catch (AuthenticationException e) {
-
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body("이메일 또는 비밀번호가 틀렸습니다.");
-
         }
     }
 
@@ -112,12 +101,16 @@ public class AuthController {
 
 
     @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
+    public ResponseEntity<?> reissue(
+            @CookieValue(value = "refreshToken", required = false) String refreshToken
+    ) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token이 없습니다.");
+        }
 
         // 1. Refresh Token 유효성 검사
         if (!jwtTokenProvider.validateToken(refreshToken)) {
-            return ResponseEntity.status(401).body("Refresh Token이 만료되었습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Refresh Token이 만료되었습니다.");
         }
 
         // 2. Redis에서 해당 토큰이 존재하는지 확인
@@ -127,15 +120,14 @@ public class AuthController {
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!savedToken.getRefreshToken().equals(refreshToken)) {
-            return ResponseEntity.status(401).body("토큰 정보가 일치하지 않습니다.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰 정보가 일치하지 않습니다.");
         }
 
         // 3. 새로운 Access Token 발급
-        Member member = memberRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        String role = jwtTokenProvider.getRole(refreshToken);
+        String newAccessToken = jwtTokenProvider.createAccessToken(email, role);
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
-        return ResponseEntity.ok(java.util.Map.of("accessToken", newAccessToken));
+        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
     @PostMapping("/logout")
