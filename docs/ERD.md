@@ -20,15 +20,15 @@
 
 ### 2. social_auth (소셜 인증)
 
-| **컬럼명** | **타입** | **설명** |
-| :--- | :--- | :--- |
-| `id` | `BIGINT` | 소셜 인증 ID |
-| `member_id` | `BIGINT` | 회원 ID |
-| `provider_MEMBER_id` | `VARCHAR(255)` | 제공자 측 유저 ID |
-| `provider_type` | `VARCHAR(50)` | 제공자 타입 (Google, Kakao 등) |
-| `created_at` | `DATETIME` | 연동 일시 |
-| `updated_at` | `DATETIME` | 수정 일시 |
-| `deleted_at` | `DATETIME` | 탈퇴 일시 (Soft Delete) |
+| **컬럼명**              | **타입** | **설명** |
+|:---------------------| :--- | :--- |
+| `id`                 | `BIGINT` | 소셜 인증 ID |
+| `member_id`          | `BIGINT` | 회원 ID |
+| `provider_member_id` | `VARCHAR(255)` | 제공자 측 유저 ID |
+| `provider_type`      | `VARCHAR(50)` | 제공자 타입 (Google, Kakao 등) |
+| `created_at`         | `DATETIME` | 연동 일시 |
+| `updated_at`         | `DATETIME` | 수정 일시 |
+| `deleted_at`         | `DATETIME` | 탈퇴 일시 (Soft Delete) |
 
 ### 3. resume (자기소개서)
 
@@ -94,9 +94,9 @@
 | `member_id` | `BIGINT` | 회원 ID                |
 | `resume_id` | `BIGINT` | 자기소개서 ID             |
 | `job_posting_id` | `BIGINT` | 채용 공고 ID             |
-| `interview_mode` | `ENUM(...)` | 면접 모드 (일반, 꼬리질문, 압박) |
+| `interview_mode` | `ENUM('NORMAL', 'FOLLOW_UP', 'STRESS')` | 면접 모드 (일반, 꼬리질문, 압박) |
 | `interview_type` | `ENUM('TEXT', 'VOICE')` | 면접 방식 (텍스트, 음성)      |
-| `status` | `ENUM('IN_PROGRESS', 'COMPLETED')` | 진행 상태                |
+| `status` | `ENUM('CREATED', 'IN_PROGRESS', 'DONE', 'ABORTED')` | 진행 상태 |
 | `final_score` | `INT` | 최종 점수                |
 | `created_at` | `DATETIME` | 시작 일시                |
 | `updated_at` | `DATETIME` | 수정 일시                |
