@@ -4,6 +4,7 @@ import com.aibe.team2.domain.interview.entity.InterviewSession;
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
+import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.entity.enums.Provider;
@@ -158,12 +159,20 @@ public class DataInitializer implements CommandLineRunner {
         String jsonSkills = "[\"Java\", \"Spring Boot\", \"JPA\", \"MySQL\"]";
 
         JobPosting jobPosting = JobPosting.builder()
-                .memberId(member.getMemberId())
-                .companyName("싱크테크")
-                .jobTitle("주니어 백엔드 엔지니어")
-                .jobDescription("대용량 트래픽 처리를 경험할 백엔드 개발자를 모십니다.")
-                //.jobskills(jsonSkills)
+                .memberId(1L)
+                .companyName("테스트 기업")
+                .jobTitle("백엔드 개발자")
+                .jobDescription("내용...")
+                // embedding 필드가 필요하다면 null 이나 임의의 float[] 배열 삽입
                 .build();
+
+        JobSkill skill1 = JobSkill.builder().jobPosting(jobPosting).skillName("Java").build();
+        JobSkill skill2 = JobSkill.builder().jobPosting(jobPosting).skillName("Spring Boot").build();
+
+        jobPosting.addJobSkill(skill1);
+        jobPosting.addJobSkill(skill2);
+
+
         return jobPostingRepository.save(jobPosting);
     }
 

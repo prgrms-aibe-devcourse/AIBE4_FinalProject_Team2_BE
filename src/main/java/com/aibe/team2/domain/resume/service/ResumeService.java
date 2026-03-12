@@ -66,10 +66,10 @@ public class ResumeService {
         try {
             String contentJson = objectMapper.writeValueAsString(request.getItems());
 
-            // ★ 수정된 본문 내용을 바탕으로 새로운 Vector 생성
-            float[] newEmbedding = getEmbeddingForText(contentJson);
+            // 새로운 임베딩 생성
+            float[] newEmbedding = similarityEngine.getEmbeddingAsFloatArray(contentJson);
 
-            resume.update(request.getTitle(), contentJson, newEmbedding); // 엔티티 수정 (더티체킹)
+            resume.update(request.getTitle(), contentJson, newEmbedding); // 엔티티 수정
         } catch (JsonProcessingException e) {
             log.error("자기소개서 항목 JSON 직렬화 실패 - resumeId: {}, error: {}", resumeId, e.getMessage(), e);
             throw new BusinessException(ErrorCode.COMMON_JSON_CONVERSION_ERROR);
