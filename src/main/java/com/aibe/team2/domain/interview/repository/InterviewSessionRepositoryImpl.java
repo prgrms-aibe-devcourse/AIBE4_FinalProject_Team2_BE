@@ -1,13 +1,15 @@
 package com.aibe.team2.domain.interview.repository;
 
+import com.aibe.team2.domain.interview.enums.InterviewType;
 import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -21,10 +23,25 @@ public class InterviewSessionRepositoryImpl implements InterviewSessionRepositor
     private final JPAQueryFactory  queryFactory;
 
     @Override
-    public Page<InterviewSessionListResponse> findInterviewSessionList(Long memberId, Pageable pageable) {
+    public List<InterviewSessionListResponse> findInterviewSessionList(
+            Long memberId,
+            InterviewType type,
+            String keyword,
+            Pageable pageable
+    ) {
+        // 1. 공통 조건(from, join, where)을 포함하는 기본 쿼리 생성
+        JPAQuery<?> baseQuery = queryFactory
+                .from(interviewSession)
+                .leftJoin(resume).on(interviewSession.resumeId.eq(resume.id))
+                .leftJoin(jobPosting).on(interviewSession.jobPostingId.eq(jobPosting.id))
+                .where(
+                        interviewSession.memberId.eq(memberId),
+                        eqType(type),
+                        containsKeyword(keyword)
+                );
 
-        // 1. 실제 데이터 조회 쿼리
-        List<InterviewSessionListResponse> content = queryFactory
+        // 2. 실제 데이터 조회 쿼리 후 곧바로 List 반환
+        return baseQuery.clone()
                 .select(Projections.constructor(InterviewSessionListResponse.class,
                         interviewSession.id,
                         resume.title,
@@ -36,23 +53,30 @@ public class InterviewSessionRepositoryImpl implements InterviewSessionRepositor
                         interviewSession.finalScore,
                         interviewSession.createdAt
                 ))
-                .from(interviewSession)
-                // [핵심] 엔티티에 연관관계가 없으므로 ON 절로 ID 값을 직접 매칭
-                .leftJoin(resume).on(interviewSession.resumeId.eq(resume.id))
-                .leftJoin(jobPosting).on(interviewSession.jobPostingId.eq(jobPosting.id))
-                .where(interviewSession.memberId.eq(memberId))
-                .orderBy(interviewSession.createdAt.desc()) // 최신순 정렬
-                .offset(pageable.getOffset())               // 페이징 시작점
-                .limit(pageable.getPageSize())              // 페이지 크기
-                .fetch();
+                .orderBy(interviewSession.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch(); // fetch()는 List를 반환합니다.
+    }
 
-        // 2. 전체 개수 조회 쿼리
-        JPAQuery<Long> countQuery = queryFactory
-                .select(interviewSession.count())
-                .from(interviewSession)
-                .where(interviewSession.memberId.eq(memberId));
+    // 검색어 포함 여부 확인
+    private BooleanExpression containsKeyword(String keyword) {
+        if (!StringUtils.hasText(keyword)) {
+            return null; // 검색어가 없으면 조건을 무시
+        }
+        // 예시: 회사명 또는 자기소개서 제목에 검색어가 포함되어 있는지 검사
+        return jobPosting.companyName.contains(keyword)
+                .or(resume.title.contains(keyword));
+    }
 
-        // 3. 데이터와 카운트 쿼리를 조합하여 Page 객체로 반환
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    private BooleanExpression eqType(InterviewType type) {
+        if (type == null) {
+            return null; // 프론트에서 값이 안 오면(전체 조회 시) 조건을 무시
+        }
+
+        // 1. 현재 엔티티의 필드가 String 타입이므로, Enum 객체를 String으로 변환(type.name())하여 비교합니다.
+        // 2. 나중을 위해 기술 부채(Technical Debt)를 기록해 둡니다.
+        // TODO: 향후 InterviewSession 엔티티의 interviewType 필드를 Enum으로 변경 후 eq(type)으로 리팩토링 필요
+        return interviewSession.interviewType.eq(type.name());
     }
 }
