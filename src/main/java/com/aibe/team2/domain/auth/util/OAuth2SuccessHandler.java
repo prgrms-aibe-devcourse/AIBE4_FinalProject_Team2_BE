@@ -1,10 +1,12 @@
 package com.aibe.team2.domain.auth.util;
 
+import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.entity.enums.Provider;
+import com.aibe.team2.domain.mypage.entity.enums.Role;
+import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -18,33 +20,41 @@ import java.io.IOException;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final MemberRepository memberRepository;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
                                         Authentication authentication) throws IOException {
+
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // Google의 경우 "email" 필드에 이메일이 들어있습니다.
         String email = oAuth2User.getAttribute("email");
+        String nickname = oAuth2User.getAttribute("name");
 
-        // 우리 서버의 JWT 발급
-        String token = jwtTokenProvider.createAccessToken(email);
+        Member member = memberRepository.findByEmail(email)
+                .orElseGet(() -> memberRepository.save(
+                        new Member(
+                                email,
+                                null,
+                                (nickname != null && !nickname.isBlank()) ? nickname : email.split("@")[0],
+                                Role.MEMBER,
+                                Provider.GOOGLE
+                        )
+                ));
 
+        String role = member.getRole().name();
 
-        // 1. 쿠키 생성
-        ResponseCookie cookie = ResponseCookie.from("accessToken", token)
-                .path("/")
-                .httpOnly(true)    // JavaScript에서 접근 불가 (XSS 방어)
-                .secure(true)      // HTTPS 환경에서만 전송
-                .sameSite("Lax")   // CSRF 방어
-                .maxAge(3600)      // 유효 기간 설정
-                .build();
+        String accessToken = jwtTokenProvider.createAccessToken(email, role);
+        String refreshToken = jwtTokenProvider.createRefreshToken(email, role);
 
-        // 2. 응답 헤더에 쿠키 추가
-        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        String targetUrl = UriComponentsBuilder
+                .fromUriString("http://localhost:5173/AIBE4_FinalProject_Team2_FE/oauth/callback")
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .build()
+                .toUriString();
 
-        // 3. 리다이렉트 (토큰 제외)
-        String targetUrl = "http://localhost:5173/oauth/callback";
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

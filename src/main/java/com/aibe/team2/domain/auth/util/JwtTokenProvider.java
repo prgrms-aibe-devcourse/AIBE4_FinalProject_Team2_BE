@@ -1,6 +1,7 @@
 package com.aibe.team2.domain.auth.util;
 
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -9,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -31,30 +31,42 @@ public class JwtTokenProvider {
     }
 
     // Access Token 생성
-    public String createAccessToken(String username) {
-        return createToken(username, accessTokenValidity);
+    public String createAccessToken(String email, String role) {
+        return createToken(email, role, accessTokenValidity);
     }
 
     // Refresh Token 생성 및 Redis 저장
-    public String createRefreshToken(String username) {
-        String token = createToken(username, refreshTokenValidity);
-        refreshTokenRepository.save(new RefreshToken(username, token));
+    public String createRefreshToken(String email, String role) {
+        String token = createToken(email, role, refreshTokenValidity);
+        refreshTokenRepository.save(new RefreshToken(email, token));
         return token;
     }
 
     // 토큰 생성
-    public String createToken(String username, long exp) {
+    public String createToken(String email, String role, long exp) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + exp))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // 토큰에서 사용자 아이디 추출
-    public String getUsername(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+    public String getEmail(String token) {
+        return getClaims(token).getSubject();
+    }
+
+    public String getRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     // 토큰 유효성 검사

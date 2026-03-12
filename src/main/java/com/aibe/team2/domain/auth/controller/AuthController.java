@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.auth.controller;
 
+import com.aibe.team2.domain.auth.dto.LoginRequest;
 import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
 import com.aibe.team2.domain.auth.service.AuthService;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.Map;
 
 @RestController
@@ -38,19 +38,49 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> user) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+
         try {
-            // 1. 아이디/비번으로 인증 시도
+
+            String email = request.getEmail();
+            String password = request.getPassword();
+
+            // 1. 인증 시도
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(user.get("username"), user.get("password"))
+                    new UsernamePasswordAuthenticationToken(email, password)
             );
 
-            // 2. 인증 성공 시 토큰 생성
-            String token = jwtTokenProvider.createAccessToken(user.get("username"));
-            return ResponseEntity.ok(Collections.singletonMap("token", token));
+            // 2. 사용자 조회
+            Member member = memberRepository.findByEmail(email)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+            // 3. 토큰 생성
+            String accessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
+            String refreshToken = jwtTokenProvider.createRefreshToken(email, member.getRole().name());
+
+            // 4. RefreshToken Redis 저장
+            refreshTokenRepository.save(
+                    new RefreshToken(email, refreshToken)
+            );
+
+            // 5. 응답 반환
+
+            return ResponseEntity.ok(
+                    new com.aibe.team2.domain.auth.dto.response.LoginResponse(
+                            accessToken,
+                            refreshToken,
+                            member.getRole().name(),
+                            member.getEmail(),
+                            member.getNickname()
+                    )
+            );
 
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("아이디 또는 비밀번호가 틀렸습니다.");
+
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body("이메일 또는 비밀번호가 틀렸습니다.");
+
         }
     }
 
@@ -80,6 +110,7 @@ public class AuthController {
         return ResponseEntity.ok("회원가입이 완료되었습니다.");
     }
 
+
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(@RequestBody Map<String, String> request) {
         String refreshToken = request.get("refreshToken");
@@ -90,8 +121,9 @@ public class AuthController {
         }
 
         // 2. Redis에서 해당 토큰이 존재하는지 확인
-        String username = jwtTokenProvider.getUsername(refreshToken);
-        RefreshToken savedToken = refreshTokenRepository.findById(username)
+        String email = jwtTokenProvider.getEmail(refreshToken);
+
+        RefreshToken savedToken = refreshTokenRepository.findById(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
         if (!savedToken.getRefreshToken().equals(refreshToken)) {
@@ -99,8 +131,11 @@ public class AuthController {
         }
 
         // 3. 새로운 Access Token 발급
-        String newAccessToken = jwtTokenProvider.createAccessToken(username);
-        return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(email, member.getRole().name());
+        return ResponseEntity.ok(java.util.Map.of("accessToken", newAccessToken));
     }
 
     @PostMapping("/logout")
