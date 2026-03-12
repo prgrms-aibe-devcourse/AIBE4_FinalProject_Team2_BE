@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.interview.repository;
 
+import com.aibe.team2.domain.interview.enums.InterviewSessionStatus; // [FR-INT-09] 상태 Enum 임포트
 import com.aibe.team2.domain.interview.enums.InterviewType;
 import com.aibe.team2.domain.mypage.dto.response.InterviewSessionListResponse;
 import com.querydsl.core.types.Projections;
@@ -20,7 +21,7 @@ import static com.aibe.team2.domain.resume.entity.QResume.resume;
 @RequiredArgsConstructor
 public class InterviewSessionRepositoryImpl implements InterviewSessionRepositoryCustom {
 
-    private final JPAQueryFactory  queryFactory;
+    private final JPAQueryFactory queryFactory;
 
     @Override
     public List<InterviewSessionListResponse> findInterviewSessionList(
@@ -36,6 +37,7 @@ public class InterviewSessionRepositoryImpl implements InterviewSessionRepositor
                 .leftJoin(jobPosting).on(interviewSession.jobPostingId.eq(jobPosting.id))
                 .where(
                         interviewSession.memberId.eq(memberId),
+                        interviewSession.status.ne(InterviewSessionStatus.ABORTED), // [FR-INT-09] 비정상 종료 세션 제외 조건 추가
                         eqType(type),
                         containsKeyword(keyword)
                 );
