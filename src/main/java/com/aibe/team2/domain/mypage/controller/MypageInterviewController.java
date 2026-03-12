@@ -28,7 +28,7 @@ public class MypageInterviewController {
             @LoginMemberId Long memberId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(name = "mode", required = false) InterviewType type,
+            @RequestParam(name = "type", required = false) InterviewType type,
             @RequestParam(required = false) String keyword
     ) {
         Pageable pageRequest = PageRequest.of(page, size);
