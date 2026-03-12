@@ -1,13 +1,11 @@
 package com.aibe.team2.domain.resume.service;
 
 import com.aibe.team2.domain.notification.event.ResumeAnalysisCompleteEvent;
+import com.aibe.team2.domain.resume.entity.AnalysisType;
 import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
-import com.aibe.team2.domain.notification.service.NotificationService;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
-import com.aibe.team2.global.redis.lock.DistributedLock;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +16,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.util.retry.Retry;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -30,143 +30,136 @@ import java.util.Map;
 public class AnalysisAsyncWorker {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
-    private final SimilarityEngine similarityEngine;
     private final ObjectMapper objectMapper;
     private final WebClient.Builder webClientBuilder;
     private final AnalysisStatusManager statusManager;
-    // [추가] 알림 연동
     private final ApplicationEventPublisher eventPublisher;
-    private final NotificationService notificationService;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent}")
+    @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent}")
     private String geminiApiUrl;
 
     @Async("aiAnalysisTaskExecutor")
-    @DistributedLock(key = "'resume_analysis_' + #reportId")
     @Transactional
-    public void processAiAnalysisAsync(Long reportId, String resumeContent, String jobDescription) {
+    public void processAiAnalysisAsync(Long reportId, String resumeContent) {
         log.info("[Async Worker] AI 분석 시작 - Report ID: {}", reportId);
 
         AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
-        Long memberId = report.getResume().getMemberId();
+        AnalysisType type = report.getAnalysisType();
+        String jobDescription = null;
+        if (type == AnalysisType.FIT_MATCH && report.getJobPosting() != null) {
+            jobDescription = report.getJobPosting().getJobDescription();
+        }
 
         try {
-            // 1. 객관적 지표: 임베딩 기반 코사인 유사도 계산
-            int matchScore = similarityEngine.calculateCosineSimilarityScore(resumeContent, jobDescription);
+            // 타입에 따라 다른 프롬프트 생성
+            String prompt = (type == AnalysisType.NORMAL)
+                    ? buildNormalPrompt(resumeContent)
+                    : buildMatchPrompt(resumeContent, jobDescription);
 
-            // 2. 정성적 지표: Gemini API 호출
-            AiAnalysisResult result = callGeminiApiForCorrections(resumeContent, jobDescription);
+            // API 호출
+            JsonNode parsedResult = callGeminiApi(prompt);
 
-            // 3. 분석 성공 처리 및 DB 업데이트
-            report.completeAnalysis(
-                    matchScore,
-                    result.generatedSubtitle(),
-                    result.keywords(),
-                    result.corrections(),
-                    result.revisedFullContent()
-            );
-            log.info("[Async Worker] 분석 완료 및 저장 성공 (Score: {}) - Report ID: {}", matchScore, reportId);
+            // 타입에 따라 다른 메서드로 결과 업데이트
+            if (type == AnalysisType.NORMAL) {
+                report.completeNormalAnalysis(
+                        parsedResult.path("overallFeedback").asText(""),
+                        parsedResult.path("SentenceCorrections").toString(),
+                        parsedResult.path("revisedFullContent").asText("")
+                );
+            } else {
+                report.completeMatchAnalysis(
+                        parsedResult.path("matchingScore").asInt(50),
+                        parsedResult.path("matchingFeedback").asText(""),
+                        parsedResult.path("keywordAnalysis").toString(),
+                        parsedResult.path("overallFeedback").asText(""),
+                        parsedResult.path("SentenceCorrections").toString(),
+                        parsedResult.path("revisedFullContent").asText("")
+                );
+            }
 
-            // [추가] 알림 연동
-            eventPublisher.publishEvent(new ResumeAnalysisCompleteEvent(memberId));
+            resumeAnalysisRepository.save(report);
+            statusManager.changeStatus(reportId, com.aibe.team2.domain.resume.entity.AnalysisStatus.COMPLETED);
+            eventPublisher.publishEvent(new ResumeAnalysisCompleteEvent(report.getResume().getMemberId()));
 
-        } catch (WebClientRequestException | java.util.concurrent.TimeoutException e) {
-            // WebClient 타임아웃 및 요청 에러 처리
-            log.warn("[Async Worker] AI API 호출 지연/타임아웃 발생 - Report ID: {}", reportId, e);
+        } catch (WebClientResponseException.TooManyRequests e) {
+            log.warn("429 에러 발생. 재시도 초과. Report ID: {}", reportId);
             statusManager.updateToDelayed(reportId);
-
-            // [추가] 알림 연동
-            notificationService.send(memberId, "AI_ANALYSIS_DELAYED", "AI 서버 응답이 지연되어 분석이 늦어지고 있습니다. 잠시 후 다시 확인해 주세요.");
-
         } catch (Exception e) {
-            // 파싱 에러 등 기타 서버 에러 처리
-            log.error("[Async Worker] AI 분석 중 오류 발생 - Report ID: {}", reportId, e);
+            log.error("AI 분석 중 오류. Report ID: {}", reportId, e);
             statusManager.updateToFailed(reportId);
-
-            // [추가] 알림 연동
-            notificationService.send(memberId, "AI_ANALYSIS_FAILED", "죄송합니다. 이력서 분석 중 오류가 발생했습니다. 다시 시도해 주세요.");
         }
     }
 
-    private AiAnalysisResult callGeminiApiForCorrections(String resumeContent, String jobDescription) throws Exception {
-        String prompt = String.format("""
-                당신은 10년 차 전문 채용 담당자이자 자기소개서 첨삭 전문가입니다.
-                아래의 [채용 공고]를 참고하여, 지원자의 [자기소개서]가 공고에 적합해 보이도록 첨삭해주세요.
-                
-                [채용 공고]
-                %s
-                
-                [자기소개서]
-                %s
-                
-                응답은 반드시 아래의 JSON 형식으로만 작성해야 하며, 마크다운이나 부가 설명은 절대 포함하지 마세요.
-                {
-                  "generatedSubtitle": {
-                    "title": "데이터 분석 역량을 갖춘 백엔드 개발자",
-                    "reason": "이 소제목을 추천하는 이유"
-                  },
-                  "keywords": {
-                    "goodKeywords": ["분석력", "꾸준함"],
-                    "missingKeywords": ["대규모 트래픽", "시스템 설계"]
-                  },
-                  "corrections": {
-                    "corrections": [
-                      {
-                        "originalSentence": "기존 문장",
-                        "correctedSentence": "교정된 문장",
-                        "reason": "구체적인 성과 위주로 서술하는 것이 좋습니다."
-                      }
-                    ]
-                  },
-                  "revisedFullContent": "전체 첨삭이 완료된 자기소개서 본문 텍스트"
-                }
-                """,
-                jobDescription != null ? jobDescription : "채용 공고 내용 없음",
-                resumeContent != null ? resumeContent : "자기소개서 내용 없음"
-        );
-
+    private JsonNode callGeminiApi(String prompt) throws Exception {
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("responseMimeType", "application/json")
         );
 
-        WebClient webClient = webClientBuilder.baseUrl(geminiApiUrl).build();
-
+        WebClient webClient = webClientBuilder.build();
         JsonNode responseNode = webClient.post()
-                .uri("")
+                .uri(URI.create(geminiApiUrl))
                 .header("x-goog-api-key", geminiApiKey)
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
-                .timeout(Duration.ofSeconds(30))
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(5))
+                        .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
+                .timeout(Duration.ofSeconds(45))
                 .block();
-
-        if (responseNode == null || !responseNode.has("candidates")) {
-            throw new BusinessException(ErrorCode.AI_RESPONSE_PARSE_ERROR);
-        }
 
         String responseText = responseNode.get("candidates").get(0)
                 .get("content").get("parts").get(0).get("text").asText();
 
-        JsonNode parsedResult = objectMapper.readTree(responseText);
-
-        return new AiAnalysisResult(
-                objectMapper.convertValue(parsedResult.get("generatedSubtitle"), new TypeReference<>() {}),
-                objectMapper.convertValue(parsedResult.get("keywords"), new TypeReference<>() {}),
-                objectMapper.convertValue(parsedResult.get("corrections"), new TypeReference<>() {}),
-                parsedResult.get("revisedFullContent").asText()
-        );
+        return objectMapper.readTree(responseText);
     }
 
-    private record AiAnalysisResult(
-            Map<String, Object> generatedSubtitle,
-            Map<String, Object> keywords,
-            Map<String, Object> corrections,
-            String revisedFullContent
-    ) {}
+    // 트랙 1: 일반 자소서 첨삭 프롬프트
+    private String buildNormalPrompt(String resumeContent) {
+        return String.format("""
+                당신은 10년 차 전문 에디터입니다. 아래 [자기소개서]의 문맥, 가독성, 표현을 다듬고 첨삭해주세요.
+                [자기소개서]
+                %s
+                
+                응답은 반드시 아래 JSON 형식으로 작성하세요.
+                {
+                  "overallFeedback": "전체적인 글의 흐름은 좋으나, 성과 수치가 부족합니다.",
+                  "corrections": [
+                    { "original": "열심히 했습니다", "corrected": "주도적으로 참여했습니다", "reason": "전문적인 어휘 사용" }
+                  ],
+                  "revisedFullContent": "전체 교정 완료된 텍스트..."
+                }
+                """, resumeContent);
+    }
+
+    // 트랙 2: 채용공고 기반 매칭 프롬프트
+    private String buildMatchPrompt(String resumeContent, String jobDescription) {
+        return String.format("""
+                당신은 10년 차 수석 채용 면접관입니다. [채용 공고]와 [자기소개서]를 비교하여 적합도를 평가하고 첨삭해주세요.
+                [채용 공고]
+                %s
+                [자기소개서]
+                %s
+                
+                응답은 반드시 아래 JSON 형식으로 작성하세요.
+                {
+                  "matchingScore": 85,
+                  "matchingFeedback": "직무 경험은 우수하나, 클라우드 역량 어필이 부족합니다.",
+                  "keywordAnalysis": {
+                     "matchedKeywords": ["Java", "Spring"],
+                     "missingKeywords": ["AWS"]
+                  },
+                  "overallFeedback": "전반적인 문맥은 좋으나 공고 맞춤형 수정이 필요합니다.",
+                  "corrections": [
+                     { "original": "프로젝트를 진행했습니다.", "corrected": "AWS를 활용해 프로젝트를 배포했습니다.", "reason": "공고 요구사항 반영" }
+                  ],
+                  "revisedFullContent": "공고 맞춤형으로 전체 교정된 텍스트..."
+                }
+                """, jobDescription, resumeContent);
+    }
 }

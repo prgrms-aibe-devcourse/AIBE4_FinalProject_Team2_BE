@@ -40,7 +40,6 @@ public class AnalysisQueueConsumer {
                 // 비동기 워커 실행!
                 asyncWorker.processAiAnalysisAsync(
                         event.reportId(),
-                        event.resumeContent(),
                         event.fullJobDescription()
                 );
             } catch (Exception e) {
