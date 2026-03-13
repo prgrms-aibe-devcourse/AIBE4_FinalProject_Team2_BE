@@ -38,7 +38,7 @@ public class ResumeService {
                 .memberId(memberId)
                 .title(request.title())
                 .content(request.content())
-                .embedding(embedding) // 변환된 벡터 저장
+                .embedding(embedding)
                 .build();
 
         Resume savedResume = resumeRepository.save(resume);
