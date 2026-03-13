@@ -38,8 +38,8 @@ public class LoginMemberIdResolver implements HandlerMethodArgumentResolver {
 
         // 1. 정상적인 인증 토큰이 있는 경우 (가장 이상적)
         if (authentication != null && authentication.isAuthenticated() && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
-            if (userDetails.getMember() != null) {
-                return userDetails.getMember().getMemberId();
+            if (userDetails.member() != null) {
+                return userDetails.member().getMemberId();
             }
         }
 

@@ -5,18 +5,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 public record JobPostingRequest(
-        @Schema(description = "기업명", example = "원티드랩")
         String companyName,
-
-        @Schema(description = "직무명", example = "백엔드 개발자")
         String jobTitle,
-
-        @Schema(description = "채용 공고 URL (입력 시 내용 자동 크롤링)", example = "https://www.wanted.co.kr/wd/123456")
         String postingUrl,
-
-        @Schema(description = "채용 공고 본문 (URL 입력 시 자동 채움 가능)", example = "주요 업무: Java 백엔드 개발...")
         String jobDescription,
+        String mainTasks,
+        String qualifications,
+        String preferred,
+        String benefits,
 
         @Schema(description = "요구 역량 리스트", example = "[\"Java\", \"Spring Boot\"]")
-        List<String> requiredSkills
+        List<String> requiredSkills,
+
+        @Schema(description = "예상 면접 질문 리스트", example = "[\"질문1\", \"질문2\"]")
+        java.util.List<String> expectedQuestions
 ) {}

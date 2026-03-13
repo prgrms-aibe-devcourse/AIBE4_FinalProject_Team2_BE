@@ -31,7 +31,7 @@ import java.util.List;
 public class ResumeStatisticsService {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
-    private final ObjectMapper objectMapper; // [추가] JSON 파싱 라이브러리
+    private final ObjectMapper objectMapper;
 
     // [FR-REP-04] 자기소개서 첨삭 이력 조회
     public Page<ResumeAnalysisListResponse> getResumeAnalysisList(long memberId, Pageable pageable) {
@@ -78,6 +78,7 @@ public class ResumeStatisticsService {
             }
         }
 
+        // [FR-RES-06] COMPLETED가 상태가 아니면 조회 불가
         List<CorrectionDetail> sentenceCorrections = Collections.emptyList();
         if (!isProcessing && report.getSentenceCorrections() != null) {
             try {

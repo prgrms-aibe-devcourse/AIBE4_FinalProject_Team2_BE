@@ -13,7 +13,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "analysis_report") // ERD 테이블명에 맞춤
+@Table(name = "analysis_report")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
@@ -27,7 +27,6 @@ public class AnalyzedReport {
     @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
 
-    // 일반 첨삭일 때는 채용 공고가 없으므로 Null 허용
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_posting_id")
     private JobPosting jobPosting;
@@ -47,10 +46,12 @@ public class AnalyzedReport {
     @Column(name = "sentence_corrections", columnDefinition = "JSON")
     private String sentenceCorrections;
 
+    @Column(name = "paragraph_summaries", columnDefinition = "JSON")
+    private String paragraphSummaries;
+
     @Column(name = "revised_full_content", columnDefinition = "TEXT")
     private String revisedFullContent;
 
-    // FIT_MATCH(매칭) 시에만 들어오는 공고 원본 텍스트
     @Column(name = "job_description", columnDefinition = "TEXT")
     private String jobDescription;
 
@@ -63,6 +64,9 @@ public class AnalyzedReport {
 
     @Column(name = "keyword_analysis", columnDefinition = "JSON")
     private String keywordAnalysis;
+
+    @Column(name = "expected_questions", columnDefinition = "JSON")
+    private String expectedQuestions;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -84,27 +88,28 @@ public class AnalyzedReport {
         this.status = status;
     }
 
-    // 분석
     public void startAnalysis() {
         this.status = AnalysisStatus.PROCESSING;
     }
 
-    // 1. 일반 첨삭 결과 업데이트
-    public void completeNormalAnalysis(String overallFeedback, String sentenceCorrections, String revisedFullContent) {
+    public void completeNormalAnalysis(String overallFeedback, String sentenceCorrections, String paragraphSummaries, String revisedFullContent) {
         this.overallFeedback = overallFeedback;
         this.sentenceCorrections = sentenceCorrections;
+        this.paragraphSummaries = paragraphSummaries;
         this.revisedFullContent = revisedFullContent;
         this.status = AnalysisStatus.COMPLETED;
     }
 
-    // 2. 공고 매칭 결과 업데이트
     public void completeMatchAnalysis(Integer matchScore, String matchingFeedback, String keywordAnalysis,
-                                      String overallFeedback, String corrections, String revisedFullContent) {
+                                      String expectedQuestions, String overallFeedback,
+                                      String corrections, String paragraphSummaries, String revisedFullContent) {
         this.matchScore = matchScore;
         this.matchingFeedback = matchingFeedback;
         this.keywordAnalysis = keywordAnalysis;
+        this.expectedQuestions = expectedQuestions;
         this.overallFeedback = overallFeedback;
         this.sentenceCorrections = corrections;
+        this.paragraphSummaries = paragraphSummaries;
         this.revisedFullContent = revisedFullContent;
         this.status = AnalysisStatus.COMPLETED;
     }
