@@ -15,22 +15,24 @@ import java.util.Map;
 @Service
 public class JobPostingCrawlerService {
 
-    /**
-     * [요구사항 1] 공고 크롤링 시 주요업무, 자격요건, 우대사항, 복리후생 추출
-     */
+    // [리뷰 반영] Jsoup 연결 공통 로직을 별도 메서드로 분리
+    private Document getDocument(String url) throws IOException {
+        return Jsoup.connect(url)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .timeout(5000)
+                .get();
+    }
+
     public Map<String, String> crawlAndExtract(String url) {
         Map<String, String> extractedData = new HashMap<>();
 
         try {
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                    .timeout(5000)
-                    .get();
+            // 분리된 메서드를 호출하여 Document 획득
+            Document doc = getDocument(url);
 
             extractedData.put("title", doc.title());
             extractedData.put("fullDescription", doc.body().text());
 
-            // DOM 구조 기반 주요 섹션 추출
             extractedData.put("mainTasks", extractSectionByDOM(doc, "주요업무", "주요 업무", "주요 업무 내용"));
             extractedData.put("qualifications", extractSectionByDOM(doc, "자격요건", "자격 요건", "지원자격"));
             extractedData.put("preferred", extractSectionByDOM(doc, "우대사항", "우대 사항", "우대조건"));
@@ -66,11 +68,11 @@ public class JobPostingCrawlerService {
                     nextElement = nextElement.nextElementSibling();
                 }
 
-                if (sectionText.isEmpty() && header.parent() != null) {
+                if (sectionText.length() == 0 && header.parent() != null) {
                     return header.parent().text().replace(header.text(), "").trim();
                 }
 
-                if (!sectionText.isEmpty()) {
+                if (sectionText.length() > 0) {
                     return sectionText.toString().trim();
                 }
             }

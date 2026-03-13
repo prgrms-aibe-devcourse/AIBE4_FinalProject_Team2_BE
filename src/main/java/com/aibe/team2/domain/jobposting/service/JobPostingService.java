@@ -40,7 +40,7 @@ public class JobPostingService {
         String finalPreferred = request.preferred();
         String finalBenefits = request.benefits();
         List<String> finalRequiredSkills = request.requiredSkills();
-        String finalExpectedQuestions = request.expectedQuestions().toString();
+        List<String> questionsList = request.expectedQuestions();
 
         // [요구사항 2] 채용 공고 등록 시 URL만 제공된 경우, ParsingService를 호출해 빈 값을 모두 채움!
         if (hasUrl(request.postingUrl()) && isEmpty(finalDescription)) {
@@ -61,13 +61,18 @@ public class JobPostingService {
             if (finalRequiredSkills == null || finalRequiredSkills.isEmpty()) {
                 finalRequiredSkills = parseResult.requiredSkills();
             }
-            if (isEmpty(finalExpectedQuestions) && parseResult.expectedQuestions() != null) {
-                try {
-                    // List<String> 형태의 질문을 DB 저장을 위해 JSON String으로 변환
-                    finalExpectedQuestions = objectMapper.writeValueAsString(parseResult.expectedQuestions());
-                } catch (Exception e) {
-                    log.error("예상 질문 JSON 변환 실패", e);
-                }
+            if (questionsList == null || questionsList.isEmpty()) {
+                questionsList = parseResult.expectedQuestions();
+            }
+        }
+
+        String finalExpectedQuestions = null;
+        if (questionsList != null && !questionsList.isEmpty()) {
+            try {
+                // List<String> 형태의 질문을 DB 저장을 위해 JSON String으로 변환
+                finalExpectedQuestions = objectMapper.writeValueAsString(questionsList);
+            } catch (Exception e) {
+                log.error("예상 질문 JSON 변환 실패", e);
             }
         }
 

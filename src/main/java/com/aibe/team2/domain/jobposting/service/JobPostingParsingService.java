@@ -3,6 +3,7 @@ package com.aibe.team2.domain.jobposting.service;
 import com.aibe.team2.domain.jobposting.dto.JobPostingParseResponse;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,7 +25,10 @@ public class JobPostingParsingService {
 
     private final JobPostingCrawlerService crawlerService;
     private final ObjectMapper objectMapper;
-    private final WebClient.Builder webClientBuilder; // API 통신을 위한 WebClient 주입
+
+    private final WebClient.Builder webClientBuilder;
+    // [리뷰 반영] WebClient 인스턴스를 필드로 선언하여 재사용
+    private WebClient webClient;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -32,25 +36,24 @@ public class JobPostingParsingService {
     @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent}")
     private String geminiApiUrl;
 
-    /**
-     * URL 크롤링 후 직접 Gemini API를 호출하여 예상 질문 및 역량 파싱
-     */
-    public JobPostingParseResponse autoFillFromUrl(String url) {
+    @PostConstruct
+    public void init() {
+        // [리뷰 반영] 빈 초기화 시점에 한 번만 빌드하여 불필요한 객체 생성 방지
+        this.webClient = webClientBuilder.build();
+    }
 
-        // 1. 크롤링 전담 서비스 호출
+    public JobPostingParseResponse autoFillFromUrl(String url) {
         Map<String, String> crawledData = crawlerService.crawlAndExtract(url);
 
         if (crawledData.isEmpty() || crawledData.get("fullDescription") == null) {
             throw new IllegalArgumentException("크롤링할 수 없는 URL이거나 내용이 비어있습니다.");
         }
 
-        // 2. AI를 통한 예상 질문 및 스킬 도출
         String prompt = buildPromptForQuestions(crawledData);
         List<String> expectedQuestions = new ArrayList<>();
         List<String> requiredSkills = new ArrayList<>();
 
         try {
-            // GeminiService 대신 내부 메서드로 API 직접 호출
             String aiJsonResponse = callGeminiApi(prompt);
             JsonNode parsedNode = objectMapper.readTree(aiJsonResponse);
 
@@ -60,7 +63,6 @@ public class JobPostingParsingService {
             log.error("AI 예상 질문 파싱 실패", e);
         }
 
-        // 3. 크롤링 데이터 + AI 생성 데이터 병합 후 반환
         return new JobPostingParseResponse(
                 extractCompanyName(crawledData.get("title")),
                 crawledData.get("title"),
@@ -70,35 +72,31 @@ public class JobPostingParsingService {
                 crawledData.get("preferred"),
                 crawledData.get("benefits"),
                 requiredSkills,
-                expectedQuestions // 생성된 예상 질문 5가지!
+                expectedQuestions
         );
     }
 
-    /**
-     * Gemini API 직접 호출 및 JSON 추출 로직
-     */
     private String callGeminiApi(String prompt) {
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("responseMimeType", "application/json")
         );
 
-        WebClient webClient = webClientBuilder.build();
+        // 메서드 내에서 매번 build() 하던 로직 제거, 재사용된 필드 사용
         JsonNode responseNode = webClient.post()
                 .uri(URI.create(geminiApiUrl))
                 .header("x-goog-api-key", geminiApiKey)
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
-                // 429(Too Many Requests) 에러 발생 시 최대 3번까지 재시도
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(3))
                         .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
                 .timeout(Duration.ofSeconds(30))
                 .block();
 
         if (responseNode != null && responseNode.has("candidates")) {
-            return responseNode.path("candidates").path(0)
-                    .path("content").path("parts").path(0).path("text").asText();
+            return responseNode.get("candidates").get(0)
+                    .get("content").get("parts").get(0).get("text").asText();
         }
 
         return "{}";
@@ -126,8 +124,19 @@ public class JobPostingParsingService {
         );
     }
 
+    // [리뷰 반영] 정규식을 활용하여 견고해진 회사명 파싱 로직
     private String extractCompanyName(String title) {
-        if (title == null) return "기업명 미상";
-        return title.split(" ")[0]; // 간단한 타이틀 자르기 로직
+        if (title == null || title.isBlank()) return "기업명 미상";
+
+        // 1. 대괄호 [], 소괄호 () 및 그 안의 문자열(예: [신입/경력], (주) 등)을 일괄 제거
+        String cleanedTitle = title.replaceAll("\\[.*?\\]|\\(.*?\\)", "").trim();
+
+        // 2. 만약 괄호를 제거했더니 문자열이 비어버린 경우 방어 로직
+        if (cleanedTitle.isEmpty()) {
+            return title.split(" ")[0];
+        }
+
+        // 3. 정제된 문자열의 가장 첫 단어를 반환 (예: "카카오 백엔드..." -> "카카오")
+        return cleanedTitle.split(" ")[0];
     }
 }
