@@ -41,6 +41,21 @@ public class JobPosting {
     @Column(name = "job_description", columnDefinition = "TEXT")
     private String jobDescription;
 
+    @Column(name = "main_tasks", columnDefinition = "TEXT")
+    private String mainTasks;
+
+    @Column(name = "qualifications", columnDefinition = "TEXT")
+    private String qualifications;
+
+    @Column(name = "preferred", columnDefinition = "TEXT")
+    private String preferred;
+
+    @Column(name = "benefits", columnDefinition = "TEXT")
+    private String benefits;
+
+    @Column(name = "expected_questions", columnDefinition = "JSON")
+    private String expectedQuestions;
+
     @JdbcTypeCode(SqlTypes.VECTOR)
     @Column(name = "embedding", columnDefinition = "vector(768)")
     private float[] embedding;
@@ -57,13 +72,20 @@ public class JobPosting {
     private List<JobSkill> jobSkills = new ArrayList<>();
 
     @Builder
-    public JobPosting(Long memberId, String companyName, String jobTitle, String postingUrl, String jobDescription, float[] embedding) {
+    public JobPosting(Long memberId, String companyName, String jobTitle, String postingUrl, String jobDescription,
+                      String mainTasks, String qualifications, String preferred, String benefits,
+                      String expectedQuestions, float[] embedding) {
         this.memberId = memberId;
         this.companyName = (companyName == null || companyName.isEmpty()) ? "Self-Input" : companyName;
         this.jobTitle = jobTitle;
         this.postingUrl = postingUrl;
         this.jobDescription = jobDescription;
-        this.embedding = embedding; // 벡터 데이터 초기화 추가
+        this.mainTasks = mainTasks;
+        this.qualifications = qualifications;
+        this.preferred = preferred;
+        this.benefits = benefits;
+        this.expectedQuestions = expectedQuestions; // 빌더 추가
+        this.embedding = embedding;
     }
 
     public void addJobSkill(JobSkill jobSkill) {

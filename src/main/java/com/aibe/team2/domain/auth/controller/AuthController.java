@@ -49,7 +49,7 @@ public class AuthController {
 
             // 2. 인증 객체에서 사용자 정보 꺼내기
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Member member = userDetails.getMember();
+            Member member = userDetails.member();
 
             // 3. 토큰 생성
             String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().name());

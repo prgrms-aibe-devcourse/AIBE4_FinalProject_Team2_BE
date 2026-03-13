@@ -1,11 +1,9 @@
 package com.aibe.team2.domain.jobposting.dto;
 
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
-import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record JobPostingResponse(
         Long jobPostingId,
@@ -14,9 +12,13 @@ public record JobPostingResponse(
         String jobTitle,
         String postingUrl,
         String jobDescription,
+        String mainTasks,
+        String qualifications,
+        String preferred,
+        String benefits,
 
-        @Schema(description = "요구 역량 (JSON Array String)")
-        List<String> requiredSkills,
+        @Schema(description = "예상 면접 질문 (JSON String)")
+        String expectedQuestions,
 
         LocalDateTime createdAt,
         LocalDateTime updatedAt
@@ -29,9 +31,11 @@ public record JobPostingResponse(
                 jobPosting.getJobTitle(),
                 jobPosting.getPostingUrl(),
                 jobPosting.getJobDescription(),
-                jobPosting.getJobSkills().stream()
-                        .map(JobSkill::getSkillName)
-                        .toList(),
+                jobPosting.getMainTasks(),
+                jobPosting.getQualifications(),
+                jobPosting.getPreferred(),
+                jobPosting.getBenefits(),
+                jobPosting.getExpectedQuestions(),
                 jobPosting.getCreatedAt(),
                 jobPosting.getUpdatedAt()
         );

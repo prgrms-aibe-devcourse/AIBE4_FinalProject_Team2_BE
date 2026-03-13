@@ -9,6 +9,7 @@ import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.EvaluationSummary;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.KeywordStats;
 import com.aibe.team2.global.error.ErrorCode;
+import com.aibe.team2.global.exception.BusinessException;
 import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -31,7 +32,7 @@ import java.util.List;
 public class ResumeStatisticsService {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
-    private final ObjectMapper objectMapper; // [추가] JSON 파싱 라이브러리
+    private final ObjectMapper objectMapper;
 
     // [FR-REP-04] 자기소개서 첨삭 이력 조회
     public Page<ResumeAnalysisListResponse> getResumeAnalysisList(long memberId, Pageable pageable) {
@@ -98,7 +99,10 @@ public class ResumeStatisticsService {
                     true
             );
         }
-
+        // [FR-RES-06] COMPLETED가 상태가 아니면 조회 불가
+        if (report.getStatus() != AnalysisStatus.COMPLETED) {
+            throw new BusinessException(ErrorCode.COMMON_400); // 아직 분석이 완료되지 않음
+        }
         // 5. 최종 DTO 반환
         return new ResumeAnalysisResultResponse(
                 report.getId(),
