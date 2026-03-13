@@ -27,11 +27,11 @@ public class SocialAuth {
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
-    // 제공자 측 유저 ID (예: 구글의 고유 sub 값 등)
+    // 제공자 측 유저 ID
     @Column(name = "provider_member_id", nullable = false)
     private String providerMemberId;
 
-    // 제공자 타입 (GOOGLE, KAKAO, NAVER 등)
+    // 제공자 타입 (GOOGLE, KAKAO, GITHUB)
     @Column(name = "provider_type", length = 50, nullable = false)
     private String providerType;
 

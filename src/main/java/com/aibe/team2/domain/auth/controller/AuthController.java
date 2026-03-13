@@ -148,7 +148,7 @@ public class AuthController {
         // 2. AccessToken 쿠키 만료 설정
         ResponseCookie deleteAccessCookie = ResponseCookie.from("accessToken", null)
                 .path("/")
-                .httpOnly(false)
+                .httpOnly(false) // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
                 .secure(false) // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")
                 .maxAge(0) // 즉시 만료
@@ -157,7 +157,7 @@ public class AuthController {
         // 3. RefreshToken 쿠키 만료 설정
         ResponseCookie deleteRefreshCookie = ResponseCookie.from("refreshToken", null)
                 .path("/")
-                .httpOnly(false)
+                .httpOnly(false) // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
                 .secure(false) // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")
                 .maxAge(0) // 즉시 만료
@@ -173,11 +173,15 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
         // 1. 요청의 쿠키에서 accessToken 추출
-        String token = Arrays.stream(request.getCookies())
-                .filter(c -> "accessToken".equals(c.getName()))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElse(null);
+        Cookie[] cookies = request.getCookies();
+        String token = null;
+        if (cookies != null) {
+            token = Arrays.stream(cookies)
+                    .filter(c -> "accessToken".equals(c.getName()))
+                    .findFirst()
+                    .map(Cookie::getValue)
+                    .orElse(null);
+        }
 
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

@@ -40,7 +40,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 1 - 1. access token 쿠키 생성
         ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
                 .path("/")
-                .httpOnly(false)
+                .httpOnly(false)     // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
                 .secure(false)      // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")   // CSRF 방어
                 .maxAge(3600)      // 유효 기간 설정 - 1시간
@@ -50,7 +50,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         // 1 - 2. refresh token 쿠키 생성
         ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .path("/")
-                .httpOnly(false)
+                .httpOnly(false)     // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
                 .secure(false)      // 로컬 환경에서는 false, https 환경에서는 true
                 .sameSite("Lax")   // CSRF 방어
                 .maxAge(7 * 24 * 3600)      // 유효 기간 설정 - 일주일

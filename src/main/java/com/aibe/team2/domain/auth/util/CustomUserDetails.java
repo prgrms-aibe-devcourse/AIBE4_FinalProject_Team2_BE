@@ -17,9 +17,11 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     private String name;
 
     // 일반 로그인용 생성자
-//    public CustomUserDetails(Member member) {
-//        this.member = member;
-//    }
+    public CustomUserDetails(Member member) {
+        this.member = member;
+        email = member.getEmail();
+        name = member.getNickname();
+    }
 
     // 소셜 로그인용 생성자
     public CustomUserDetails(Member member, Map<String, Object> attributes) {
@@ -51,22 +53,22 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
 
     @Override
     public boolean isAccountNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return false;
+        return true;
     }
 
 
