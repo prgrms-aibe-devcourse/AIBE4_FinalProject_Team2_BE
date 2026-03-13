@@ -97,8 +97,8 @@ public class JobPostingParsingService {
                 .block();
 
         if (responseNode != null && responseNode.has("candidates")) {
-            return responseNode.get("candidates").get(0)
-                    .get("content").get("parts").get(0).get("text").asText();
+            return responseNode.path("candidates").path(0)
+                    .path("content").path("parts").path(0).path("text").asText();
         }
 
         return "{}";
