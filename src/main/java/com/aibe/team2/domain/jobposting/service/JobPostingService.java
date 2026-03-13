@@ -3,6 +3,7 @@ package com.aibe.team2.domain.jobposting.service;
 import com.aibe.team2.domain.jobposting.dto.JobPostingRequest;
 import com.aibe.team2.domain.jobposting.dto.JobPostingResponse;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
+import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.resume.service.SimilarityEngine;
 import com.aibe.team2.global.error.ErrorCode;
@@ -73,9 +74,17 @@ public class JobPostingService {
                 .qualifications(request.qualifications())
                 .preferred(request.preferred())
                 .benefits(request.benefits())
-                .expectedQuestions(request.expectedQuestions())
                 .embedding(embedding)
                 .build();
+
+        // 💡
+        if (request.requiredSkills() != null && !request.requiredSkills().isEmpty()) {
+            request.requiredSkills().forEach(skillName -> {
+                JobSkill jobSkill = JobSkill.builder().jobPosting(jobPosting).skillName(skillName).build();
+                jobPosting.addJobSkill(jobSkill);
+            });
+        }
+
         JobPosting savedPosting = jobPostingRepository.save(jobPosting);
         return JobPostingResponse.from(savedPosting);
     }

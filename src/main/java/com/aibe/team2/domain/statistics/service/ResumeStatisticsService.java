@@ -9,7 +9,6 @@ import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.EvaluationSummary;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.KeywordStats;
 import com.aibe.team2.global.error.ErrorCode;
-import com.aibe.team2.global.exception.BusinessException;
 import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -79,6 +78,7 @@ public class ResumeStatisticsService {
             }
         }
 
+        // [FR-RES-06] COMPLETED가 상태가 아니면 조회 불가
         List<CorrectionDetail> sentenceCorrections = Collections.emptyList();
         if (!isProcessing && report.getSentenceCorrections() != null) {
             try {
@@ -99,10 +99,7 @@ public class ResumeStatisticsService {
                     true
             );
         }
-        // [FR-RES-06] COMPLETED가 상태가 아니면 조회 불가
-        if (report.getStatus() != AnalysisStatus.COMPLETED) {
-            throw new BusinessException(ErrorCode.COMMON_400); // 아직 분석이 완료되지 않음
-        }
+
         // 5. 최종 DTO 반환
         return new ResumeAnalysisResultResponse(
                 report.getId(),
