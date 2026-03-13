@@ -140,10 +140,13 @@ public class JobPostingParsingService {
         // 대괄호 [], 소괄호 () 및 그 안의 문자열 일괄 제거
         String cleanedTitle = title.replaceAll("\\[.*?]|\\(.*?\\)", "").trim();
 
+        // 괄호 등을 제거한 후 문자열이 비어있다면, 유효한 회사명이 없는 것으로 간주합니다.
+        // 예: "(주)", "[신입]"
         if (cleanedTitle.isEmpty()) {
-            return title.split(" ")[0];
+            return "기업명 미상";
         }
 
+        // 첫 번째 단어를 회사명으로 간주합니다. (예: "삼성전자 주식회사" -> "삼성전자")
         return cleanedTitle.split(" ")[0];
     }
 }
