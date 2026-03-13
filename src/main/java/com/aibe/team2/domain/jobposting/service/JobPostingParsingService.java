@@ -14,7 +14,6 @@ import reactor.util.retry.Retry;
 
 import java.net.URI;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,11 +22,10 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class JobPostingParsingService {
 
-    private final JobPostingCrawlerService crawlerService;
     private final ObjectMapper objectMapper;
-
+    private final JobPostingCrawlerService jobPostingCrawlerService;
     private final WebClient.Builder webClientBuilder;
-    // [리뷰 반영] WebClient 인스턴스를 필드로 선언하여 재사용
+
     private WebClient webClient;
 
     @Value("${gemini.api.key}")
@@ -38,60 +36,91 @@ public class JobPostingParsingService {
 
     @PostConstruct
     public void init() {
-        // [리뷰 반영] 빈 초기화 시점에 한 번만 빌드하여 불필요한 객체 생성 방지
+        // 객체 생성 비용을 줄이기 위해 빈 초기화 시점에 WebClient 빌드 및 재사용
         this.webClient = webClientBuilder.build();
     }
 
     public JobPostingParseResponse autoFillFromUrl(String url) {
-        Map<String, String> crawledData = crawlerService.crawlAndExtract(url);
+        String rawText = jobPostingCrawlerService.crawlFullText(url).toString();
 
-        if (crawledData.isEmpty() || crawledData.get("fullDescription") == null) {
+        if (rawText == null || rawText.isBlank()) {
             throw new IllegalArgumentException("크롤링할 수 없는 URL이거나 내용이 비어있습니다.");
         }
 
-        String prompt = buildPromptForQuestions(crawledData);
-        List<String> expectedQuestions = new ArrayList<>();
-        List<String> requiredSkills = new ArrayList<>();
+        String prompt = """
+            다음 채용 공고 텍스트를 분석해서 아래 JSON 형식에 맞게 데이터를 추출해줘.
+            공고 내용을 바탕으로 지원자에게 물어볼 만한 핵심 예상 면접 질문 5가지도 함께 생성해.
+            반드시 순수 JSON 포맷으로만 대답해. (Markdown 텍스트 블록 제외)
+            
+            {
+              "companyName": "기업명",
+              "jobTitle": "직무명",
+              "jobDescription": "공고 전체 내용 요약 또는 원본",
+              "mainTasks": "주요업무 내용",
+              "qualifications": "자격요건 내용",
+              "preferred": "우대사항 내용",
+              "benefits": "복리후생 내용",
+              "requiredSkills": ["Java", "Spring Boot", "MySQL" 등 기술 스택 배열],
+              "expectedQuestions": [
+                 "공고의 주요 업무와 관련된 예상 질문 1",
+                 "공고의 자격 요건을 검증하는 예상 질문 2",
+                 "예상 질문 3",
+                 "예상 질문 4",
+                 "예상 질문 5"
+              ]
+            }
+            
+            [채용 공고 본문]
+            """ + rawText;
 
         try {
+            // 1. 직접 Gemini API 호출
             String aiJsonResponse = callGeminiApi(prompt);
-            JsonNode parsedNode = objectMapper.readTree(aiJsonResponse);
 
-            parsedNode.path("expectedQuestions").forEach(q -> expectedQuestions.add(q.asText()));
-            parsedNode.path("requiredSkills").forEach(s -> requiredSkills.add(s.asText()));
+            // 2. 응답받은 순수 JSON 문자열을 DTO 객체로 즉시 매핑
+            JobPostingParseResponse response = objectMapper.readValue(aiJsonResponse, JobPostingParseResponse.class);
+
+            // 3. 기업명 노이즈(괄호 등) 정제 후 최종 DTO 반환
+            String refinedCompanyName = extractCompanyName(response.companyName());
+
+            return new JobPostingParseResponse(
+                    refinedCompanyName,
+                    response.jobTitle(),
+                    response.jobDescription(),
+                    response.mainTasks(),
+                    response.qualifications(),
+                    response.preferred(),
+                    response.benefits(),
+                    response.requiredSkills(),
+                    response.expectedQuestions()
+            );
+
         } catch (Exception e) {
-            log.error("AI 예상 질문 파싱 실패", e);
+            log.error("AI 채용공고 분석 및 파싱 실패. URL: {}", url, e);
+            // 실패 시 빈 데이터를 반환하여 프론트엔드 에러 방지
+            return new JobPostingParseResponse(null, null, null, null, null, null, null, null, java.util.Collections.emptyList());
         }
-
-        return new JobPostingParseResponse(
-                extractCompanyName(crawledData.get("title")),
-                crawledData.get("title"),
-                crawledData.get("fullDescription"),
-                crawledData.get("mainTasks"),
-                crawledData.get("qualifications"),
-                crawledData.get("preferred"),
-                crawledData.get("benefits"),
-                requiredSkills,
-                expectedQuestions
-        );
     }
 
+    /**
+     * Gemini API를 HTTP 기반으로 직접 호출하는 로직
+     */
     private String callGeminiApi(String prompt) {
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("responseMimeType", "application/json")
         );
 
-        // 메서드 내에서 매번 build() 하던 로직 제거, 재사용된 필드 사용
         JsonNode responseNode = webClient.post()
                 .uri(URI.create(geminiApiUrl))
                 .header("x-goog-api-key", geminiApiKey)
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
+                // 429 에러(Too Many Requests) 발생 시 3초 간격으로 최대 3번 재시도
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(3))
                         .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
-                .timeout(Duration.ofSeconds(30))
+                .timeout(Duration.ofSeconds(30)) // 30초 타임아웃
                 .block();
 
         if (responseNode != null && responseNode.has("candidates")) {
@@ -102,41 +131,19 @@ public class JobPostingParsingService {
         return "{}";
     }
 
-    private String buildPromptForQuestions(Map<String, String> crawledData) {
-        return String.format("""
-            아래 채용 공고 정보를 분석하여, 지원자에게 물어볼 만한 핵심 예상 면접 질문 5가지와 요구 스택을 추출해줘.
-            반드시 순수 JSON 포맷으로만 대답해. (마크다운 불필요)
-            
-            {
-              "requiredSkills": ["Java", "Spring Boot", "MySQL"],
-              "expectedQuestions": ["질문 1", "질문 2", "질문 3", "질문 4", "질문 5"]
-            }
-            
-            [공고 주요업무]: %s
-            [공고 자격요건]: %s
-            [공고 우대사항]: %s
-            [공고 전체본문]: %s
-            """,
-                crawledData.getOrDefault("mainTasks", "없음"),
-                crawledData.getOrDefault("qualifications", "없음"),
-                crawledData.getOrDefault("preferred", "없음"),
-                crawledData.get("fullDescription")
-        );
-    }
-
-    // [리뷰 반영] 정규식을 활용하여 견고해진 회사명 파싱 로직
+    /**
+     * 괄호 등 노이즈가 포함된 기업명 데이터를 깔끔하게 추출하는 로직
+     */
     private String extractCompanyName(String title) {
         if (title == null || title.isBlank()) return "기업명 미상";
 
-        // 1. 대괄호 [], 소괄호 () 및 그 안의 문자열(예: [신입/경력], (주) 등)을 일괄 제거
-        String cleanedTitle = title.replaceAll("\\[.*?\\]|\\(.*?\\)", "").trim();
+        // 대괄호 [], 소괄호 () 및 그 안의 문자열 일괄 제거
+        String cleanedTitle = title.replaceAll("\\[.*?]|\\(.*?\\)", "").trim();
 
-        // 2. 만약 괄호를 제거했더니 문자열이 비어버린 경우 방어 로직
         if (cleanedTitle.isEmpty()) {
             return title.split(" ")[0];
         }
 
-        // 3. 정제된 문자열의 가장 첫 단어를 반환 (예: "카카오 백엔드..." -> "카카오")
         return cleanedTitle.split(" ")[0];
     }
 }

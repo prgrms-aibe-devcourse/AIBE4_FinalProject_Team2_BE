@@ -23,7 +23,7 @@ public class JobPostingCrawlerService {
                 .get();
     }
 
-    public Map<String, String> crawlAndExtract(String url) {
+    public Map<String, String> crawlFullText(String url) {
         Map<String, String> extractedData = new HashMap<>();
 
         try {
@@ -68,11 +68,11 @@ public class JobPostingCrawlerService {
                     nextElement = nextElement.nextElementSibling();
                 }
 
-                if (sectionText.length() == 0 && header.parent() != null) {
+                if (sectionText.isEmpty() && header.parent() != null) {
                     return header.parent().text().replace(header.text(), "").trim();
                 }
 
-                if (sectionText.length() > 0) {
+                if (!sectionText.isEmpty()) {
                     return sectionText.toString().trim();
                 }
             }
