@@ -7,6 +7,8 @@ import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.resume.service.SimilarityEngine;
+import com.aibe.team2.global.error.ErrorCode;
+import com.aibe.team2.global.exception.BusinessException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -109,7 +112,17 @@ public class JobPostingService {
         return JobPostingResponse.from(savedPosting);
     }
 
-    // ... 기존 getJobPosting, hasUrl, isEmpty 메서드들 유지 ...
+    public JobPostingResponse getJobPosting(Long id) {
+        JobPosting jobPosting = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
+        return JobPostingResponse.from(jobPosting);
+    }
+
+    public List<JobPostingResponse> getMySavedJobPostings(Long memberId) {
+        return jobPostingRepository.findAllByMemberIdOrderByCreatedAtDesc(memberId).stream()
+                .map(JobPostingResponse::from).collect(Collectors.toList());
+    }
+
     private boolean hasUrl(String url) {
         return url != null && !url.isBlank() && (url.startsWith("http") || url.startsWith("https"));
     }
