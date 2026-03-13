@@ -12,6 +12,6 @@ public record JobPostingRequest(
         String preferred,
         String benefits,
 
-        @Schema(description = "예상 면접 질문 (JSON Array String 포맷)", example = "[\"질문1\", \"질문2\"]")
-        String expectedQuestions
+        @Schema(description = "예상 면접 질문 리스트", example = "[\"질문1\", \"질문2\"]")
+        java.util.List<String> expectedQuestions
 ) {}
