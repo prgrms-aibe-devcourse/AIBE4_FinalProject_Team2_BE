@@ -140,10 +140,11 @@ public class JobPostingParsingService {
         // 대괄호 [], 소괄호 () 및 그 안의 문자열 일괄 제거
         String cleanedTitle = title.replaceAll("\\[.*?]|\\(.*?\\)", "").trim();
 
+        // ex) (주)
         if (cleanedTitle.isEmpty()) {
             return title.split(" ")[0];
         }
-
+        // ex) [ 신입 ]
         return cleanedTitle.split(" ")[0];
     }
 }
