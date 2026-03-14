@@ -12,8 +12,10 @@ public class AdminMemberUsageSummaryResponse {
     private Integer creditBalance;
 
     private Long totalLogCount;
-    private Long totalTokenUsage;
 
     private Long resumeUsageCount;
     private Long interviewUsageCount;
+
+    private Long serviceTokenUsage;   // 실제 서비스 사용 토큰
+    private Long adminCreditDelta;    // 관리자 크레딧 변동량
 }

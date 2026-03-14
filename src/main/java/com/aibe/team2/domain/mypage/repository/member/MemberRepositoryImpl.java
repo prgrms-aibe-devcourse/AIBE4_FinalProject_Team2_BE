@@ -66,7 +66,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
                 ))
                 .from(member)
                 .where(where)
-                .orderBy(member.createdAt.desc())
+                .orderBy(member.createdAt.desc().nullsLast())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

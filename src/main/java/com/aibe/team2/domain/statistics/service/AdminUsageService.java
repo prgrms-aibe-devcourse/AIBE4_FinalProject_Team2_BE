@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 public class AdminUsageService {
 
     private final UsageLogRepository usageLogRepository;
+    private final MemberRepository memberRepository;
 
     public List<DailyUsageAdminRow> getDailyUsage(LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
@@ -50,49 +51,75 @@ public class AdminUsageService {
         return usageLogRepository.searchAdminUsageLogs(cond, pageable);
     }
 
-    private final MemberRepository memberRepository;
-
     public AdminMemberUsageSummaryResponse getMemberUsageSummary(Long memberId) {
         Member member = memberRepository.getByIdThrow(memberId);
 
         Long totalLogCount = usageLogRepository.countByMember_MemberId(memberId);
-        Long totalTokenUsage = usageLogRepository.sumTokenUsageByMemberId(memberId);
-        Long resumeUsageCount = usageLogRepository.countByMember_MemberIdAndServiceType(memberId, ServiceType.RESUME);
-        Long interviewUsageCount = usageLogRepository.countByMember_MemberIdAndServiceType(memberId, ServiceType.INTERVIEW);
 
-        if (totalTokenUsage == null) {
-            totalTokenUsage = 0L;
-        }
+        Long resumeUsageCount =
+                usageLogRepository.countByMember_MemberIdAndServiceType(memberId, ServiceType.RESUME);
+
+        Long interviewUsageCount =
+                usageLogRepository.countByMember_MemberIdAndServiceType(memberId, ServiceType.INTERVIEW);
+
+        Long serviceTokenUsage =
+                usageLogRepository.sumTokenUsageByMemberIdAndServiceTypes(
+                        memberId,
+                        List.of(ServiceType.RESUME, ServiceType.INTERVIEW)
+                );
+
+        Long adminCreditDelta =
+                usageLogRepository.sumTokenUsageByMemberIdAndServiceType(
+                        memberId,
+                        ServiceType.ADMIN
+                );
 
         return new AdminMemberUsageSummaryResponse(
                 member.getMemberId(),
                 member.getEmail(),
                 member.getCreditBalance(),
                 totalLogCount,
-                totalTokenUsage,
                 resumeUsageCount,
-                interviewUsageCount
+                interviewUsageCount,
+                nullToZero(serviceTokenUsage),
+                nullToZero(adminCreditDelta)
         );
     }
 
     public AdminServiceUsageSummaryResponse getServiceUsageSummary() {
 
-        long resumeUsage =
+        long resumeUsageCount =
                 usageLogRepository.countByServiceType(ServiceType.RESUME);
 
-        long interviewUsage =
+        long interviewUsageCount =
                 usageLogRepository.countByServiceType(ServiceType.INTERVIEW);
 
-        long adminOperations =
+        long adminOperationCount =
                 usageLogRepository.countByServiceType(ServiceType.ADMIN);
 
-        long totalUsage = resumeUsage + interviewUsage + adminOperations;
+        long totalServiceUsageCount = resumeUsageCount + interviewUsageCount;
+        long totalOverallLogCount = totalServiceUsageCount + adminOperationCount;
+
+        Long serviceTokenUsage =
+                usageLogRepository.sumTokenUsageByServiceTypes(
+                        List.of(ServiceType.RESUME, ServiceType.INTERVIEW)
+                );
+
+        Long adminCreditDelta =
+                usageLogRepository.sumTokenUsageByServiceType(ServiceType.ADMIN);
 
         return new AdminServiceUsageSummaryResponse(
-                resumeUsage,
-                interviewUsage,
-                adminOperations,
-                totalUsage
+                resumeUsageCount,
+                interviewUsageCount,
+                adminOperationCount,
+                totalServiceUsageCount,
+                totalOverallLogCount,
+                nullToZero(serviceTokenUsage),
+                nullToZero(adminCreditDelta)
         );
+    }
+
+    private Long nullToZero(Long value) {
+        return value == null ? 0L : value;
     }
 }
