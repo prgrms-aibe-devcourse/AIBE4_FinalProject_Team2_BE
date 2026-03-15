@@ -59,13 +59,18 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
             if (cond.getMemberId() != null) {
                 where.and(usageLog.member.memberId.eq(cond.getMemberId()));
             }
+            if (cond.getNickname() != null && !cond.getNickname().isBlank()) {
+                where.and(usageLog.member.nickname.containsIgnoreCase(cond.getNickname()));
+            }
+            if (cond.getEmail() != null && !cond.getEmail().isBlank()) {
+                where.and(usageLog.member.email.containsIgnoreCase(cond.getEmail()));
+            }
             if (cond.getServiceType() != null) {
                 where.and(usageLog.serviceType.eq(cond.getServiceType()));
             }
             if (cond.getTargetType() != null && !cond.getTargetType().isBlank()) {
                 where.and(usageLog.targetType.eq(cond.getTargetType()));
             }
-
             if (cond.getFrom() != null) {
                 LocalDateTime from = cond.getFrom().atStartOfDay();
                 where.and(usageLog.createdAt.goe(from));

@@ -80,9 +80,45 @@ where u.member.memberId = :memberId
     );
 
     @Query("""
-    select coalesce(sum(u.tokenUsage), 0)
-    from UsageLog u
-    where u.createdAt >= :start and u.createdAt < :end
+select coalesce(sum(u.tokenUsage), 0)
+from UsageLog u
+where u.serviceType = :serviceType
+""")
+    Long sumTokenUsageByServiceType(@Param("serviceType") ServiceType serviceType);
+
+    @Query("""
+select coalesce(sum(u.tokenUsage), 0)
+from UsageLog u
+where u.serviceType in :serviceTypes
+""")
+    Long sumTokenUsageByServiceTypes(@Param("serviceTypes") List<ServiceType> serviceTypes);
+
+    @Query("""
+select coalesce(sum(u.tokenUsage), 0)
+from UsageLog u
+where u.member.memberId = :memberId
+  and u.serviceType = :serviceType
+""")
+    Long sumTokenUsageByMemberIdAndServiceType(
+            @Param("memberId") Long memberId,
+            @Param("serviceType") ServiceType serviceType
+    );
+
+    @Query("""
+select coalesce(sum(u.tokenUsage), 0)
+from UsageLog u
+where u.member.memberId = :memberId
+  and u.serviceType in :serviceTypes
+""")
+    Long sumTokenUsageByMemberIdAndServiceTypes(
+            @Param("memberId") Long memberId,
+            @Param("serviceTypes") List<ServiceType> serviceTypes
+    );
+
+    @Query("""
+select coalesce(sum(u.tokenUsage), 0)
+from UsageLog u
+where u.createdAt >= :start and u.createdAt < :end
 """)
     Long sumTokenUsageByCreatedAtRange(
             @Param("start") LocalDateTime start,
