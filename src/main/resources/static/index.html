@@ -110,26 +110,6 @@
     const modelSelect = document.getElementById('modelSelect');
     const modeSelect = document.getElementById('modeSelect');
 
-    // 🚀 [FR-INT-05] 상태 텍스트 딜레이(Lock) 처리를 위한 공통 함수
-    let isStatusLocked = false;
-    function setVoiceStatus(text, color, lockMs = 0) {
-        if (isStatusLocked) return; // 락이 걸려있으면 다른 상태 변화 무시
-
-        voiceStatus.innerText = text;
-        voiceStatus.style.color = color;
-
-        if (lockMs > 0) {
-            isStatusLocked = true;
-            setTimeout(() => {
-                isStatusLocked = false;
-                // 락이 풀렸을 때, 화면에 계속 감지됨 텍스트가 남아있으면 자연스럽게 분석 상태로 전환
-                if (voiceStatus.innerText.includes("끼어들기 감지됨")) {
-                    setVoiceStatus("⏳ 답변을 계속 듣거나 분석하고 있습니다...", "#6c757d");
-                }
-            }, lockMs);
-        }
-    }
-
     // --- 음성 면접 자막 리스너 ---
     retellWebClient.on("update", (update) => {
         if (update && update.transcript) {
@@ -145,46 +125,38 @@
             });
             voiceSubtitle.scrollTop = voiceSubtitle.scrollHeight;
 
-            // 🚀 [FR-INT-05] 100% 확실한 끼어들기 감지 (Transcript 기반 안전망)
-            // 현재 들어오고 있는 자막의 마지막 주체가 '지원자(user)'라면, 사용자가 말하고 있는 것!
+            // 자막 기반으로 사용자가 말하는 중인지 체크
             const lastItem = update.transcript[update.transcript.length - 1];
             if (lastItem && lastItem.role === 'user') {
-                console.log("[Retell Event] user_talking (자막 기반 발화 감지)");
-                setVoiceStatus("🗣️ 끼어들기 감지됨! AI가 발화를 멈추고 경청합니다.", "#e83e8c", 2000);
+                voiceStatus.innerText = "🗣️ 지원자가 이야기하고 있습니다...";
+                voiceStatus.style.color = "#28a745";
             }
         }
     });
 
     retellWebClient.on("call_ended", () => {
         console.log("[Retell Event] call_ended");
-        isStatusLocked = false; // 종료 시 락 강제 해제
-        setVoiceStatus("✅ 대화가 종료되었습니다. (상태: DONE)", "#333");
+        voiceStatus.innerText = "✅ 대화가 종료되었습니다. (상태: DONE)";
+        voiceStatus.style.color = "#333";
         startVoiceBtn.disabled = false;
         stopVoiceBtn.disabled = true;
     });
 
-    // 🚀 [FR-INT-05] 이벤트 리스너 업데이트
     retellWebClient.on("agent_start_talking", () => {
         console.log("[Retell Event] agent_start_talking");
-        setVoiceStatus("🤖 면접관이 이야기하고 있습니다...", "#007bff");
+        voiceStatus.innerText = "🤖 면접관이 이야기하고 있습니다...";
+        voiceStatus.style.color = "#007bff";
     });
 
     retellWebClient.on("agent_stop_talking", () => {
         console.log("[Retell Event] agent_stop_talking");
-        // 짧은 침묵 시 화면 텍스트가 깜빡이는 것을 방지하기 위해 여기선 상태를 강제로 바꾸지 않음
+        voiceStatus.innerText = "🗣️ 듣고 있습니다. 답변을 말씀해 주세요.";
+        voiceStatus.style.color = "#28a745";
     });
 
-    retellWebClient.on("user_start_talking", () => {
-        console.log("[Retell Event] user_start_talking");
-        // 핵심: 지원자가 말하기 시작하면 무조건 2초(2000ms) 동안 화면 상태를 잠금 처리
-        setVoiceStatus("🗣️ 끼어들기 감지됨! AI가 발화를 멈추고 경청합니다.", "#e83e8c", 2000);
-    });
-
-    retellWebClient.on("user_stop_talking", () => {
-        console.log("[Retell Event] user_stop_talking");
-        // 2초 락이 안 걸려있을 때만 바로 분석 중으로 변경됨
-        setVoiceStatus("⏳ 답변을 분석하고 있습니다...", "#6c757d");
-    });
+    // 화면 깜빡임을 유발하는 불필요한 이벤트 리스너 제거
+    retellWebClient.on("user_start_talking", () => {});
+    retellWebClient.on("user_stop_talking", () => {});
 
     // --- UI 탭 전환 ---
     typeTextBtn.onclick = () => {
@@ -274,7 +246,7 @@
         }
     };
 
-    // 🚀 [FR-INT-02] 텍스트 면접 명시적 종료
+    // 텍스트 면접 명시적 종료
     if(endTextBtn) {
         endTextBtn.onclick = async () => {
             if (!textSessionId) return;
@@ -336,7 +308,8 @@
             voiceStatus.innerText = "마이크 권한을 승인해 주세요...";
             await retellWebClient.startCall({ accessToken: voiceData.accessToken });
 
-            voiceStatus.innerText = "🔴 면접관과 대화 중입니다... (마이크 켜짐)";
+            // 통화 연결 직후 상태
+            voiceStatus.innerText = "🔴 대기 중입니다... (면접관의 응답을 기다리세요)";
             voiceStatus.style.color = "#dc3545";
             stopVoiceBtn.disabled = false;
 
@@ -347,7 +320,7 @@
         }
     };
 
-    // 🚀 [FR-INT-02] 음성 대화 명시적 종료
+    // 음성 대화 명시적 종료
     stopVoiceBtn.onclick = async () => {
         retellWebClient.stopCall();
         if (voiceSessionId) {
