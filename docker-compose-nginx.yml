@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: aibe-nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      # 로컬에 작성한 nginx.conf 파일을 도커 컨테이너 내부의 Nginx 설정으로 덮어씌웁니다.
+      # 주의: docker-compose-nginx.yml 파일과 nginx.conf 파일이 같은 폴더에 있어야 합니다.
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    # Nginx 컨테이너 안에서 로컬 PC의 8081 포트를 찾기 위해 필요 (host.docker.internal)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
