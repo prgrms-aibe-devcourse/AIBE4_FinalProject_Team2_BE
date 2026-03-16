@@ -46,4 +46,8 @@ public record CustomUserDetails(Member member) implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public Member getMember() {
+        return member;
+    }
 }

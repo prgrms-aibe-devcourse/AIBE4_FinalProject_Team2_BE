@@ -40,6 +40,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 0 - 2. 이제 안전하게 데이터 추출 (null 걱정 없음!)
         String email = userDetails.getName();
+        String role = userDetails.getMember().getRole().name();
 
         // 우리 서버의 JWT 발급
         String accessToken = jwtTokenProvider.createAccessToken(email, Role.MEMBER.name());
