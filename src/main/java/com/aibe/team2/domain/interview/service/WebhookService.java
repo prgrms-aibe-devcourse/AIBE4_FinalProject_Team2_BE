@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-// @Service 도메인 배포 및 Webhook 연동 전까지 임시 비활성화
+@Service
 @RequiredArgsConstructor
 public class WebhookService {
 
