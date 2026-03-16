@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.mypage.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.dto.response.MemberResponse;
 import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponse;
 import com.aibe.team2.domain.mypage.dto.request.PasswordChangeRequest;
@@ -13,7 +12,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 

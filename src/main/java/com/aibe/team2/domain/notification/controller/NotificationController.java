@@ -1,13 +1,11 @@
 package com.aibe.team2.domain.notification.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.notification.service.NotificationService;
 import com.aibe.team2.global.common.annotation.LoginMemberId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

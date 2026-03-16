@@ -1,13 +1,11 @@
 package com.aibe.team2.domain.statistics.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.statistics.dto.usage.MonthlyUsageResponse;
 import com.aibe.team2.domain.statistics.service.MemberStatisticsService;
 import com.aibe.team2.global.common.annotation.LoginMemberId;
 import com.aibe.team2.global.redis.ratelimit.RateLimit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;

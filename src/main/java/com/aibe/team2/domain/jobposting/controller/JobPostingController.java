@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.jobposting.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.jobposting.dto.JobPostingParseResponse;
 import com.aibe.team2.domain.jobposting.dto.JobPostingRequest;
 import com.aibe.team2.domain.jobposting.dto.JobPostingResponse;

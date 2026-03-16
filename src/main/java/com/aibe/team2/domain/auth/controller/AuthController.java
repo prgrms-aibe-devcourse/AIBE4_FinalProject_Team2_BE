@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.auth.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.auth.dto.LoginRequest;
 import com.aibe.team2.domain.auth.dto.LoginResponse;
 import com.aibe.team2.domain.auth.dto.MemberDTO;

@@ -1,6 +1,5 @@
 package com.aibe.team2.global.redis.ratelimit;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;

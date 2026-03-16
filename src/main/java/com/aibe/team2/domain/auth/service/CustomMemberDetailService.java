@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.auth.service;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;

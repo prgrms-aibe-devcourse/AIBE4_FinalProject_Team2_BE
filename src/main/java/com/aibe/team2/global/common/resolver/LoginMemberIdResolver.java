@@ -1,6 +1,5 @@
 package com.aibe.team2.global.common.resolver;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.global.common.annotation.LoginMemberId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
