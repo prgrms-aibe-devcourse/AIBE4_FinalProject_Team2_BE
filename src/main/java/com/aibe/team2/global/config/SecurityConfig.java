@@ -75,7 +75,7 @@ public class SecurityConfig {
                                 "/images/**"
                         ).permitAll()
                         .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
-                        // 🚀 [FR-INT-04] 외부 Retell AI Webhook 수신을 위한 권한 예외 처리 추가
+                        // [FR-INT-04] 외부 Retell AI Webhook 수신을 위한 권한 예외 처리 추가
                         .requestMatchers("/api/webhooks/**").permitAll()
                         .anyRequest().authenticated()
                 )

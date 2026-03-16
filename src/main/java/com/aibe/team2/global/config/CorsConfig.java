@@ -9,7 +9,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Configuration
 public class CorsConfig {
@@ -21,18 +20,18 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Ngrok 와일드카드 도메인 병합
-        configuration.setAllowedOriginPatterns(
-                Stream.concat(
-                        Arrays.stream(allowedOrigins.split(",")).map(String::trim),
-                        Stream.of("https://*.ngrok-free.app", "https://*.ngrok-free.dev", "http://localhost")
-                ).toList()
-        );
+        // 🚀 리뷰 반영: 코드 내 하드코딩된 도메인 제거 및 application.yml 설정으로 일원화
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .toList();
+
+        configuration.setAllowedOriginPatterns(origins);
 
         configuration.setAllowedMethods(List.of(
                 "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
         ));
 
+        // 클라이언트가 보내는 모든 헤더(ngrok-skip-browser-warning 포함) 허용
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(List.of("Authorization"));
