@@ -6,7 +6,7 @@ import java.util.Map;
 
 public record InterviewResultDetailResponse(
         Long sessionId,
-        String InterviewType,
+        String interviewType,
         String interviewMode,
         LocalDateTime createdAt,
         Integer totalScore,

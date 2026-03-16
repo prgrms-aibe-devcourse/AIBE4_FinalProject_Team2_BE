@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -24,27 +25,29 @@ public class RecentActivityService {
         List<RecentActivityResponse> combinedActivities = new ArrayList<>();
 
         // 1. 최신 자소서 5개 가져와서 DTO로 변환
-        resumeAnalysisRepository.findTop5ByResume_MemberIdOrderByCreatedAtDesc(memberId)
-                .forEach(report -> combinedActivities.add(new RecentActivityResponse(
+        var resumeActivities = resumeAnalysisRepository.findTop5ByResume_MemberIdOrderByCreatedAtDesc(memberId)
+                .stream()
+                .map(report -> new RecentActivityResponse(
                         report.getId(),
                         "RESUME",
                         report.getResume().getTitle(), // 자소서 제목
                         report.getCreatedAt(),
                         null // 자소서는 점수가 없으므로 null
-                )));
+                ));
 
         // 2. 최신 모의 면접 5개 가져와서 DTO로 변환
-        interviewSessionRepository.findTop5ByMemberIdOrderByCreatedAtDesc(memberId)
-                .forEach(session -> combinedActivities.add(new RecentActivityResponse(
+        var interviewActivities = interviewSessionRepository.findTop5ByMemberIdOrderByCreatedAtDesc(memberId)
+                .stream()
+                .map(session -> new RecentActivityResponse(
                         session.getId(),
                         "INTERVIEW",
                         session.getInterviewType(), // 예: "심층 면접"
                         session.getCreatedAt(),
                         session.getFinalScore() // 최종 점수
-                )));
+                ));
 
         // 3. 두 리스트를 합친 후(최대 10개), 시간을 기준으로 최신순 정렬하고 최종 상위 5개만 잘라서 반환
-        return combinedActivities.stream()
+        return Stream.concat(resumeActivities, interviewActivities)
                 .sorted(Comparator.comparing(RecentActivityResponse::createdAt).reversed())
                 .limit(5)
                 .collect(Collectors.toList());

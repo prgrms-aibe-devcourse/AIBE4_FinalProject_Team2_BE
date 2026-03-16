@@ -86,13 +86,13 @@ public class InterviewStatisticsService {
         String overallReview = (stats != null && stats.getOverallFeedback() != null)
                 ? stats.getOverallFeedback() : "";
 
-        String mappedInterviewType = convertInterviewModeToKorean(session.getInterviewMode());
-        String mappedInterviewMode = session.getInterviewType();
+        String interviewType = session.getInterviewType();
+        String interviewMode = convertInterviewModeToKorean(session.getInterviewMode());
 
         return new InterviewResultDetailResponse(
                 session.getId(),
-                mappedInterviewType,
-                mappedInterviewMode,
+                interviewType,
+                interviewMode,
                 session.getCreatedAt(),
                 session.getFinalScore(),
                 overallReview,
