@@ -128,8 +128,13 @@
             // 자막 기반으로 사용자가 말하는 중인지 체크
             const lastItem = update.transcript[update.transcript.length - 1];
             if (lastItem && lastItem.role === 'user') {
+                clearTimeout(userSpeakingTimeout);
                 voiceStatus.innerText = "🗣️ 지원자가 이야기하고 있습니다...";
                 voiceStatus.style.color = "#28a745";
+                userSpeakingTimeout = setTimeout(() => {
+                    voiceStatus.innerText = "🗣️ 듣고 있습니다. 답변을 말씀해 주세요.";
+                    voiceStatus.style.color = "#28a745";
+                }, 1500); // 1.5초 동안 사용자의 추가 발화가 없으면 '듣는 중' 상태로 복귀
             }
         }
     });
