@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.statistics.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.statistics.dto.interview.InterviewResultDetailResponse;
 import com.aibe.team2.domain.statistics.service.InterviewStatisticsService;
 import com.aibe.team2.global.common.annotation.LoginMemberId;
@@ -9,7 +8,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j

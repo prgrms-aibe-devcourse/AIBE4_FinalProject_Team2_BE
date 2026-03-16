@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface InterviewSessionRepository extends JpaRepository<InterviewSession, Long>, InterviewSessionRepositoryCustom {
 
@@ -13,4 +14,6 @@ public interface InterviewSessionRepository extends JpaRepository<InterviewSessi
     // [FR-INT-09] ABORTED 상태인 세션은 통계에서 제외 (Service 계층 코드 수정 방지)
     @Query("SELECT count(i) FROM InterviewSession i WHERE i.memberId = :memberId AND i.status <> com.aibe.team2.domain.interview.enums.InterviewSessionStatus.ABORTED AND i.createdAt BETWEEN :start AND :end")
     long countByMemberIdAndCreatedAtBetween(@Param("memberId") Long memberId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    List<InterviewSession> findTop5ByMemberIdOrderByCreatedAtDesc(Long memberId);
 }

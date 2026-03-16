@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -31,4 +32,6 @@ public interface ResumeAnalysisRepository extends JpaRepository<AnalyzedReport, 
             "WHERE res.memberId = :memberId",
             countQuery = "SELECT count(r) FROM AnalyzedReport r WHERE r.resume.memberId = :memberId")
     Page<AnalyzedReport> findByMemberIdWithDetails(@Param("memberId") Long memberId, Pageable pageable);
+
+    List<AnalyzedReport> findTop5ByResume_MemberIdOrderByCreatedAtDesc(Long memberId);
 }

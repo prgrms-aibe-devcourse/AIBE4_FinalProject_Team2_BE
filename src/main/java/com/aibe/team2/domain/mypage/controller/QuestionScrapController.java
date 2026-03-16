@@ -2,6 +2,7 @@ package com.aibe.team2.domain.mypage.controller;
 
 import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.dto.response.BookmarkResponse;
+import com.aibe.team2.domain.mypage.dto.response.BookmarkStatsResponse;
 import com.aibe.team2.domain.mypage.service.QuestionScrapService;
 import com.aibe.team2.global.common.annotation.LoginMemberId;
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,6 +56,19 @@ public class QuestionScrapController {
         log.info("[북마크 목록 조회] MemberId: {}",  memberId);
 
         Page<BookmarkResponse> response = questionScrapService.getMyBookmarks(memberId, pageable);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // [대시보드/북마크] 내 북마크(스크랩) 요약 통계 조회
+    @GetMapping("/bookmarks/stats")
+    public ResponseEntity<BookmarkStatsResponse> getBookmarkStats(
+            @LoginMemberId Long memberId
+    ) {
+        log.info("Bookmark stats requested. memberId: {}", memberId);
+
+        // 서비스 호출 (아래 3번 참조)
+        BookmarkStatsResponse response = questionScrapService.getBookmarkStats(memberId);
 
         return ResponseEntity.ok(response);
     }

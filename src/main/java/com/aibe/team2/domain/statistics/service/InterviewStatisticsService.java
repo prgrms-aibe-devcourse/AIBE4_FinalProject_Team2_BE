@@ -1,6 +1,7 @@
 package com.aibe.team2.domain.statistics.service;
 
 import com.aibe.team2.domain.interview.entity.InterviewSession;
+import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import com.aibe.team2.domain.statistics.dto.common.RadarChartStatResponse;
 import com.aibe.team2.domain.statistics.dto.interview.InterviewResultDetailResponse;
@@ -85,10 +86,16 @@ public class InterviewStatisticsService {
         String overallReview = (stats != null && stats.getOverallFeedback() != null)
                 ? stats.getOverallFeedback() : "";
 
+        String interviewType = session.getInterviewType();
+        String interviewMode = convertInterviewModeToKorean(session.getInterviewMode());
+
         return new InterviewResultDetailResponse(
                 session.getId(),
+                interviewType,
+                interviewMode,
+                session.getCreatedAt(),
                 session.getFinalScore(),
-                overallReview,// 임시 총평
+                overallReview,
                 logicAndStructure,
                 speechAnalysis,
                 turnScripts
@@ -116,7 +123,7 @@ public class InterviewStatisticsService {
     // --- 내부 통계 집계 로직 ---
     private SpeechAnalysis calculateSpeechAnalysis(List<InterviewRecord> records) {
         if (records == null || records.isEmpty()) {
-            return new SpeechAnalysis(0, 0, 0.0f, Collections.emptyMap(), Collections.emptyList());
+            return new SpeechAnalysis(0, 0, 0.0f, Collections.emptyMap(), Collections.emptyList(), Collections.emptyList());
         }
 
         int totalWpm = 0;
@@ -142,8 +149,20 @@ public class InterviewStatisticsService {
                 totalSilence,
                 avgStt,
                 formattedEmotionMap,
-                Collections.emptyList()
+                Collections.emptyList(), // [추가] frequentWords (많이 사용한 전문 용어 - 현재는 임시로 빈 리스트 반환)
+                Collections.emptyList()  // habitDetails (개선이 필요한 발화 습관 - 현재는 임시로 빈 리스트 반환)
         );
+    }
+
+    private String convertInterviewModeToKorean(InterviewMode mode) {
+        if (mode == null) {
+            return "일반"; // 기본값
+        }
+        return switch (mode) {
+            case NORMAL -> "일반";
+            case FOLLOW_UP -> "심층 꼬리질문";
+            case STRESS -> "압박";
+        };
     }
 
     // 소수점 첫째 자리 반올림 메서드

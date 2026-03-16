@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.statistics.service;
 
+import com.aibe.team2.domain.resume.dto.ResumeStatsResponse;
 import com.aibe.team2.domain.resume.entity.AnalysisStatus;
 import com.aibe.team2.domain.resume.entity.AnalyzedReport;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
@@ -8,6 +9,7 @@ import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.CorrectionDetail;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.EvaluationSummary;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse.KeywordStats;
+import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.custom.ForbiddenException;
 import com.aibe.team2.global.exception.custom.NotFoundException;
@@ -31,6 +33,7 @@ import java.util.List;
 public class ResumeStatisticsService {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
+    private final ResumeRepository resumeRepository;
     private final ObjectMapper objectMapper;
 
     // [FR-REP-04] 자기소개서 첨삭 이력 조회
@@ -112,5 +115,22 @@ public class ResumeStatisticsService {
                 isProcessing ? null : report.getRevisedFullContent(),
                 report.getCreatedAt()
         );
+    }
+
+    // [대시보드] 내 자기소개서 요약 통계 조회 로직
+    @Transactional(readOnly = true)
+    public ResumeStatsResponse getResumeStats(Long memberId) {
+
+        // 1. AI 자소서 (분석이 완료된 이력서)
+        long aiResumeCount = resumeRepository.countByMemberIdAndIsAnalyzedTrue(memberId);
+
+        // 2. 저장된 전체 이력서 개수
+        long savedResumeCount = resumeRepository.countByMemberId(memberId);
+
+        // 3. 작성 완료 개수 (임시 처리: 프론트엔드 에러를 막기 위해 일단 0으로 반환)
+        long completedCount = 0;
+
+        // 4. DTO에 담아서 반환
+        return new ResumeStatsResponse(aiResumeCount, savedResumeCount, completedCount);
     }
 }

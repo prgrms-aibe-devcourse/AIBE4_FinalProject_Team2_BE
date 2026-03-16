@@ -140,6 +140,21 @@ public class MemberService {
         return newImageUrl;
     }
 
+    // 프로필 이미지 삭제
+    @Transactional
+    public void deleteProfileImage(Long memberId) {
+        // 1. DB에서 멤버 조회 (기존에 정의된 메서드 활용)
+        Member member = memberRepository.getByIdThrow(memberId);
+
+        // 2. 기존 이미지가 S3 같은 클라우드에 있다면 실제 파일 삭제 처리
+        if (member.getProfileImageUrl() != null) {
+            s3ImageService.deleteImage(member.getProfileImageUrl());
+        }
+
+        // 3. DB의 프로필 이미지 URL을 null로 업데이트
+        member.updateProfileImage(null);
+    }
+
     public void validateSignup(MemberDTO request) {
         // 1. 닉네임 중복 검사
         if (memberRepository.existsByNickname(request.getNickname())) {

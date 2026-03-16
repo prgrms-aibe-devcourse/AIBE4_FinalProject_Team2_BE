@@ -6,7 +6,6 @@ import com.aibe.team2.domain.mypage.service.MypageInterviewService;
 import com.aibe.team2.global.common.annotation.LoginMemberId;
 import com.aibe.team2.global.redis.ratelimit.RateLimit;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;

@@ -22,4 +22,13 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
     // 채용공고의 벡터를 받아, 해당 직무에 가장 적합한 이력서 Top 5를 검색
     @Query(value = "SELECT * FROM resume ORDER BY embedding <=> cast(:jdVector as vector) LIMIT 5", nativeQuery = true)
     List<Resume> findTop5SimilarResumes(@Param("jdVector") String jdVectorString);
+
+    // =========================================================
+    // 대시보드 통계용
+    // =========================================================
+    // 1. 내 저장된 이력서 총 개수
+    long countByMemberId(Long memberId);
+
+    // 2. AI 분석 완료된 자소서 개수 (isAnalyzed 가 true인 것)
+    long countByMemberIdAndIsAnalyzedTrue(Long memberId);
 }
