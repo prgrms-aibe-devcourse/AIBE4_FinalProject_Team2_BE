@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.statistics.controller;
 
+import com.aibe.team2.domain.resume.dto.ResumeStatsResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisListResponse;
 import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
 import com.aibe.team2.domain.statistics.service.ResumeStatisticsService;
@@ -43,6 +44,19 @@ public class ResumeStatisticsController {
             @PathVariable("analysisId") Long analysisId
     ){
         ResumeAnalysisResultResponse response = resumeStatisticsService.getResumeAnalysisReport(analysisId, memberId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    // 내 자기소개서 요약 통계 조회
+    @GetMapping("/stats")
+    public ResponseEntity<ResumeStatsResponse> getResumeStats(
+            @LoginMemberId Long memberId
+    ){
+        log.info("Dashboard resume stats requested. memberId: {}", memberId);
+
+        // 서비스 계층에 통계 데이터 요청
+        ResumeStatsResponse response = resumeStatisticsService.getResumeStats(memberId);
 
         return ResponseEntity.ok(response);
     }

@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.mypage.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.dto.response.MemberResponse;
 import com.aibe.team2.domain.mypage.dto.response.MemberUpdateResponse;
 import com.aibe.team2.domain.mypage.dto.request.PasswordChangeRequest;
@@ -13,7 +12,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -65,6 +63,23 @@ public class MemberController {
                 .code("OK")
                 .message("프로필 이미지 수정이 완료되었습니다.")
                 .data(uploadedUrl)
+                .build();
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    // 프로필 이미지 삭제
+    @DeleteMapping("/profile/image")
+    public ResponseEntity<ApiResponse<Void>> deleteProfileImage(
+            @LoginMemberId Long memberId
+    ) {
+        // MemberService에 이미지 삭제 로직을 위임합니다.
+        memberService.deleteProfileImage(memberId);
+
+        ApiResponse<Void> apiResponse = ApiResponse.<Void> builder()
+                .success(true)
+                .code("OK")
+                .message("프로필 이미지가 기본 이미지로 변경되었습니다.")
                 .build();
 
         return ResponseEntity.ok(apiResponse);

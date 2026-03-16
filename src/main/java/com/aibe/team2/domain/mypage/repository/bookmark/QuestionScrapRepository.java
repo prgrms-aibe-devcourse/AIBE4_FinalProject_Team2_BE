@@ -14,4 +14,7 @@ public interface QuestionScrapRepository extends JpaRepository<QuestionScrap, Lo
     Optional<QuestionScrap> findByMemberAndInterviewRecord(Member member, InterviewRecord interviewRecord);
 
     long countByInterviewRecordId(long interviewRecordId);
+
+    // QuestionScrapRepository 내부에 추가 (없다면)
+    long countByMember_MemberId(Long memberId);
 }

@@ -26,15 +26,10 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
     @Override
     public List<MonthlyUsageStatResponse> findMonthlyStats(Long memberId, int year) {
 
-        // [1] 날짜에서 '월' 추출
-        NumberTemplate<Integer> monthExpression = Expressions.numberTemplate(
-                Integer.class, "function('month', {0})", usageLog.createdAt
-        );
-
         return queryFactory
                 .select(Projections.constructor(
                         MonthlyUsageStatResponse.class,
-                        monthExpression,
+                        usageLog.createdAt.month(),
                         usageLog.serviceType.stringValue(),
                         usageLog.count(),
                         usageLog.amount.sum().longValue() // Integer sum을 Long으로 변환
@@ -45,8 +40,8 @@ public class UsageLogRepositoryImpl implements UsageLogRepositoryCustom {
                         usageLog.member.memberId.eq(memberId),
                         usageLog.createdAt.year().eq(year)
                 )
-                .groupBy(monthExpression, usageLog.serviceType)
-                .orderBy(monthExpression.asc())
+                .groupBy(usageLog.createdAt.month(), usageLog.serviceType)
+                .orderBy(usageLog.createdAt.month().asc())
                 .fetch();
     }
 

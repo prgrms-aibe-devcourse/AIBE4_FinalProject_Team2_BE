@@ -3,6 +3,7 @@ package com.aibe.team2.domain.mypage.service;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.mypage.dto.response.BookmarkResponse;
+import com.aibe.team2.domain.mypage.dto.response.BookmarkStatsResponse;
 import com.aibe.team2.domain.mypage.entity.Member;
 import com.aibe.team2.domain.mypage.entity.QuestionScrap;
 import com.aibe.team2.domain.mypage.repository.bookmark.QuestionScrapRepository;
@@ -148,5 +149,13 @@ public class QuestionScrapService {
 
             return BookmarkResponse.from(scrap, jobPosting);
         });
+    }
+
+    @Transactional(readOnly = true)
+    public BookmarkStatsResponse getBookmarkStats(Long memberId) {
+        // Repository에서 멤버의 북마크 총 갯수를 가져옴
+        long totalBookmarks = questionScrapRepository.countByMember_MemberId(memberId);
+
+        return new BookmarkStatsResponse(totalBookmarks);
     }
 }

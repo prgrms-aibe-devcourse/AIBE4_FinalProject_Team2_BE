@@ -1,10 +1,14 @@
 package com.aibe.team2.domain.statistics.dto.interview;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
 public record InterviewResultDetailResponse(
         Long sessionId,
+        String InterviewType,
+        String interviewMode,
+        LocalDateTime createdAt,
         Integer totalScore,
         String overallFeedback,
 
@@ -28,6 +32,7 @@ public record InterviewResultDetailResponse(
             Integer totalSilenceCount,
             Float avgSttAccuracy,
             Map<String, Object> emotionSummary,
+            List<String> frequentWords,
             List<String> habitDetails
     ) {}
 
