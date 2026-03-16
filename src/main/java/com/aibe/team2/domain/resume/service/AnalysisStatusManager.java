@@ -1,6 +1,6 @@
 package com.aibe.team2.domain.resume.service;
 
-import com.aibe.team2.domain.resume.entity.AnalysisStatus; // (또는 ResumeAnalysisStatus)
+import com.aibe.team2.domain.resume.entity.AnalysisStatus;
 import com.aibe.team2.domain.resume.repository.ResumeAnalysisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,9 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnalysisStatusManager {
 
     private final ResumeAnalysisRepository resumeAnalysisRepository;
-
-    // 사용하지 않는 StatusAggregator 주석 또는 제거 (불필요한 의존성)
-    // private final StatusAggregator statusAggregator;
 
     // 1. 에러 발생 시
     @Transactional(propagation = Propagation.REQUIRES_NEW)

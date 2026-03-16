@@ -12,6 +12,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class UsageLogAdminSearchCond {
     private Long memberId;
+    private String nickname;
+    private String email;
     private ServiceType serviceType;
     private LocalDate from;
     private LocalDate to;

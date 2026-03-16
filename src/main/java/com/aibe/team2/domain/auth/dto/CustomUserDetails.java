@@ -1,7 +1,6 @@
 package com.aibe.team2.domain.auth.dto;
 
 import com.aibe.team2.domain.mypage.entity.Member;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,14 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-@Getter
-public class CustomUserDetails implements UserDetails {
-
-    private final Member member;
-
-    public CustomUserDetails(Member member) {
-        this.member = member;
-    }
+public record CustomUserDetails(Member member) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

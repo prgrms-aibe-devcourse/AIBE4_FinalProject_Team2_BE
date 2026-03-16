@@ -1,7 +1,5 @@
 package com.aibe.team2.domain.auth.util;
 
-import com.aibe.team2.domain.mypage.entity.Member;
-import com.aibe.team2.domain.mypage.entity.enums.Provider;
 import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,9 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 
@@ -23,9 +21,20 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtTokenProvider jwtTokenProvider;
     private final MemberRepository memberRepository;
 
+    @Value("${app.frontend.oauth-redirect-uri}")
+    private String redirectUri;
+
+    @Value("${jwt.access-token-validity:3600000}")
+    private long accessTokenValidity;
+
+    @Value("${jwt.refresh-token-validity:604800000}")
+    private long refreshTokenValidity;
+
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
                                         Authentication authentication) throws IOException {
+
         // 0 - 1. 서비스(LoadUser)에서 반환한 인증 객체 꺼내기
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
@@ -36,32 +45,29 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtTokenProvider.createAccessToken(email, Role.MEMBER.name());
         String refreshToken = jwtTokenProvider.createRefreshToken(email, Role.MEMBER.name());
 
-
         // 1 - 1. access token 쿠키 생성
-        ResponseCookie accessCookie = ResponseCookie.from("accessToken", accessToken)
+        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", accessToken)
                 .path("/")
-                .httpOnly(false)     // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
-                .secure(false)      // 로컬 환경에서는 false, https 환경에서는 true
-                .sameSite("Lax")   // CSRF 방어
-                .maxAge(3600)      // 유효 기간 설정 - 1시간
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .maxAge(accessTokenValidity / 1000)
                 .build();
 
-
         // 1 - 2. refresh token 쿠키 생성
-        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .path("/")
-                .httpOnly(false)     // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
-                .secure(false)      // 로컬 환경에서는 false, https 환경에서는 true
-                .sameSite("Lax")   // CSRF 방어
-                .maxAge(7 * 24 * 3600)      // 유효 기간 설정 - 일주일
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .maxAge(refreshTokenValidity / 1000)
                 .build();
 
         // 2. 응답 헤더에 쿠키 추가
-        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         // 3. 리다이렉트 (토큰 제외)
-        String targetUrl = "http://localhost:5173/AIBE4_FinalProject_Team2_FE/oauth/callback";
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        getRedirectStrategy().sendRedirect(request, response, redirectUri);
     }
 }

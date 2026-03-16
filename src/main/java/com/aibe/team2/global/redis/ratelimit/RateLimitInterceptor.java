@@ -18,7 +18,6 @@ import java.time.Duration;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-// 💡 핵심 해결: implements HandlerInterceptor 추가
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private final RateLimiterService rateLimiterService;
@@ -30,7 +29,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        // 주의: 이 부분에서 에러가 난다면 RateLimit.java(어노테이션) 파일이 생성되어 있는지 꼭 확인해 줘!
+        // 이 부분에서 에러가 난다면 RateLimit.java(어노테이션) 파일이 생성되어 있는지 확인
         RateLimit rateLimit = handlerMethod.getMethodAnnotation(RateLimit.class);
         if(rateLimit == null) {
             return true;
@@ -61,9 +60,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             Object principal = authentication.getPrincipal();
 
             // 1-3. 우리가 만든 CustomUserDetails로 형변환(Casting)하여 memberId 추출
-            if (principal instanceof CustomUserDetails) {
-                CustomUserDetails userDetails = (CustomUserDetails) principal;
-                return "MEMBER_" + userDetails.getMember().getMemberId();
+            if (principal instanceof CustomUserDetails userDetails) {
+                return "MEMBER_" + userDetails.member().getMemberId();
             }
         }
 

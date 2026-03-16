@@ -1,11 +1,13 @@
 package com.aibe.team2.domain.mypage.entity;
 
-import com.aibe.team2.domain.mypage.entity.enums.Role;
-import com.aibe.team2.domain.mypage.entity.enums.Provider;
-import com.aibe.team2.domain.mypage.entity.enums.SubscriptionPlan;
 import com.aibe.team2.domain.mypage.entity.enums.MemberStatus;
+import com.aibe.team2.domain.mypage.entity.enums.Provider;
+import com.aibe.team2.domain.mypage.entity.enums.Role;
+import com.aibe.team2.domain.mypage.entity.enums.SubscriptionPlan;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
@@ -57,10 +59,12 @@ public class Member {
     @Column(name = "credit_balance")
     private Integer creditBalance;
 
-    @Column(name = "created_at", updatable = false)
+    @CreatedDate
+    @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @Column(name = "deleted_at")
