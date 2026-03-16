@@ -5,6 +5,7 @@ import com.aibe.team2.domain.auth.dto.LoginResponse;
 import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
 import com.aibe.team2.domain.auth.service.AuthService;
+import com.aibe.team2.domain.auth.util.CustomUserDetails;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
 import com.aibe.team2.domain.auth.util.RefreshToken;
 import com.aibe.team2.domain.mypage.entity.Member;
