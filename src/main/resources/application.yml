@@ -77,7 +77,7 @@ aws:
       audio: ${AWS_S3_MAX_UPLOAD_AUDIO_BYTES:52428800}
 
 cors:
-  allowed-origins: http://localhost:5173
+  allowed-origins: "http://localhost:5173, http://localhost:3000, http://localhost:80, http://localhost, https://*.ngrok-free.app, https://*.ngrok-free.dev"
 
 app:
   frontend:

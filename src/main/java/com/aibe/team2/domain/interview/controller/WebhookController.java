@@ -32,7 +32,7 @@ public class WebhookController {
 
         log.info("📨 Retell Webhook 수신 요청 확인");
 
-        // 🚀 서명 검증 수행 (현재 우회 상태이므로 무조건 통과)
+        // 서명 검증 수행 (현재 우회 상태이므로 무조건 통과)
         if (!isValidSignature(rawBodyBytes, signature)) {
             log.warn("🚨 보안 위협: 유효하지 않은 Webhook 서명입니다. 요청이 거부되었습니다.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -62,9 +62,10 @@ public class WebhookController {
     }
 
     private boolean isValidSignature(byte[] payloadBytes, String signature) {
-        // 🚀 [Tech Lead 의사결정] 이기종 언어 간 JSON 직렬화 불일치로 인한 무한 401 방지.
-        // 핵심 로직(상태 업데이트 및 SQS) 테스트를 위해 보안 검증을 강제로 우회(Bypass)합니다.
-        log.warn("🚨 [Tech Lead 판단] Java-Node.js 직렬화 차이 우회를 위해 서명 검증 강제 통과(return true) 처리");
+        // TODO: 배포 전 반드시 Webhook 서명 검증 로직을 활성화해야 합니다. 현재는 심각한 보안 취약점이 존재합니다.
+        // 이기종 언어 간 JSON 직렬화 불일치로 인한 무한 401 방지.
+        // 핵심 로직(상태 업데이트 및 SQS) 테스트를 위해 보안 검증을 강제로 우회합니다.
+        log.warn("🚨 [CRITICAL SECURITY RISK] Webhook signature verification is currently bypassed. This must be fixed before production.");
         return true;
     }
 }
