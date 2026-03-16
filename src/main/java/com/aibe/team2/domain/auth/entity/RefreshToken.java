@@ -1,0 +1,18 @@
+package com.aibe.team2.domain.auth.entity;
+
+import lombok.Getter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.redis.core.RedisHash;
+
+@Getter
+@RedisHash(value = "refreshToken", timeToLive = 604800) // 일주일 후 자동 삭제
+public class RefreshToken {
+    @Id
+    private String username;
+    private String refreshToken;
+
+    public RefreshToken(String username, String refreshToken) {
+        this.username = username;
+        this.refreshToken = refreshToken;
+    }
+}

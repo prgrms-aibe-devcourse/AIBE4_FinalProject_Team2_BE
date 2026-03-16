@@ -2,8 +2,9 @@ package com.aibe.team2.global.config;
 
 import com.aibe.team2.domain.auth.filter.JwtAuthenticationFilter;
 import com.aibe.team2.domain.auth.service.CustomMemberDetailService;
+import com.aibe.team2.domain.auth.service.CustomOAuth2UserService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
-import com.aibe.team2.domain.auth.util.OAuth2SuccessHandler;
+import com.aibe.team2.domain.auth.filter.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

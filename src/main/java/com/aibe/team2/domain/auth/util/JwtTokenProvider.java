@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.auth.util;
 
+import com.aibe.team2.domain.auth.entity.RefreshToken;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
