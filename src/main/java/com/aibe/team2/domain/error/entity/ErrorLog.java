@@ -147,8 +147,4 @@ public class ErrorLog {
                 .occurredAt(occurredAt)
                 .build();
     }
-
-    public void assignIssue(ErrorIssue issue) {
-        this.issue = issue;
-    }
 }
