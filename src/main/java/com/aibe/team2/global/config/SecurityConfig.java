@@ -2,8 +2,9 @@ package com.aibe.team2.global.config;
 
 import com.aibe.team2.domain.auth.filter.JwtAuthenticationFilter;
 import com.aibe.team2.domain.auth.service.CustomMemberDetailService;
+import com.aibe.team2.domain.auth.service.CustomOAuth2UserService;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
-import com.aibe.team2.domain.auth.util.OAuth2SuccessHandler;
+import com.aibe.team2.domain.auth.filter.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,7 @@ public class SecurityConfig {
     private final CustomMemberDetailService customMemberDetailService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -80,6 +82,9 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class
                 )
                 .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService) // 이 부분!
+                        )
                         .successHandler(oAuth2SuccessHandler)
                 )
                 .exceptionHandling(exceptions -> exceptions

@@ -1,4 +1,4 @@
-package com.aibe.team2.domain.auth.dto.response;
+package com.aibe.team2.domain.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

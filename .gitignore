@@ -36,3 +36,6 @@ localstack/
 
 # 모든 application 관련 설정 파일 제외
 *-dev.*
+
+# 로그파일 제외
+*.log

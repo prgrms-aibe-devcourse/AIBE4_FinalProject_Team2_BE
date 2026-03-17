@@ -1,18 +1,25 @@
 package com.aibe.team2.domain.auth.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.auth.dto.LoginRequest;
+import com.aibe.team2.domain.auth.dto.LoginResponse;
 import com.aibe.team2.domain.auth.dto.MemberDTO;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
 import com.aibe.team2.domain.auth.service.AuthService;
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.auth.util.JwtTokenProvider;
-import com.aibe.team2.domain.auth.util.RefreshToken;
+import com.aibe.team2.domain.auth.entity.RefreshToken;
 import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.entity.enums.Role;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import com.aibe.team2.global.error.ErrorCode;
 import com.aibe.team2.global.exception.BusinessException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +28,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -49,7 +58,7 @@ public class AuthController {
 
             // 2. 인증 객체에서 사용자 정보 꺼내기
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Member member = userDetails.member();
+            Member member = userDetails.getMember();
 
             // 3. 토큰 생성
             String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().name());
@@ -57,7 +66,7 @@ public class AuthController {
 
             // 4. 응답 반환
             return ResponseEntity.ok(
-                    new com.aibe.team2.domain.auth.dto.response.LoginResponse(
+                    new LoginResponse(
                             accessToken,
                             refreshToken,
                             member.getRole().name(),
@@ -91,14 +100,13 @@ public class AuthController {
                 request.getEmail(),
                 passwordEncoder.encode(request.getPassword()),
                 request.getNickname(),
-                null,
+                Role.MEMBER,
                 request.getProvider()
         );
 
         memberRepository.save(member);
         return ResponseEntity.ok("회원가입이 완료되었습니다.");
     }
-
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(
@@ -130,12 +138,61 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("accessToken", newAccessToken));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logout(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            authService.logout(authentication.getName());
-            return ResponseEntity.ok("로그아웃 되었습니다.");
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(Authentication authentication, HttpServletResponse response) {
+        // 1. Redis에서 RefreshToken 삭제 (보안 핵심)
+        if (authentication != null) {
+            refreshTokenRepository.deleteById(authentication.getName());
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인 상태가 아닙니다.");
+
+        // 2. AccessToken 쿠키 만료 설정
+        ResponseCookie deleteAccessCookie = ResponseCookie.from("accessToken", null)
+                .path("/")
+                .httpOnly(false) // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
+                .secure(false) // 로컬 환경에서는 false, https 환경에서는 true
+                .sameSite("Lax")
+                .maxAge(0) // 즉시 만료
+                .build();
+
+        // 3. RefreshToken 쿠키 만료 설정
+        ResponseCookie deleteRefreshCookie = ResponseCookie.from("refreshToken", null)
+                .path("/")
+                .httpOnly(false) // 자바스크립트에서 쿠키에 접근하기 위해 false 설정
+                .secure(false) // 로컬 환경에서는 false, https 환경에서는 true
+                .sameSite("Lax")
+                .maxAge(0) // 즉시 만료
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshCookie.toString());
+
+        // 4. 응답 헤더에 담아 전송
+        return ResponseEntity.ok("로그아웃 성공");
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(HttpServletRequest request) {
+        // 1. 요청의 쿠키에서 accessToken 추출
+        Cookie[] cookies = request.getCookies();
+        String token = null;
+        if (cookies != null) {
+            token = Arrays.stream(cookies)
+                    .filter(c -> "accessToken".equals(c.getName()))
+                    .findFirst()
+                    .map(Cookie::getValue)
+                    .orElse(null);
+        }
+
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // 2. 토큰이 유효하면 유저 정보와 함께 토큰을 JSON으로 반환 (프론트가 저장할 수 있도록)
+        String email = jwtTokenProvider.getEmail(token);
+        Map<String, String> response = new HashMap<>();
+        response.put("email", email);
+        response.put("accessToken", token);
+
+        return ResponseEntity.ok(response);
     }
 }

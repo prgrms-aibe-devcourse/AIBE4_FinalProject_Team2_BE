@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.auth.util;
 
+import com.aibe.team2.domain.auth.entity.RefreshToken;
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -62,9 +63,8 @@ public class JwtTokenProvider {
     }
 
     public Claims getClaims(String token) {
-        return Jwts.parserBuilder()
+        return Jwts.parser()
                 .setSigningKey(key)
-                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -72,10 +72,21 @@ public class JwtTokenProvider {
     // 토큰 유효성 검사
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Jwts.parser()
+                    .setSigningKey(key)
+                    .parseClaimsJwt(token);     // 서명이나 만료 시간에 문제가 있으면 예외 발생
             return true;
-        } catch (Exception e) {
-            return false;
+        } catch (io.jsonwebtoken.security.SignatureException e) {
+            System.out.println("잘못된 JWT 서명입니다.");
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("만료된 JWT 토큰입니다.");
+        } catch (io.jsonwebtoken.UnsupportedJwtException e) {
+            System.out.println("지원되지 않는 JWT 토큰입니다.");
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            System.out.println("구조가 잘못된 JWT 토큰입니다.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("JWT 토큰이 비어있거나 잘못되었습니다.");
         }
+        return false;
     }
 }

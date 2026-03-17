@@ -61,7 +61,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
             // 1-3. 우리가 만든 CustomUserDetails로 형변환(Casting)하여 memberId 추출
             if (principal instanceof CustomUserDetails userDetails) {
-                return "MEMBER_" + userDetails.member().getMemberId();
+                return "MEMBER_" + userDetails.getMember().getMemberId();
             }
         }
 
