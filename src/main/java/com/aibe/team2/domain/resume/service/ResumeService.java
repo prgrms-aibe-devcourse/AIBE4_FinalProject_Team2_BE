@@ -75,6 +75,7 @@ public class ResumeService {
             resumeAsyncService.updateEmbeddingAsync(resumeId, contentJson);
 
         } catch (JsonProcessingException e) {
+            log.error("자기소개서 항목 JSON 직렬화 실패 - resumeId: {}, error: {}", resumeId, e.getMessage());
             throw new BusinessException(ErrorCode.COMMON_JSON_CONVERSION_ERROR);
         }
     }

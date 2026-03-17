@@ -70,6 +70,7 @@ public class Resume {
     public void updateTextOnly(String title, String content) {
         this.title = title;
         this.content = content;
+        this.isAnalyzed = false;
     }
 
     public void updateEmbeddingOnly(float[] embedding) {

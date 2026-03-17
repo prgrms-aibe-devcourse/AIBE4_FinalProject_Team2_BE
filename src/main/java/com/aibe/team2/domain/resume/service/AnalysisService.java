@@ -24,13 +24,13 @@ public class AnalysisService {
     private final ResumeRepository resumeRepository;
     private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final JobPostingRepository jobPostingRepository;
-    private final ResumeAnalysisRepository analysisRepository;
+
     private final ApplicationEventPublisher eventPublisher;
 
     // 분석 재시도
     @Transactional
     public void retryAnalysis(Long reportId, Long memberId) {
-        AnalyzedReport report = analysisRepository.findById(reportId)
+        AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
         // 권한 체크: 본인의 자소서에 대한 리포트인지 확인
@@ -55,7 +55,7 @@ public class AnalysisService {
                 .analysisType(AnalysisType.NORMAL)
                 .jobPosting(null)
                 .build();
-        analysisRepository.save(report);
+        resumeAnalysisRepository.save(report);
         eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
 
         return report.getId();
@@ -75,7 +75,7 @@ public class AnalysisService {
                 .analysisType(AnalysisType.FIT_MATCH)
                 .jobPosting(jobPosting)
                 .build();
-        analysisRepository.save(report);
+        resumeAnalysisRepository.save(report);
         eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
         return report.getId();
     }
