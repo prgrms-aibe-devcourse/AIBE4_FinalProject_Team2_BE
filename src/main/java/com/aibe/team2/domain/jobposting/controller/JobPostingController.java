@@ -24,13 +24,14 @@ public class JobPostingController {
     private final JobPostingParsingService jobPostingParsingService;
     // 하드코딩중 로그인 연동후 수정 // CurrentMemberId => MemberId
     // 1. 공고 등록 (URL만 줘도 내용이 채워짐)
-    @PostMapping
+    @PostMapping("/create")
     public ApiResponse<JobPostingResponse> createJobPosting(@RequestBody JobPostingRequest request) {
         log.info("Job Posting create requested. URL provided: {}", request.postingUrl() != null);
         Long currentMemberId = 1L;
         JobPostingResponse response = jobPostingService.createJobPosting(currentMemberId, request);
         return ApiResponse.success(response);
     }
+
 
     // 2. 상세 조회
     @GetMapping("/{id}")
@@ -50,9 +51,9 @@ public class JobPostingController {
         return ApiResponse.success(responses);
     }
 
-    @GetMapping("/auto-fill")
-    public ApiResponse<JobPostingParseResponse> autoFillJobPosting(@RequestParam("url") String url) {
-        JobPostingParseResponse response = jobPostingParsingService.autoFillFromUrl(url);
+    @PostMapping("/parse")
+    public ApiResponse<JobPostingParseResponse> parseJobPosting(@RequestParam("url") String url) {
+        JobPostingParseResponse response = jobPostingParsingService.parseFromUrl(url);
         return ApiResponse.success(response);
     }
 }

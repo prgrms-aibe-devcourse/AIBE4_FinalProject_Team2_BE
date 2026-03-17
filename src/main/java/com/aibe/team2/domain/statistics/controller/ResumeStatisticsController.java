@@ -41,7 +41,7 @@ public class ResumeStatisticsController {
     @GetMapping("/analysis/{analysisId}")
     public ResponseEntity<ResumeAnalysisResultResponse> getResumeAnalysisReport(
             @LoginMemberId Long memberId,
-            @PathVariable("analysisId") Long analysisId
+            @PathVariable Long analysisId
     ){
         ResumeAnalysisResultResponse response = resumeStatisticsService.getResumeAnalysisReport(analysisId, memberId);
 

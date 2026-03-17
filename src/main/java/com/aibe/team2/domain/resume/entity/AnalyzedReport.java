@@ -6,6 +6,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode; // 🔴 추가
+import org.hibernate.type.SqlTypes;          // 🔴 추가
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -43,9 +45,11 @@ public class AnalyzedReport {
     @Column(name = "overall_feedback", columnDefinition = "TEXT")
     private String overallFeedback;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "sentence_corrections", columnDefinition = "JSON")
     private String sentenceCorrections;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "paragraph_summaries", columnDefinition = "JSON")
     private String paragraphSummaries;
 
@@ -62,9 +66,11 @@ public class AnalyzedReport {
     @Column(name = "matching_feedback", columnDefinition = "TEXT")
     private String matchingFeedback;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "keyword_analysis", columnDefinition = "JSON")
     private String keywordAnalysis;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "expected_questions", columnDefinition = "JSON")
     private String expectedQuestions;
 

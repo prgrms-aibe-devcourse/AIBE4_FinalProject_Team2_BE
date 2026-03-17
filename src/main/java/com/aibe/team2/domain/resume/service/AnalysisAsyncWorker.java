@@ -70,7 +70,7 @@ public class AnalysisAsyncWorker {
                 - 주요 업무: %s
                 - 자격 요건: %s
                 - 우대 사항: %s
-                - 복리 후생: %s
+                - 복지 : %s
                 - 요구 역량: %s
                 """,
                     jp.getJobDescription() != null ? jp.getJobDescription() : "없음",
@@ -146,7 +146,7 @@ public class AnalysisAsyncWorker {
         return objectMapper.readTree(responseText);
     }
 
-    // 트랙 1: 일반 자소서 첨삭 프롬프트 (요약 생성 추가)
+    // 트랙 1: 일반 자소서 첨삭 프롬프트
     private String buildNormalPrompt(String resumeContent) {
         return String.format("""
                 당신은 10년 차 전문 에디터입니다. 아래 [자기소개서]의 문맥, 가독성, 표현을 다듬고 첨삭해주세요.
@@ -168,10 +168,20 @@ public class AnalysisAsyncWorker {
                 """, resumeContent);
     }
 
-    // 트랙 2: 채용공고 기반 매칭 프롬프트 (요약 생성 추가)
+    // 트랙 2: 채용공고 기반 매칭 프롬프트
     private String buildMatchPrompt(String resumeContent, String jobInfoText) {
         return String.format("""
-                당신은 10년 차 수석 채용 면접관입니다. 아래 [채용 공고 상세 정보]와 [자기소개서]를 비교하여 적합도를 평가하고 첨삭해주세요.
+                당신은 엄격하고 객관적인 시니어 HR 채용 담당자입니다. 
+                아래 [채용 공고 상세 정보]와 [자기소개서]를 비교하여 적합도를 평가하고 첨삭해주세요.
+                
+                [점수 산출 기준표 - 총점 100점]
+                1. 기술 스택 일치도 (최대 40점): 
+                   - 채용 공고에서 요구하는 필수/우대 기술 스택이 자기소개서에 얼마나 명시되어 있는가?
+                   - 단순 나열이 아닌, 실제 활용 경험이 있으면 높은 점수 부여.
+                2. 경험 연관성 (최대 40점): 
+                   - 공고의 '주요 업무'와 지원자가 작성한 '프로젝트 및 실무 경험'의 일치도. 무관한 경험은 감점 처리.
+                3. 태도 및 소프트스킬 (최대 20점): 
+                   - 자소서에 드러난 문제 해결 방식, 협업 능력, 성장 의지가 채용 기업에 부합하는가?
                 
                 %s
                 
@@ -181,7 +191,7 @@ public class AnalysisAsyncWorker {
                 응답은 반드시 아래 JSON 형식으로만 작성하세요. (Markdown 코드 블록 없이 순수 JSON만 반환)
                 {
                   "matchingScore": 85,
-                  "matchingFeedback": "직무 경험은 우수하나, 클라우드 역량 어필이 부족합니다.",
+                  "matchingFeedback": "[기술 스택: 35/40] Java, Spring 경험이 우수함. [경험 연관성: 30/40] 클라우드 경험은 다소 부족함. [태도: 20/20] 협업 능력이 돋보임.",
                   "keywordAnalysis": {
                      "matchedKeywords": ["Java", "Spring"],
                      "missingKeywords": ["AWS"]
@@ -201,7 +211,9 @@ public class AnalysisAsyncWorker {
                 }
                 
                 [주의사항]
-                1. 지원서의 맥락을 분석하여 각 문단(Paragraph)별로 내용을 한 줄로 요약한 소제목을 'paragraphSummaries' 배열에 작성하세요.
+                1. 'matchingScore'는 반드시 위 [점수 산출 기준표]의 3가지 항목 점수를 합산하여 엄격하고 깐깐하게 계산하세요.
+                2. 'matchingFeedback'에는 각 항목별(기술/경험/태도) 점수와 구체적인 채점 이유를 작성해 주세요.
+                3. 지원서의 맥락을 분석하여 각 문단(Paragraph)별로 내용을 한 줄로 요약한 소제목을 'paragraphSummaries' 배열에 작성하세요.
                 """, jobInfoText, resumeContent);
     }
 }
