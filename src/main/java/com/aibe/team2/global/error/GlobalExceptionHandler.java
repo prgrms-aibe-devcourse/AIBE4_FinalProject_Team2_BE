@@ -171,7 +171,7 @@ public class GlobalExceptionHandler {
         Object principal = authentication.getPrincipal();
 
         if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getmember();
+            return customUserDetails.getMember();
         }
 
         return null;
