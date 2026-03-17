@@ -1,5 +1,7 @@
 package com.aibe.team2.domain.auth.controller;
 
+import com.aibe.team2.domain.auth.dto.EmailRequest;
+import com.aibe.team2.domain.auth.dto.EmailVerifyRequest;
 import com.aibe.team2.domain.auth.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +24,8 @@ public class EmailController {
      * POST /api/v1/auth/email/request
      */
     @PostMapping("/request")
-    public ResponseEntity<String> requestVerification(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
+    public ResponseEntity<String> requestVerification(@RequestBody EmailRequest request) {
+        String email = request.getEmail();
         if (email == null || email.isBlank()) {
             return ResponseEntity.badRequest().body("이메일 주소는 필수입니다.");
         }
@@ -37,9 +39,9 @@ public class EmailController {
      * POST /api/v1/auth/email/verify
      */
     @PostMapping("/verify")
-    public ResponseEntity<Map<String, Object>> verifyCode(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        String code = request.get("code");
+    public ResponseEntity<Map<String, Object>> verifyCode(@RequestBody EmailVerifyRequest request) {
+        String email = request.getEmail();
+        String code = request.getCode();
 
         boolean isVerified = emailService.verifyCode(email, code);
 
