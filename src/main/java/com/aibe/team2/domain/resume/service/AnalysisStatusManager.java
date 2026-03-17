@@ -18,7 +18,6 @@ public class AnalysisStatusManager {
     // 1. 에러 발생 시
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateToFailed(Long reportId) {
-        // 내부 메서드에서 로그를 찍으므로 여기서는 호출만 합니다.
         updateStatusWithLog(reportId, AnalysisStatus.FAILED);
     }
 
@@ -28,7 +27,7 @@ public class AnalysisStatusManager {
         updateStatusWithLog(reportId, AnalysisStatus.DELAYED);
     }
 
-    // 3. 분석 상태를 명시적으로 변경해야 할 때 사용하는 범용 메서드 (COMPLETED 등)
+    // 3. 분석 상태를 명시적으로 변경해야 할 때 사용하는 범용 메서드
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void changeStatus(Long reportId, AnalysisStatus newStatus) {
         updateStatusWithLog(reportId, newStatus);
@@ -45,16 +44,16 @@ public class AnalysisStatusManager {
             // 2. 상태에 따른 맞춤형 가시성 로그 출력
             switch (status) {
                 case COMPLETED:
-                    log.info("✅ [StatusManager] 분석 성공! 리포트 ID: {} - 상태가 [COMPLETED]로 업데이트 되었습니다.", reportId);
+                    log.info("[StatusManager] 분석 성공! 리포트 ID: {} - 상태가 [COMPLETED]로 업데이트 되었습니다.", reportId);
                     break;
                 case DELAYED:
-                    log.warn("⏳ [StatusManager] 분석 지연! 리포트 ID: {} - 상태가 [DELAYED]로 업데이트 되었습니다.", reportId);
+                    log.warn("[StatusManager] 분석 지연! 리포트 ID: {} - 상태가 [DELAYED]로 업데이트 되었습니다.", reportId);
                     break;
                 case FAILED:
-                    log.error("❌ [StatusManager] 분석 실패! 리포트 ID: {} - 상태가 [FAILED]로 업데이트 되었습니다.", reportId);
+                    log.error("[StatusManager] 분석 실패! 리포트 ID: {} - 상태가 [FAILED]로 업데이트 되었습니다.", reportId);
                     break;
                 default:
-                    log.info("ℹ️ [StatusManager] 리포트 ID: {} - 상태가 [{}]로 업데이트 되었습니다.", reportId, status.name());
+                    log.info("[StatusManager] 리포트 ID: {} - 상태가 [{}]로 업데이트 되었습니다.", reportId, status.name());
                     break;
             }
         });

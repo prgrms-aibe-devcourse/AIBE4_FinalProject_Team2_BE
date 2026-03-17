@@ -19,7 +19,7 @@ public record JobPostingResponse(
         String benefits,
 
         @Schema(description = "요구 역량 리스트")
-        List<String> requiredSkills, // [복구]
+        List<String> requiredSkills,
 
         @Schema(description = "예상 면접 질문 (JSON String)")
         String expectedQuestions,

@@ -65,11 +65,14 @@ public class Resume {
         this.isAnalyzed = isAnalyzed;
     }
 
-    // 수정 시 텍스트가 바뀌므로 벡터(임베딩)도 새롭게 업데이트
-    public void update(String title, String contentJson, float[] embedding) {
+
+    // 기존 update() 대신 아래 두 메서드를 추가/사용합니다.
+    public void updateTextOnly(String title, String content) {
         this.title = title;
-        this.content = contentJson;
+        this.content = content;
+    }
+
+    public void updateEmbeddingOnly(float[] embedding) {
         this.embedding = embedding;
-        this.isAnalyzed = false;
     }
 }

@@ -1,9 +1,8 @@
 package com.aibe.team2.domain.resume.controller;
 
 import com.aibe.team2.domain.resume.dto.AnalysisMatchRequest;
+import com.aibe.team2.domain.resume.dto.AnalysisResponse;
 import com.aibe.team2.domain.resume.service.AnalysisService;
-import com.aibe.team2.domain.statistics.dto.resume.ResumeAnalysisResultResponse;
-import com.aibe.team2.domain.statistics.service.ResumeStatisticsService;
 import com.aibe.team2.global.common.annotation.LoginMemberId;
 import com.aibe.team2.global.common.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,11 +20,10 @@ import org.springframework.web.bind.annotation.*;
 public class AnalysisController {
 
     private final AnalysisService analysisService;
-    private final ResumeStatisticsService resumeStatisticsService;
 
     // 1. 일반 자기소개서 첨삭 요청
-    @PostMapping("/{resumeId}/analyze/general")
-    public ResponseEntity<ApiResponse<Long>> analyzeGeneralResume(@PathVariable Long resumeId) {
+    @PostMapping("/{resumeId}/analyze/normal")
+    public ResponseEntity<ApiResponse<Long>> analyzeNormalResume(@PathVariable Long resumeId) {
         Long memberId = 1L; // 임시 하드코딩 (테스트용)
         Long reportId = analysisService.requestNormalAnalysis(resumeId, memberId);
         return ResponseEntity.ok(ApiResponse.success(reportId));
@@ -43,15 +41,13 @@ public class AnalysisController {
 
     // 3. 분석 결과 상세 조회 (GET)
     @GetMapping("/{resumeId}/reports/{reportId}")
-    public ResponseEntity<ApiResponse<ResumeAnalysisResultResponse>> getAnalysisReport(
+    public ResponseEntity<ApiResponse<AnalysisResponse>> getAnalysisReport(
             @PathVariable Long resumeId,
             @PathVariable Long reportId) {
 
-        log.info("자기소개서 ID: {} 에 대한 분석 결과 조회 요청 - 리포트 ID: {}", resumeId, reportId);
+        log.info("자기소개서 ID: {} 에 대한 분석 결과 원본 상세 조회 요청 - 리포트 ID: {}", resumeId, reportId);
         Long memberId = 1L; // 임시 하드코딩
-
-        // 단순히 ID만 넘기는 것이 아니라, 완성된 DTO 객체를 프론트엔드로 바로 넘겨줍니다.
-        ResumeAnalysisResultResponse response = resumeStatisticsService.getResumeAnalysisReport(reportId, memberId);
+        AnalysisResponse response = analysisService.getAnalysisResult(resumeId, reportId, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

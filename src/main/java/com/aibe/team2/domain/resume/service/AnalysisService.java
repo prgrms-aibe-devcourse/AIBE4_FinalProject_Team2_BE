@@ -3,6 +3,7 @@ package com.aibe.team2.domain.resume.service;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.resume.dto.AnalysisEvent;
+import com.aibe.team2.domain.resume.dto.AnalysisResponse;
 import com.aibe.team2.domain.resume.entity.AnalysisStatus;
 import com.aibe.team2.domain.resume.entity.AnalysisType;
 import com.aibe.team2.domain.resume.entity.AnalyzedReport;
@@ -53,7 +54,6 @@ public class AnalysisService {
                 )
         );
     }
-
     @Transactional
     public Long requestNormalAnalysis(Long resumeId, Long memberId) {
         Resume resume = resumeRepository.findById(resumeId)
@@ -75,7 +75,6 @@ public class AnalysisService {
 
         return report.getId();
     }
-
     @Transactional
     public Long requestMatchAnalysis(Long resumeId, Long memberId, Long jobPostingId) {
         Resume resume = resumeRepository.findById(resumeId)
@@ -98,5 +97,39 @@ public class AnalysisService {
         );
 
         return report.getId();
+    }
+
+    @Transactional(readOnly = true)
+    public AnalysisResponse getAnalysisResult(Long resumeId, Long reportId, Long memberId) {
+
+        Resume resume = resumeRepository.findByIdAndMemberId(resumeId, memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
+
+        AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
+
+        if (!report.getResume().getId().equals(resumeId)) {
+            throw new BusinessException(ErrorCode.COMMON_403);
+        }
+
+        return AnalysisResponse.builder()
+                .reportId(report.getId())
+                .resumeId(resume.getId())
+                .jobPostingId(report.getJobPosting() != null ? report.getJobPosting().getId() : null)
+                .analysisType(report.getAnalysisType())
+                .status(report.getStatus())
+                // --- 매칭 분석 전용 데이터 ---
+                .matchScore(report.getMatchScore())
+                .matchingFeedback(report.getMatchingFeedback())
+
+                .keywordAnalysis(report.getKeywordAnalysis())
+                .expectedQuestions(report.getExpectedQuestions())
+                // --- 공통 분석 데이터 ---
+                .overallFeedback(report.getOverallFeedback())
+                .sentenceCorrections(report.getSentenceCorrections())
+                .paragraphSummaries(report.getParagraphSummaries())
+                .revisedFullContent(report.getRevisedFullContent())
+                .createdAt(report.getCreatedAt())
+                .build();
     }
 }
