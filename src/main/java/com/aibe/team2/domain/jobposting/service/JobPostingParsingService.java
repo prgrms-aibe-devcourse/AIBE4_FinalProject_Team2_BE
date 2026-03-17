@@ -168,6 +168,6 @@ public class JobPostingParsingService {
     private String extractCompanyName(String title) {
         if (title == null || title.isBlank()) return "기업명 미상";
         String cleanedTitle = title.replaceAll("\\[.*?\\]|\\(.*?\\)", "").trim();
-        return cleanedTitle.isEmpty() ? title.split(" ")[0] : cleanedTitle.split(" ")[0];
+        return cleanedTitle.isEmpty() ? "기업명 미상" : cleanedTitle.split(" ")[0];
     }
 }
