@@ -18,5 +18,5 @@ public record JobPostingRequest(
         List<String> requiredSkills,
 
         @Schema(description = "예상 면접 질문 리스트", example = "[\"질문1\", \"질문2\"]")
-        java.util.List<String> expectedQuestions
+        List<String> expectedQuestions
 ) {}

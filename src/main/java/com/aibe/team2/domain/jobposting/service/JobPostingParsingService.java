@@ -1,19 +1,21 @@
 package com.aibe.team2.domain.jobposting.service;
 
 import com.aibe.team2.domain.jobposting.dto.JobPostingParseResponse;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.util.retry.Retry;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
-import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -24,129 +26,148 @@ public class JobPostingParsingService {
 
     private final ObjectMapper objectMapper;
     private final JobPostingCrawlerService jobPostingCrawlerService;
-    private final WebClient.Builder webClientBuilder;
-
-    private WebClient webClient;
+    private final RestTemplate restTemplate;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
 
-    @Value("${gemini.api.url:https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent}")
+    @Value("${gemini.api.url}")
     private String geminiApiUrl;
 
-    @PostConstruct
-    public void init() {
-        // 객체 생성 비용을 줄이기 위해 빈 초기화 시점에 WebClient 빌드 및 재사용
-        this.webClient = webClientBuilder.build();
-    }
+    public JobPostingParseResponse parseFromUrl(String url) {
+        // 1. Jsoup 크롤링으로 기본 데이터 가져오기
+        Map<String, String> crawledData = jobPostingCrawlerService.crawlFullText(url);
 
-    public JobPostingParseResponse autoFillFromUrl(String url) {
-        String rawText = jobPostingCrawlerService.crawlFullText(url).toString();
-
-        if (rawText == null || rawText.isBlank()) {
+        if (crawledData.isEmpty() || crawledData.get("fullDescription") == null) {
             throw new IllegalArgumentException("크롤링할 수 없는 URL이거나 내용이 비어있습니다.");
         }
 
-        String prompt = """
-            다음 채용 공고 텍스트를 분석해서 아래 JSON 형식에 맞게 데이터를 추출해줘.
-            공고 내용을 바탕으로 지원자에게 물어볼 만한 핵심 예상 면접 질문 5가지도 함께 생성해.
-            반드시 순수 JSON 포맷으로만 대답해. (Markdown 텍스트 블록 제외)
-            
-            {
-              "companyName": "기업명",
-              "jobTitle": "직무명",
-              "jobDescription": "공고 전체 내용 요약 또는 원본",
-              "mainTasks": "주요업무 내용",
-              "qualifications": "자격요건 내용",
-              "preferred": "우대사항 내용",
-              "benefits": "복리후생 내용",
-              "requiredSkills": ["Java", "Spring Boot", "MySQL" 등 기술 스택 배열],
-              "expectedQuestions": [
-                 "공고의 주요 업무와 관련된 예상 질문 1",
-                 "공고의 자격 요건을 검증하는 예상 질문 2",
-                 "예상 질문 3",
-                 "예상 질문 4",
-                 "예상 질문 5"
-              ]
-            }
-            
-            [채용 공고 본문]
-            """ + rawText;
+        String companyName = extractCompanyName(crawledData.get("title"));
+        String jobTitle = crawledData.get("title");
+        String mainTasks = crawledData.getOrDefault("mainTasks", "상세 내용 참고");
+        String qualifications = crawledData.getOrDefault("qualifications", "상세 내용 참고");
 
+        // DB 저장을 위해 긴 본문은 500자로 커트
+        String jobDesc = crawledData.get("fullDescription");
+        if (jobDesc != null && jobDesc.length() > 500) {
+            jobDesc = jobDesc.substring(0, 500) + "... (이하 생략)";
+        }
+
+        // 기본값 세팅 (없으면 "없음")
+        String preferred = crawledData.getOrDefault("preferred", "없음");
+        String benefits = crawledData.getOrDefault("benefits", "없음");
+        List<String> requiredSkills = Collections.emptyList();
+        List<String> expectedQuestions = Collections.emptyList();
+
+        // 2. AI를 통해 누락된 정보(우대, 복지, 스킬)와 면접 질문 5개 동시 추출
         try {
-            // 1. 직접 Gemini API 호출
+            String prompt = buildParsingPrompt(crawledData);
             String aiJsonResponse = callGeminiApi(prompt);
 
-            // 2. 응답받은 순수 JSON 문자열을 DTO 객체로 즉시 매핑
-            JobPostingParseResponse response = objectMapper.readValue(aiJsonResponse, JobPostingParseResponse.class);
+            if (!"{}".equals(aiJsonResponse) && !aiJsonResponse.isBlank() && !"[]".equals(aiJsonResponse)) {
+                aiJsonResponse = aiJsonResponse.replace("```json", "").replace("```", "").trim();
 
-            // 3. 기업명 노이즈(괄호 등) 정제 후 최종 DTO 반환
-            String refinedCompanyName = extractCompanyName(response.companyName());
+                // JsonNode로 파싱하여 안전하게 데이터 추출
+                JsonNode rootNode = objectMapper.readTree(aiJsonResponse);
 
-            return new JobPostingParseResponse(
-                    refinedCompanyName,
-                    response.jobTitle(),
-                    response.jobDescription(),
-                    response.mainTasks(),
-                    response.qualifications(),
-                    response.preferred(),
-                    response.benefits(),
-                    response.requiredSkills(),
-                    response.expectedQuestions()
-            );
-
+                if (rootNode.has("preferred") && !rootNode.get("preferred").isNull()) {
+                    preferred = rootNode.get("preferred").asText();
+                }
+                if (rootNode.has("benefits") && !rootNode.get("benefits").isNull()) {
+                    benefits = rootNode.get("benefits").asText();
+                }
+                if (rootNode.has("requiredSkills") && rootNode.get("requiredSkills").isArray()) {
+                    requiredSkills = objectMapper.convertValue(rootNode.get("requiredSkills"), new TypeReference<List<String>>() {});
+                }
+                if (rootNode.has("expectedQuestions") && rootNode.get("expectedQuestions").isArray()) {
+                    expectedQuestions = objectMapper.convertValue(rootNode.get("expectedQuestions"), new TypeReference<List<String>>() {});
+                }
+            }
         } catch (Exception e) {
-            log.error("AI 채용공고 분석 및 파싱 실패. URL: {}", url, e);
-            // 실패 시 빈 데이터를 반환하여 프론트엔드 에러 방지
-            return new JobPostingParseResponse(null, null, null, null, null, null, null, null, java.util.Collections.emptyList());
+            log.warn("⚠️ AI 정보 추출 실패. 크롤링 기본값으로 저장합니다. 원인: {}", e.getMessage());
         }
+
+        // 3. 최종 조합하여 반환
+        return new JobPostingParseResponse(
+                companyName,
+                jobTitle,
+                jobDesc,
+                mainTasks,
+                qualifications,
+                preferred,
+                benefits,
+                requiredSkills,
+                expectedQuestions
+        );
     }
 
-    /**
-     * Gemini API를 HTTP 기반으로 직접 호출하는 로직
-     */
     private String callGeminiApi(String prompt) {
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt)))),
                 "generationConfig", Map.of("responseMimeType", "application/json")
         );
 
-        JsonNode responseNode = webClient.post()
-                .uri(URI.create(geminiApiUrl))
-                .header("x-goog-api-key", geminiApiKey)
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(JsonNode.class)
-                // 429 에러(Too Many Requests) 발생 시 3초 간격으로 최대 3번 재시도
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(3))
-                        .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
-                .timeout(Duration.ofSeconds(30)) // 30초 타임아웃
-                .block();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
 
-        if (responseNode != null && responseNode.has("candidates")) {
-            return responseNode.get("candidates").get(0)
-                    .get("content").get("parts").get(0).get("text").asText();
+        String requestUrl = geminiApiUrl + "?key=" + geminiApiKey;
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        int maxRetries = 3;
+        for (int i = 0; i < maxRetries; i++) {
+            try {
+                ResponseEntity<JsonNode> response = restTemplate.postForEntity(requestUrl, requestEntity, JsonNode.class);
+                JsonNode responseNode = response.getBody();
+
+                if (responseNode != null && responseNode.has("candidates") && responseNode.get("candidates").isArray() && !responseNode.get("candidates").isEmpty()) {
+                    JsonNode candidate = responseNode.get("candidates").get(0);
+                    if (candidate.has("content") && candidate.get("content").has("parts") && candidate.get("content").get("parts").isArray() && !candidate.get("content").get("parts").isEmpty()) {
+                        return candidate.get("content").get("parts").get(0).get("text").asText();
+                    }
+                }
+                return "{}";
+
+            } catch (HttpClientErrorException.TooManyRequests e) {
+                long waitTime = 5000L * (i + 1);
+                log.warn("⚠️ [429 Error] API 속도 제한. {}초 대기 후 재시도... ({}/{})", waitTime / 1000, i + 1, maxRetries);
+                try { Thread.sleep(waitTime); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+            } catch (Exception e) {
+                log.error("⚠️ Gemini API RestTemplate 통신 오류: {}", e.getMessage());
+                break;
+            }
         }
-
         return "{}";
     }
 
-    /**
-     * 괄호 등 노이즈가 포함된 기업명 데이터를 깔끔하게 추출하는 로직
-     */
-    private String extractCompanyName(String title) {
-        if (title == null || title.isBlank()) return "기업명 미상";
+    private String buildParsingPrompt(Map<String, String> crawledData) {
+        String coreInfo = "주요업무: " + crawledData.getOrDefault("mainTasks", "")
+                + "\n자격요건: " + crawledData.getOrDefault("qualifications", "")
+                + "\n전체내용: " + crawledData.getOrDefault("fullDescription", "");
 
-        // 대괄호 [], 소괄호 () 및 그 안의 문자열 일괄 제거
-        String cleanedTitle = title.replaceAll("\\[.*?]|\\(.*?\\)", "").trim();
-
-        // 괄호 등을 제거한 후 문자열이 비어있다면, 유효한 회사명이 없는 것으로 간주합니다.
-        // 예: "(주)", "[신입]"
-        if (cleanedTitle.isEmpty()) {
-            return "기업명 미상";
+        // 토큰 초과 방지를 위해 1500자로 커트
+        if (coreInfo.length() > 1500) {
+            coreInfo = coreInfo.substring(0, 1500);
         }
 
-        // 첫 번째 단어를 회사명으로 간주합니다. (예: "삼성전자 주식회사" -> "삼성전자")
-        return cleanedTitle.split(" ")[0];
+        return String.format("""
+            아래 채용 공고 내용을 분석하여 누락된 정보를 채우고 면접 질문을 생성해.
+            반드시 아래의 JSON 포맷으로만 응답해.
+            
+            {
+              "preferred": "우대사항을 찾아 3줄로 요약 (없으면 '없음')",
+              "benefits": "복지 또는 혜택을 찾아 3줄로 요약 (없으면 '없음')",
+              "requiredSkills": ["Java", "Spring Boot", "React", "등 주요 요구 기술 스택 배열"],
+              "expectedQuestions": ["직무 역량 검증을 위한 심층 면접 질문 1", "질문 2", "질문 3", "질문 4", "질문 5"]
+            }
+            
+            [공고 내용]:
+            %s
+            """, coreInfo);
+    }
+
+    private String extractCompanyName(String title) {
+        if (title == null || title.isBlank()) return "기업명 미상";
+        String cleanedTitle = title.replaceAll("\\[.*?\\]|\\(.*?\\)", "").trim();
+        return cleanedTitle.isEmpty() ? "기업명 미상" : cleanedTitle.split(" ")[0];
     }
 }

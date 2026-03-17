@@ -53,6 +53,7 @@ public class JobPosting {
     @Column(name = "benefits", columnDefinition = "TEXT")
     private String benefits;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "expected_questions", columnDefinition = "JSON")
     private String expectedQuestions;
 
@@ -69,7 +70,7 @@ public class JobPosting {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "jobPosting", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<JobSkill> jobSkills = new ArrayList<>();
+    private final List<JobSkill> jobSkills = new ArrayList<>();
 
     @Builder
     public JobPosting(Long memberId, String companyName, String jobTitle, String postingUrl, String jobDescription,
@@ -84,7 +85,7 @@ public class JobPosting {
         this.qualifications = qualifications;
         this.preferred = preferred;
         this.benefits = benefits;
-        this.expectedQuestions = expectedQuestions; // 빌더 추가
+        this.expectedQuestions = expectedQuestions;
         this.embedding = embedding;
     }
 

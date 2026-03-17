@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays; // 🔴 Arrays 임포트 추가
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ public class ResumeService {
     private final ResumeRepository resumeRepository;
     private final ObjectMapper objectMapper;
     private final SimilarityEngine similarityEngine;
+    private final ResumeAsyncService resumeAsyncService;
 
     // 1. 자기소개서 저장
     @Transactional
@@ -66,18 +68,32 @@ public class ResumeService {
         try {
             String contentJson = objectMapper.writeValueAsString(request.getItems());
 
-            // 새로운 임베딩 생성
-            float[] newEmbedding = similarityEngine.getEmbeddingAsFloatArray(contentJson);
+            // 1. 텍스트 즉시 저장 (사용자는 대기 없이 1초 만에 수정 완료됨)
+            resume.updateTextOnly(request.getTitle(), contentJson);
 
-            resume.update(request.getTitle(), contentJson, newEmbedding); // 엔티티 수정
+            // 2. 비동기로 임베딩 업데이트 작업 던져놓고 메서드 종료
+            resumeAsyncService.updateEmbeddingAsync(resumeId, contentJson);
+
         } catch (JsonProcessingException e) {
-            log.error("자기소개서 항목 JSON 직렬화 실패 - resumeId: {}, error: {}", resumeId, e.getMessage(), e);
+            log.error("자기소개서 항목 JSON 직렬화 실패 - resumeId: {}, error: {}", resumeId, e.getMessage());
             throw new BusinessException(ErrorCode.COMMON_JSON_CONVERSION_ERROR);
         }
     }
 
-    // Helper: 텍스트를 받아서 float 배열(벡터)로 반환
     private float[] getEmbeddingForText(String text) {
-        return similarityEngine.getEmbeddingAsFloatArray(text);
+        float[] originalEmbedding = similarityEngine.getEmbeddingAsFloatArray(text);
+
+        // 이미 768차원이면 그대로 리턴
+        if (originalEmbedding.length == 768) {
+            return originalEmbedding;
+        }
+
+        // 3072차원 등 768차원보다 큰 배열이 들어오면 앞에서부터 딱 768개만 잘라냄
+        if (originalEmbedding.length > 768) {
+            log.info("임베딩 차원이 {}입니다. DB 스키마에 맞게 768차원으로 절삭합니다.", originalEmbedding.length);
+            return Arrays.copyOf(originalEmbedding, 768);
+        }
+
+        throw new IllegalArgumentException("생성된 임베딩 차원이 너무 작습니다: " + originalEmbedding.length);
     }
 }
