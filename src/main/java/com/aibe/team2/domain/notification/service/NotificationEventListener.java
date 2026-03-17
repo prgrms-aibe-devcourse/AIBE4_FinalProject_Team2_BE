@@ -21,7 +21,7 @@ public class NotificationEventListener {
         log.info("[Notification] 이력서 분석 완료 이벤트를 수신했습니다. 알림을 발송합니다. memberId: {}", event.memberId());
 
         String type = "AI_ANALYSIS_COMPLETE";
-        String message = "이력서 AI 분석이 성공적으로 완료되었습니다! 결과를 확인해보세요!";
+        String message = "자기소개서 AI 분석이 성공적으로 완료되었습니다! 결과를 확인해보세요!";
 
         notificationService.send(event.memberId(), type, message);
     }

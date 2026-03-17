@@ -20,6 +20,9 @@ public class BookmarkResponse {
     private String jobTitle;        // 직무명
     private Long linkedInterviewId; // [핵심] 상세 페이지 이동용 "티켓" (세션 ID)
     private LocalDateTime createdAt;// 북마크한 날짜
+    private String answerText;
+    private String feedbackText;
+    private String category;
 
     public static BookmarkResponse from(QuestionScrap scrap, JobPosting jobPosting) {
         var record = scrap.getInterviewRecord();
@@ -36,6 +39,9 @@ public class BookmarkResponse {
                 .jobTitle(job)
                 .linkedInterviewId(session.getId())
                 .createdAt(scrap.getCreatedAt())
+                .answerText(record.getAnswerText())
+                .feedbackText(record.getFeedbackText())
+                .category(record.getQuestionIntent())
                 .build();
     }
 }
