@@ -124,4 +124,16 @@ where u.createdAt >= :start and u.createdAt < :end
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
+
+    @Query("""
+select coalesce(sum(u.tokenUsage), 0)
+from UsageLog u
+where u.serviceType = :serviceType
+  and u.createdAt >= :start and u.createdAt < :end
+""")
+    Long sumTokenUsageByServiceTypeAndCreatedAtRange(
+            @Param("serviceType") ServiceType serviceType,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }

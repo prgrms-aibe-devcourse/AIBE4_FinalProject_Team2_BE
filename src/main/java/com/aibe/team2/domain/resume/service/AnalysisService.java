@@ -45,7 +45,13 @@ public class AnalysisService {
         report.updateStatus(AnalysisStatus.PENDING);
 
         // 다시 워커 큐(이벤트)로 발행
-        eventPublisher.publishEvent(new AnalysisEvent(report.getId(), report.getResume().getContent()));
+        eventPublisher.publishEvent(
+                AnalysisEvent.retry(
+                        report.getId(),
+                        report.getResume().getContent(),
+                        1
+                )
+        );
     }
 
     @Transactional
@@ -63,7 +69,9 @@ public class AnalysisService {
         analysisRepository.save(report);
 
         // ★ 워커 직접 호출 대신 이벤트를 발행하여 Queue Producer에게 넘김
-        eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
+        eventPublisher.publishEvent(
+                AnalysisEvent.first(report.getId(), resume.getContent())
+        );
 
         return report.getId();
     }
@@ -85,7 +93,9 @@ public class AnalysisService {
                 .build();
         analysisRepository.save(report);
 
-        eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
+        eventPublisher.publishEvent(
+                AnalysisEvent.first(report.getId(), resume.getContent())
+        );
 
         return report.getId();
     }

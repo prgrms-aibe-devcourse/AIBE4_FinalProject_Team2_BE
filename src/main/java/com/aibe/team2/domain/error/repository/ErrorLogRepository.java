@@ -6,6 +6,11 @@ import com.aibe.team2.domain.error.enums.ErrorSeverity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
 
 public interface ErrorLogRepository extends JpaRepository<ErrorLog, Long> {
 
@@ -22,4 +27,9 @@ public interface ErrorLogRepository extends JpaRepository<ErrorLog, Long> {
             ErrorSeverity severity,
             Pageable pageable
     );
+    long countByOccurredAtBetween(LocalDateTime start, LocalDateTime end);
+
+    @Modifying
+    @Query("delete from ErrorLog e where e.occurredAt < :threshold")
+    int deleteOldLogs(@Param("threshold") LocalDateTime threshold);
 }

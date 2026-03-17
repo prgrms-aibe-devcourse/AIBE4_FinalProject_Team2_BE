@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.resume.service;
 
+import com.aibe.team2.domain.admin.service.QueueJobMetricService;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.notification.event.ResumeAnalysisCompleteEvent;
@@ -37,6 +38,7 @@ public class AnalysisAsyncWorker {
     private final WebClient.Builder webClientBuilder;
     private final AnalysisStatusManager statusManager;
     private final ApplicationEventPublisher eventPublisher;
+    private final QueueJobMetricService queueJobMetricService;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -46,7 +48,7 @@ public class AnalysisAsyncWorker {
 
     @Async("aiAnalysisTaskExecutor")
     @Transactional
-    public void processAiAnalysisAsync(Long reportId, String resumeContent) {
+    public void processAiAnalysisAsync(Long reportId, String resumeContent,Long queueJobMetricId ) {
         log.info("[Async Worker] AI 분석 시작 - Report ID: {}", reportId);
 
         AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
@@ -111,14 +113,22 @@ public class AnalysisAsyncWorker {
 
             resumeAnalysisRepository.save(report);
             statusManager.changeStatus(reportId, com.aibe.team2.domain.resume.entity.AnalysisStatus.COMPLETED);
+
+            queueJobMetricService.markSuccess(queueJobMetricId);
+
             eventPublisher.publishEvent(new ResumeAnalysisCompleteEvent(report.getResume().getMemberId()));
 
         } catch (WebClientResponseException.TooManyRequests e) {
-            log.warn("429 에러 발생. 재시도 초과. Report ID: {}", reportId);
+            log.warn("429 에러 발생 - Report ID: {}", reportId);
             statusManager.updateToDelayed(reportId);
+
+            queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
+
         } catch (Exception e) {
-            log.error("AI 분석 중 오류. Report ID: {}", reportId, e);
+            log.error("AI 분석 중 오류 - Report ID: {}", reportId, e);
             statusManager.updateToFailed(reportId);
+
+            queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
         }
     }
 
