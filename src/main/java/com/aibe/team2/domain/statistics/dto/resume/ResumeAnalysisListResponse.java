@@ -14,11 +14,15 @@ public record ResumeAnalysisListResponse(
         LocalDateTime createdAt // 분석 요청 일시
 ) {
     public static ResumeAnalysisListResponse from(AnalyzedReport report){
+        // 공고 정보가 있는지 확인
+        boolean hasJobPosting = report.getJobPosting() != null;
+
         return new ResumeAnalysisListResponse(
                 report.getId(),
-                report.getResume().getTitle(),               // 연관된 이력서에서 제목 추출
-                report.getJobPosting().getCompanyName(),     // 연관된 공고에서 회사명 추출
-                report.getJobPosting().getJobTitle(),        // 연관된 공고에서 직무 추출
+                report.getResume().getTitle(),
+                // 공고가 없으면 "자유 양식" 등의 기본 텍스트 반환
+                hasJobPosting ? report.getJobPosting().getCompanyName() : "일반 첨삭(자유 양식)",
+                hasJobPosting ? report.getJobPosting().getJobTitle() : "-",
                 report.getMatchScore(),
                 report.getStatus().name(),
                 report.getCreatedAt()

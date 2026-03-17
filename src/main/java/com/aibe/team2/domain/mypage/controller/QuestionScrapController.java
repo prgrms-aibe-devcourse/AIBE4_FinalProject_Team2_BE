@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.mypage.controller;
 
-import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 import com.aibe.team2.domain.mypage.dto.response.BookmarkResponse;
 import com.aibe.team2.domain.mypage.dto.response.BookmarkStatsResponse;
 import com.aibe.team2.domain.mypage.service.QuestionScrapService;
@@ -14,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "마이페이지 - 북마크", description = "질문 북마크 관리 API")

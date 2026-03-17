@@ -38,6 +38,7 @@ public record InterviewResultDetailResponse(
 
     // 3. 대화 복기 및 개별 비언어 지표 (파라미터 10개 완벽 매칭)
     public record TurnScript(
+            Long recordId,
             Integer turnSequence,
             String questionText,
             String answerText,
