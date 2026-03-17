@@ -68,12 +68,13 @@ public class InterviewStatisticsService {
         // 7. 턴별 스크립트 매핑 (파라미터 10개 매칭)
         List<TurnScript> turnScripts = records.stream()
                 .map(record -> new TurnScript(
+                        record.getId(),                  // 💡 [추가] 누락된 Long 타입 ID (메서드명은 엔티티에 맞게 확인 필요)
                         record.getTurnSequence(),
                         record.getQuestionText(),
                         record.getAnswerText(),
                         record.getFeedbackText(),
                         record.getEvaluationScore() != null ? record.getEvaluationScore().doubleValue() : 0.0,
-                        Collections.emptyList(),
+                        Collections.<String>emptyList(), // 💡 [수정] List<String>으로 명시적 타입 추론 지시
                         record.getWpm(),
                         record.getSilenceCount(),
                         record.getSttAccuracy(),
