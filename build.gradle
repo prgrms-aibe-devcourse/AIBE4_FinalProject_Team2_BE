@@ -94,6 +94,13 @@ tasks.withType(JavaCompile).configureEach {
     options.getGeneratedSourceOutputDirectory().set(querydslDir)
 }
 
+sourceSets {
+    main {
+        java {
+            srcDirs += [ querydslDir ]
+        }
+    }
+}
 clean{
     delete file(querydslDir)
 }
