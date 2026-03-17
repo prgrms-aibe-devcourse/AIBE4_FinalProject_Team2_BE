@@ -70,4 +70,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         return null;
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        // /api/v1/auth/로 시작하는 모든 요청(로그인, 회원가입 등)은 이 필터의 검사를 생략합니다.
+        return path.startsWith("/api/v1/auth/");
+    }
 }
