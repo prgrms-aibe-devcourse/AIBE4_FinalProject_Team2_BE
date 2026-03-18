@@ -101,6 +101,5 @@ public class InterviewRecord {
         this.feedbackText = feedbackText;
         this.evaluationScore = evaluationScore;
         this.responseTimeMs = responseTimeMs;
-        this.createdAt = LocalDateTime.now();
     }
 }

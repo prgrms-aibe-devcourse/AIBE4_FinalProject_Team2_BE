@@ -69,4 +69,10 @@ public class InterviewSession {
     public void updateStatus(InterviewSessionStatus status) {
         this.status = status;
     }
+
+    // 최종 결과 업데이트 (SQS 분석 완료 시 사용)
+    public void updateResult(Integer finalScore) {
+        this.finalScore = finalScore;
+        this.status = InterviewSessionStatus.DONE;
+    }
 }

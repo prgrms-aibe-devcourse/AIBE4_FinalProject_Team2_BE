@@ -4,6 +4,7 @@ import com.aibe.team2.domain.interview.dto.RetellWebhookRequest;
 import com.aibe.team2.domain.interview.service.WebhookService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.awspring.cloud.sqs.operations.SqsTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,10 @@ public class WebhookController {
 
     private final WebhookService webhookService;
     private final ObjectMapper objectMapper;
+    private final SqsTemplate sqsTemplate;
+
+    @Value("${cloud.aws.sqs.webhook-queue-name:retell-webhook-queue}")
+    private String webhookQueueName;
 
     @Value("${retell.webhook.secret}")
     private String webhookApiKey;
@@ -58,7 +63,9 @@ public class WebhookController {
     }
 
     private void processWebhookSynchronously(RetellWebhookRequest request) {
-        webhookService.processRetellWebhook(request);
+        // webhookService.processRetellWebhook(request);
+        log.info("📤 SQS Producer: 대화 분석 완료 데이터를 큐에 전송합니다. Queue: {}", webhookQueueName);
+        sqsTemplate.send(webhookQueueName, request);
     }
 
     private boolean isValidSignature(byte[] payloadBytes, String signature) {
