@@ -23,13 +23,13 @@ public class AnalysisService {
 
     private final ResumeRepository resumeRepository;
     private final JobPostingRepository jobPostingRepository;
-    private final ResumeAnalysisRepository analysisRepository;
+    private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     // 분석 재시도
     @Transactional
     public void retryAnalysis(Long reportId, Long memberId) {
-        AnalyzedReport report = analysisRepository.findById(reportId)
+        AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
         // 권한 체크: 본인의 자소서에 대한 리포트인지 확인
@@ -41,8 +41,6 @@ public class AnalysisService {
         if (report.getStatus() != AnalysisStatus.FAILED && report.getStatus() != AnalysisStatus.DELAYED) {
             throw new BusinessException(ErrorCode.COMMON_400);
         }
-
-        // 상태를 다시 PENDING으로 변경
         report.updateStatus(AnalysisStatus.PENDING);
 
         // 다시 워커 큐(이벤트)로 발행
@@ -58,15 +56,15 @@ public class AnalysisService {
     public Long requestNormalAnalysis(Long resumeId, Long memberId) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
-
         if (!resume.getMemberId().equals(memberId)) throw new BusinessException(ErrorCode.COMMON_403);
-
         AnalyzedReport report = AnalyzedReport.builder()
                 .resume(resume)
                 .analysisType(AnalysisType.NORMAL)
                 .jobPosting(null)
                 .build();
-        analysisRepository.save(report);
+        resumeAnalysisRepository.save(report);
+        eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
+        resumeAnalysisRepository.save(report);
 
         // ★ 워커 직접 호출 대신 이벤트를 발행하여 Queue Producer에게 넘김
         eventPublisher.publishEvent(
@@ -90,7 +88,7 @@ public class AnalysisService {
                 .analysisType(AnalysisType.FIT_MATCH)
                 .jobPosting(jobPosting)
                 .build();
-        analysisRepository.save(report);
+        resumeAnalysisRepository.save(report);
 
         eventPublisher.publishEvent(
                 AnalysisEvent.first(report.getId(), resume.getContent())
