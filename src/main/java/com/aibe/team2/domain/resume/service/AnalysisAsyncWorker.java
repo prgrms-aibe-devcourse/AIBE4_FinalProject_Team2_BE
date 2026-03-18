@@ -48,7 +48,7 @@ public class AnalysisAsyncWorker {
 
     @Async("aiAnalysisTaskExecutor")
     @Transactional
-    public void processAiAnalysisAsync(Long reportId, String resumeContent,Long queueJobMetricId ) {
+    public void processAiAnalysisAsync(Long reportId, String resumeContent, Long queueJobMetricId) {
         log.info("[Async Worker] AI 분석 시작 - Report ID: {}", reportId);
 
         AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
@@ -82,33 +82,6 @@ public class AnalysisAsyncWorker {
                     jp.getBenefits() != null ? jp.getBenefits() : "없음",
                     !skills.isEmpty() ? skills : "없음"
             );
-
-            // 2. [Hybrid] 1단계: 정확한 키워드 매칭 분석 (Java가 수행)
-            List<String> matchedKeywords = new ArrayList<>();
-            List<String> missingKeywords = new ArrayList<>();
-            String resumeLower = resumeContent.toLowerCase();
-
-            for (String skill : requiredSkills) {
-                if (resumeLower.contains(skill.toLowerCase())) {
-                    matchedKeywords.add(skill);
-                } else {
-                    missingKeywords.add(skill);
-                }
-            }
-            int keywordScore = requiredSkills.isEmpty() ? 0 :
-                    (int) Math.round((double) matchedKeywords.size() / requiredSkills.size() * 100);
-
-            // 3. [Hybrid] 2단계: 벡터 코사인 유사도 분석 (Java가 수행)
-            float[] resumeVector = similarityEngine.getEmbeddingAsFloatArray(resumeContent);
-            float[] jdVector = similarityEngine.getEmbeddingAsFloatArray(jobInfoText);
-            int vectorScore = 0;
-            if (resumeVector != null && jdVector != null) {
-                double cosine = similarityEngine.calculateCosineSimilarity(resumeVector, jdVector);
-                vectorScore = (int) Math.round(Math.max(0, cosine) * 100);
-            }
-
-            // 4. 팩트 기반 데이터(사전 계산 결과)를 프롬프트에 주입
-            prompt = buildMatchPrompt(resumeContent, jobInfoText, matchedKeywords, missingKeywords, keywordScore, vectorScore);
         }
 
         try {
@@ -141,7 +114,9 @@ public class AnalysisAsyncWorker {
             resumeAnalysisRepository.save(report);
             statusManager.changeStatus(reportId, com.aibe.team2.domain.resume.entity.AnalysisStatus.COMPLETED);
 
-            queueJobMetricService.markSuccess(queueJobMetricId);
+            if (queueJobMetricId != null) {
+                queueJobMetricService.markSuccess(queueJobMetricId);
+            }
 
             eventPublisher.publishEvent(new ResumeAnalysisCompleteEvent(report.getResume().getMemberId()));
 
@@ -149,13 +124,17 @@ public class AnalysisAsyncWorker {
             log.warn("429 에러 발생 - Report ID: {}", reportId);
             statusManager.updateToDelayed(reportId);
 
-            queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
+            if (queueJobMetricId != null) {
+                queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
+            }
 
         } catch (Exception e) {
             log.error("AI 분석 중 오류 - Report ID: {}", reportId, e);
             statusManager.updateToFailed(reportId);
 
-            queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
+            if (queueJobMetricId != null) {
+                queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
+            }
         }
     }
 
@@ -204,32 +183,20 @@ public class AnalysisAsyncWorker {
     }
 
     // 팩트 데이터를 프롬프트에 주입하여 환각 방지를 높임
-    private String buildMatchPrompt(String resumeContent, String jobInfoText,
-                                    List<String> matchedKeywords, List<String> missingKeywords,
-                                    int keywordScore, int vectorScore) {
-
-        String matchedText = matchedKeywords.isEmpty() ? "없음" : String.join(", ", matchedKeywords);
-        String missingText = missingKeywords.isEmpty() ? "없음" : String.join(", ", missingKeywords);
-
+    private String buildMatchPrompt(String resumeContent, String jobInfoText) {
         return String.format("""
                 당신은 엄격하고 객관적인 시니어 HR 채용 담당자입니다. 
-                아래 [사전 계산된 매칭 데이터]와 [채용 공고], [자기소개서]를 바탕으로 최종 적합도를 평가하고 첨삭해주세요.
-                
-                [사전 계산된 매칭 데이터 (팩트)]
-                - 일치한 기술 스택: %s
-                - 누락된 기술 스택: %s
-                - 기술 스택순수 매칭율: %d%%
-                - 자기소개서-채용공고 경험 유사도 (벡터 점수): %d%%
+                아래 [채용 공고 상세 정보]와 [자기소개서]를 비교하여 적합도를 평가하고 첨삭해주세요.
                 
                 [점수 산출 기준표 - 총점 100점]
                 1. 기술 스택 일치도 (최대 40점): 
-                   - 위 사전 계산된 '기술 스택 매칭율(%d%%)'을 참고하여 최대 40점 만점 기준으로 환산/평가하세요.
+                   - 채용 공고에서 요구하는 필수/우대 기술 스택이 자기소개서에 얼마나 명시되어 있는가?
+                   - 단순 나열이 아닌, 실제 활용 경험이 있으면 높은 점수 부여.
                 2. 경험 연관성 (최대 40점): 
-                   - 위 사전 계산된 '경험 유사도(%d%%)'를 참고하여 최대 40점 만점 기준으로 환산/평가하세요.
+                   - 공고의 '주요 업무'와 지원자가 작성한 '프로젝트 및 실무 경험'의 일치도. 무관한 경험은 감점 처리.
                 3. 태도 및 소프트스킬 (최대 20점): 
                    - 자소서에 드러난 문제 해결 방식, 협업 능력, 성장 의지가 채용 기업에 부합하는지 직접 평가하세요.
                 
-                [채용 공고 상세 정보]
                 %s
                 
                 [자기소개서]
@@ -240,8 +207,8 @@ public class AnalysisAsyncWorker {
                   "matchingScore": 85,
                   "matchingFeedback": "[기술 스택: 35/40] Java, Spring 경험이 우수함. [경험 연관성: 30/40] 클라우드 경험 부족. [태도: 20/20] 협업 능력이 돋보임.",
                   "keywordAnalysis": {
-                     "matchedKeywords": ["%s"],
-                     "missingKeywords": ["%s"]
+                     "matchedKeywords": ["Java", "Spring"],
+                     "missingKeywords": ["AWS"]
                   },
                   "expectedQuestions": [
                      "꼬리 질문 1", "압박 질문 2"
@@ -258,11 +225,8 @@ public class AnalysisAsyncWorker {
                 
                 [주의사항]
                 1. 'matchingScore'는 반드시 위 [점수 산출 기준표]의 3가지 항목 점수를 합산하여 엄격하게 계산하세요.
-                2. 'keywordAnalysis' 노드에는 반드시 제공된 [사전 계산된 매칭 데이터]의 키워드를 그대로 사용하세요.
+                2. 'keywordAnalysis' 노드에는 반드시 제공된 [채용 공고 상세 정보]를 기준으로 작성하세요.
                 """,
-                matchedText, missingText, keywordScore, vectorScore,
-                keywordScore, vectorScore, // 프롬프트 내 %d 매핑용
-                jobInfoText, resumeContent,
-                matchedText, missingText);
+                jobInfoText, resumeContent);
     }
 }
