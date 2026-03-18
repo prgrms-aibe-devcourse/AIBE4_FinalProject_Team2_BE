@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -27,5 +28,19 @@ public class RetellWebhookRequest {
 
         // 생성 시 넘겨주었던 metadata (여기에 session_id가 포함됨)
         private Map<String, Object> metadata;
+
+        @JsonProperty("transcript_object")
+        private List<TranscriptTurn> transcriptObject;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class TranscriptTurn {
+        // 발화자가 누구인지 ("agent" = AI 면접관, "user" = 사용자)
+        private String role;
+
+        // 실제 대화 내용
+        private String content;
     }
 }
