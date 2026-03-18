@@ -48,8 +48,9 @@ public class ResumeService {
     }
 
     // 2. 자기소개서 상세 조회
-    public ResumeResponse findResume(Long resumeId) {
-        Resume resume = resumeRepository.findById(resumeId).orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
+    public ResumeResponse findResume(Long resumeId, Long memberId) {
+        Resume resume = resumeRepository.findByIdAndMemberId(resumeId, memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
         return ResumeResponse.from(resume);
     }
 
