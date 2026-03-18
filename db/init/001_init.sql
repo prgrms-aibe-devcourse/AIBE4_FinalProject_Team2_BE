@@ -237,3 +237,37 @@ CREATE TABLE attachment (
 
 CREATE INDEX idx_attachment_owner ON attachment(owner_member_id);
 CREATE INDEX idx_attachment_target ON attachment(target_type, target_id);
+
+-- 13) queue_job_metric
+CREATE TABLE queue_job_metric (
+                                  id BIGSERIAL PRIMARY KEY,
+                                  job_type VARCHAR(50) NOT NULL,
+                                  status VARCHAR(30) NOT NULL,
+                                  target_type VARCHAR(50) NOT NULL,
+                                  target_id BIGINT NOT NULL,
+                                  message_id VARCHAR(100),
+                                  retry_count INT NOT NULL DEFAULT 0,
+                                  error_message VARCHAR(1000),
+                                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_queue_job_target ON queue_job_metric(target_type, target_id);
+CREATE INDEX idx_queue_job_status ON queue_job_metric(status);
+CREATE INDEX idx_queue_job_created_at ON queue_job_metric(created_at);
+
+-- 14) operation_metric_daily
+CREATE TABLE operation_metric_daily (
+                                        id BIGSERIAL PRIMARY KEY,
+                                        metric_date DATE NOT NULL,
+                                        service_type VARCHAR(50) NOT NULL,
+                                        total_log_count BIGINT NOT NULL DEFAULT 0,
+                                        total_token_usage BIGINT NOT NULL DEFAULT 0,
+                                        queue_enqueued_count BIGINT NOT NULL DEFAULT 0,
+                                        queue_success_count BIGINT NOT NULL DEFAULT 0,
+                                        queue_failed_count BIGINT NOT NULL DEFAULT 0,
+                                        error_count BIGINT NOT NULL DEFAULT 0,
+                                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                        CONSTRAINT uk_operation_metric_daily UNIQUE (metric_date, service_type)
+);

@@ -25,52 +25,9 @@ public class ErrorAdminService {
     private final ErrorLogRepository errorLogRepository;
 
     public Page<ErrorIssueResponse> searchIssues(ErrorIssueSearchCond cond, Pageable pageable) {
-        if (cond == null) {
-            return errorIssueRepository.findAll(pageable).map(ErrorIssueResponse::new);
-        }
-
-        if (cond.getStatus() != null && cond.getSeverity() != null && cond.getErrorDomain() != null) {
-            return errorIssueRepository.findByStatusAndSeverityAndErrorDomain(
-                    cond.getStatus(), cond.getSeverity(), cond.getErrorDomain(), pageable
-            ).map(ErrorIssueResponse::new);
-        }
-
-        if (cond.getStatus() != null && cond.getSeverity() != null) {
-            return errorIssueRepository.findByStatusAndSeverity(
-                    cond.getStatus(), cond.getSeverity(), pageable
-            ).map(ErrorIssueResponse::new);
-        }
-
-        if (cond.getStatus() != null && cond.getErrorDomain() != null) {
-            return errorIssueRepository.findByStatusAndErrorDomain(
-                    cond.getStatus(), cond.getErrorDomain(), pageable
-            ).map(ErrorIssueResponse::new);
-        }
-
-        if (cond.getSeverity() != null && cond.getErrorDomain() != null) {
-            return errorIssueRepository.findBySeverityAndErrorDomain(
-                    cond.getSeverity(), cond.getErrorDomain(), pageable
-            ).map(ErrorIssueResponse::new);
-        }
-
-        if (cond.getStatus() != null) {
-            return errorIssueRepository.findByStatus(cond.getStatus(), pageable)
-                    .map(ErrorIssueResponse::new);
-        }
-
-        if (cond.getSeverity() != null) {
-            return errorIssueRepository.findBySeverity(cond.getSeverity(), pageable)
-                    .map(ErrorIssueResponse::new);
-        }
-
-        if (cond.getErrorDomain() != null) {
-            return errorIssueRepository.findByErrorDomain(cond.getErrorDomain(), pageable)
-                    .map(ErrorIssueResponse::new);
-        }
-
-        return errorIssueRepository.findAll(pageable).map(ErrorIssueResponse::new);
+        return errorIssueRepository.search(cond, pageable)
+                .map(ErrorIssueResponse::new);
     }
-
     public ErrorIssueResponse getIssueDetail(Long issueId) {
         ErrorIssue issue = errorIssueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));

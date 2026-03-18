@@ -16,6 +16,7 @@ public class AnalysisQueueConsumer {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
     private final AnalysisAsyncWorker asyncWorker;
+    private final com.aibe.team2.domain.admin.service.QueueJobMetricService queueJobMetricService;
 
     private static final String QUEUE_KEY = "resume:analysis:queue";
     private static final int MAX_BATCH_SIZE = 3;
@@ -32,10 +33,17 @@ public class AnalysisQueueConsumer {
 
             try {
                 AnalysisMessage message = objectMapper.readValue(jsonMessage.toString(), AnalysisMessage.class);
-                log.info("🚀 [QueueConsumer] Redis 큐에서 작업 추출 성공! Worker로 위임 - Report ID: {}", message.getReportId());
 
-                // 꺼낸 작업을 @Async 워커 스레드로 넘김
-                asyncWorker.processAiAnalysisAsync(message.getReportId(), message.getResumeContent());
+                queueJobMetricService.markProcessing(message.getQueueJobMetricId());
+
+                log.info("🚀 [QueueConsumer] Redis 큐 추출 성공 - Report ID: {}, QueueMetricId: {}",
+                        message.getReportId(), message.getQueueJobMetricId());
+
+                asyncWorker.processAiAnalysisAsync(
+                        message.getReportId(),
+                        message.getResumeContent(),
+                        message.getQueueJobMetricId()
+                );
 
             } catch (Exception e) {
                 log.error("❌ [QueueConsumer] 큐 메시지 처리 중 오류 발생", e);
