@@ -32,4 +32,6 @@ public interface ErrorIssueRepository extends JpaRepository<ErrorIssue, Long>, E
             ErrorDomain errorDomain,
             Pageable pageable
     );
+
+    long countByStatus(IssueStatus status);
 }
