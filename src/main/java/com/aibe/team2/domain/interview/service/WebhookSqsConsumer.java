@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class WebhookSqsConsumer {
 
     private final WebhookService webhookService;
+    private final InterviewRecordService interviewRecordService;
 
     // [NFR-PER-01] SQS Consumer (메시지 소비) WebhookController에서 발행한 메시지를 비동기로 받아 처리
     @SqsListener("${cloud.aws.sqs.webhook-queue-name:retell-webhook-queue}") // SQS 연동 시 주석 해제
@@ -20,5 +21,9 @@ public class WebhookSqsConsumer {
 
         // 리뷰 반영: 직접 처리하지 않고 공통 서비스로 위임 (DRY 원칙)
         webhookService.processRetellWebhook(request);
+
+        if("call_analyzed".equals(request.getEvent())) {
+            interviewRecordService.saveInterviewRecord(request);
+        }
     }
 }
