@@ -167,6 +167,12 @@ public class MemberService {
         }
     }
 
+    public String getNicknameByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND))
+                .getNickname();
+    }
+
     @Transactional
     public void join(MemberDTO request) {
         validateSignup(request); // 가입 전 검증 수행
