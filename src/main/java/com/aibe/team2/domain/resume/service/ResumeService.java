@@ -51,6 +51,10 @@ public class ResumeService {
     public ResumeResponse findResume(Long resumeId, Long memberId) {
         Resume resume = resumeRepository.findByIdAndMemberId(resumeId, memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
+
+        if(!resume.getMemberId().equals(memberId)){
+            throw new BusinessException(ErrorCode.RESUME_OWNERSHIP_ERROR);
+        }
         return ResumeResponse.from(resume);
     }
 
