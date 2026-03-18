@@ -22,9 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AnalysisService {
 
     private final ResumeRepository resumeRepository;
-    private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final JobPostingRepository jobPostingRepository;
-
+    private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     // 분석 재시도
@@ -43,7 +42,15 @@ public class AnalysisService {
             throw new BusinessException(ErrorCode.COMMON_400);
         }
         report.updateStatus(AnalysisStatus.PENDING);
-        eventPublisher.publishEvent(new AnalysisEvent(report.getId(), report.getResume().getContent()));
+
+        // 다시 워커 큐(이벤트)로 발행
+        eventPublisher.publishEvent(
+                AnalysisEvent.retry(
+                        report.getId(),
+                        report.getResume().getContent(),
+                        1
+                )
+        );
     }
     @Transactional
     public Long requestNormalAnalysis(Long resumeId, Long memberId) {
@@ -57,6 +64,12 @@ public class AnalysisService {
                 .build();
         resumeAnalysisRepository.save(report);
         eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
+        resumeAnalysisRepository.save(report);
+
+        // ★ 워커 직접 호출 대신 이벤트를 발행하여 Queue Producer에게 넘김
+        eventPublisher.publishEvent(
+                AnalysisEvent.first(report.getId(), resume.getContent())
+        );
 
         return report.getId();
     }
@@ -76,7 +89,11 @@ public class AnalysisService {
                 .jobPosting(jobPosting)
                 .build();
         resumeAnalysisRepository.save(report);
-        eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
+
+        eventPublisher.publishEvent(
+                AnalysisEvent.first(report.getId(), resume.getContent())
+        );
+
         return report.getId();
     }
 

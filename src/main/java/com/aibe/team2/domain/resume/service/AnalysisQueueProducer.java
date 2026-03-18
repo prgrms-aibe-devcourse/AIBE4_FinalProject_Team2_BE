@@ -21,6 +21,7 @@ public class AnalysisQueueProducer {
     private final RedisTemplate<String, Object> redisTemplate;
     private final ObjectMapper objectMapper;
     private static final String QUEUE_KEY = "resume:analysis:queue";
+    private final com.aibe.team2.domain.admin.service.QueueJobMetricService queueJobMetricService;
 
     @Data
     @AllArgsConstructor
@@ -28,13 +29,29 @@ public class AnalysisQueueProducer {
     public static class AnalysisMessage {
         private Long reportId;
         private String resumeContent;
+        private Long queueJobMetricId;
+        private Integer retryCount;
     }
 
     // DB 트랜잭션이 성공적으로 커밋된 직후에만 실행됨 (데이터 유실 완벽 방지)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleResumeAnalysisEvent(AnalysisEvent event) {
-        AnalysisMessage message = new AnalysisMessage(event.reportId(), event.resumeContent());
+        String messageId = "resume-" + event.reportId() + "-" + System.currentTimeMillis();
 
+        Long queueJobMetricId = queueJobMetricService.recordEnqueued(
+                com.aibe.team2.domain.admin.enums.QueueJobType.RESUME_ANALYSIS,
+                "ANALYSIS_REPORT",
+                event.reportId(),
+                messageId,
+                event.retryCount()
+        );
+
+        AnalysisMessage message = new AnalysisMessage(
+                event.reportId(),
+                event.resumeContent(),
+                queueJobMetricId,
+                event.retryCount()
+        );
         try {
             String jsonMessage = objectMapper.writeValueAsString(message);
             redisTemplate.opsForList().rightPush(QUEUE_KEY, jsonMessage);

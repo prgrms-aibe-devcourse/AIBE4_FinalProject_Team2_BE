@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface ErrorIssueRepository extends JpaRepository<ErrorIssue, Long> {
+public interface ErrorIssueRepository extends JpaRepository<ErrorIssue, Long>, ErrorIssueRepositoryCustom {
 
     Optional<ErrorIssue> findByFingerprint(String fingerprint);
 

@@ -1,5 +1,6 @@
 package com.aibe.team2.domain.resume.service;
 
+import com.aibe.team2.domain.admin.service.QueueJobMetricService;
 import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.notification.event.ResumeAnalysisCompleteEvent;
@@ -23,7 +24,6 @@ import reactor.util.retry.Retry;
 
 import java.net.URI;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,7 +38,7 @@ public class AnalysisAsyncWorker {
     private final WebClient.Builder webClientBuilder;
     private final AnalysisStatusManager statusManager;
     private final ApplicationEventPublisher eventPublisher;
-    private final SimilarityEngine similarityEngine;
+    private final QueueJobMetricService queueJobMetricService;
 
     @Value("${gemini.api.key}")
     private String geminiApiKey;
@@ -48,33 +48,39 @@ public class AnalysisAsyncWorker {
 
     @Async("aiAnalysisTaskExecutor")
     @Transactional
-    public void processAiAnalysisAsync(Long reportId, String resumeContent) {
+    public void processAiAnalysisAsync(Long reportId, String resumeContent,Long queueJobMetricId ) {
         log.info("[Async Worker] AI 분석 시작 - Report ID: {}", reportId);
 
         AnalyzedReport report = resumeAnalysisRepository.findById(reportId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.COMMON_404));
 
         AnalysisType type = report.getAnalysisType();
-        String prompt = "";
+        String jobInfoText = "";
 
-        if (type == AnalysisType.NORMAL) {
-            prompt = buildNormalPrompt(resumeContent);
-        } else if (type == AnalysisType.FIT_MATCH && report.getJobPosting() != null) {
+        // 매칭 분석일 경우 구조화된 공고 데이터를 프롬프트용 텍스트로 조립
+        if (type == AnalysisType.FIT_MATCH && report.getJobPosting() != null) {
             JobPosting jp = report.getJobPosting();
 
-            // 1. 공고 정보 텍스트 조립
-            List<String> requiredSkills = jp.getJobSkills().stream()
+            // 요구 역량(Skill) 리스트 추출
+            String skills = jp.getJobSkills().stream()
                     .map(JobSkill::getSkillName)
-                    .collect(Collectors.toList());
-            String skillsText = requiredSkills.isEmpty() ? "없음" : String.join(", ", requiredSkills);
+                    .collect(Collectors.joining(", "));
 
-            String jobInfoText = String.format(
-                    "[채용 공고 상세 정보]\n- 전체 설명: %s\n- 주요 업무: %s\n- 자격 요건: %s\n- 우대 사항: %s\n- 요구 역량: %s",
+            jobInfoText = String.format("""
+                [채용 공고 상세 정보]
+                - 전체 설명: %s
+                - 주요 업무: %s
+                - 자격 요건: %s
+                - 우대 사항: %s
+                - 복리 후생: %s
+                - 요구 역량: %s
+                """,
                     jp.getJobDescription() != null ? jp.getJobDescription() : "없음",
                     jp.getMainTasks() != null ? jp.getMainTasks() : "없음",
                     jp.getQualifications() != null ? jp.getQualifications() : "없음",
                     jp.getPreferred() != null ? jp.getPreferred() : "없음",
-                    skillsText
+                    jp.getBenefits() != null ? jp.getBenefits() : "없음",
+                    !skills.isEmpty() ? skills : "없음"
             );
 
             // 2. [Hybrid] 1단계: 정확한 키워드 매칭 분석 (Java가 수행)
@@ -106,6 +112,10 @@ public class AnalysisAsyncWorker {
         }
 
         try {
+            String prompt = (type == AnalysisType.NORMAL)
+                    ? buildNormalPrompt(resumeContent)
+                    : buildMatchPrompt(resumeContent, jobInfoText);
+
             JsonNode parsedResult = callGeminiApi(prompt);
 
             if (type == AnalysisType.NORMAL) {
@@ -130,14 +140,22 @@ public class AnalysisAsyncWorker {
 
             resumeAnalysisRepository.save(report);
             statusManager.changeStatus(reportId, com.aibe.team2.domain.resume.entity.AnalysisStatus.COMPLETED);
+
+            queueJobMetricService.markSuccess(queueJobMetricId);
+
             eventPublisher.publishEvent(new ResumeAnalysisCompleteEvent(report.getResume().getMemberId()));
 
         } catch (WebClientResponseException.TooManyRequests e) {
-            log.warn("429 에러 발생. 재시도 초과. Report ID: {}", reportId);
+            log.warn("429 에러 발생 - Report ID: {}", reportId);
             statusManager.updateToDelayed(reportId);
+
+            queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
+
         } catch (Exception e) {
-            log.error("AI 분석 중 오류. Report ID: {}", reportId, e);
+            log.error("AI 분석 중 오류 - Report ID: {}", reportId, e);
             statusManager.updateToFailed(reportId);
+
+            queueJobMetricService.markFailed(queueJobMetricId, e.getMessage());
         }
     }
 
@@ -166,7 +184,6 @@ public class AnalysisAsyncWorker {
     }
 
     private String buildNormalPrompt(String resumeContent) {
-        // (기존과 동일)
         return String.format("""
                 당신은 10년 차 전문 에디터입니다. 아래 [자기소개서]의 문맥, 가독성, 표현을 다듬고 첨삭해주세요.
                 [자기소개서]
