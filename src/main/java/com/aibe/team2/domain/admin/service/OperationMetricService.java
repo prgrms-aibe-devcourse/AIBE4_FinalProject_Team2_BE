@@ -4,6 +4,7 @@ import com.aibe.team2.domain.admin.entity.OperationMetricDaily;
 import com.aibe.team2.domain.admin.enums.QueueJobStatus;
 import com.aibe.team2.domain.admin.repository.OperationMetricDailyRepository;
 import com.aibe.team2.domain.admin.repository.QueueJobMetricRepository;
+import com.aibe.team2.domain.error.enums.ErrorDomain;
 import com.aibe.team2.domain.error.repository.ErrorLogRepository;
 import com.aibe.team2.domain.statistics.enums.ServiceType;
 import com.aibe.team2.domain.statistics.repository.usage.UsageLogRepository;
@@ -38,7 +39,8 @@ public class OperationMetricService {
                     serviceType, start, end
             );
 
-            long errorCount = errorLogRepository.countByOccurredAtBetween(start, end);
+            ErrorDomain errorDomain = mapServiceTypeToErrorDomain(serviceType);
+            long errorCount = errorLogRepository.countByErrorDomainAndOccurredAtBetween(errorDomain, start, end);
 
             long queueEnqueuedCount = serviceType == ServiceType.RESUME
                     ? queueJobMetricRepository.countByStatusAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(
@@ -69,5 +71,13 @@ public class OperationMetricService {
                             )
                     ));
         }
+    }
+
+    private ErrorDomain mapServiceTypeToErrorDomain(ServiceType serviceType) {
+        return switch (serviceType) {
+            case RESUME -> ErrorDomain.RESUME;
+            case INTERVIEW -> ErrorDomain.INTERVIEW;
+            case ADMIN -> ErrorDomain.ADMIN;
+        };
     }
 }

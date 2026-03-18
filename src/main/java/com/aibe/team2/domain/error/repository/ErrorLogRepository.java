@@ -27,7 +27,14 @@ public interface ErrorLogRepository extends JpaRepository<ErrorLog, Long> {
             ErrorSeverity severity,
             Pageable pageable
     );
+
     long countByOccurredAtBetween(LocalDateTime start, LocalDateTime end);
+
+    long countByErrorDomainAndOccurredAtBetween(
+            ErrorDomain errorDomain,
+            LocalDateTime start,
+            LocalDateTime end
+    );
 
     @Modifying
     @Query("delete from ErrorLog e where e.occurredAt < :threshold")

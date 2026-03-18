@@ -5,6 +5,7 @@ import com.aibe.team2.domain.admin.enums.QueueJobStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface QueueJobMetricRepository extends JpaRepository<QueueJobMetric, Long> {
 
@@ -17,4 +18,6 @@ public interface QueueJobMetricRepository extends JpaRepository<QueueJobMetric, 
     );
 
     long countByTargetTypeAndTargetIdAndStatus(String targetType, Long targetId, QueueJobStatus status);
+
+    Optional<QueueJobMetric> findTopByTargetTypeAndTargetIdOrderByCreatedAtDesc(String targetType, Long targetId);
 }
