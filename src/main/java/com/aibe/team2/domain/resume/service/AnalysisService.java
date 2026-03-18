@@ -52,18 +52,21 @@ public class AnalysisService {
                 )
         );
     }
+
     @Transactional
     public Long requestNormalAnalysis(Long resumeId, Long memberId) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
-        if (!resume.getMemberId().equals(memberId)) throw new BusinessException(ErrorCode.COMMON_403);
+
+        if (!resume.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.COMMON_403);
+        }
+
         AnalyzedReport report = AnalyzedReport.builder()
                 .resume(resume)
                 .analysisType(AnalysisType.NORMAL)
                 .jobPosting(null)
                 .build();
-        resumeAnalysisRepository.save(report);
-        eventPublisher.publishEvent(new AnalysisEvent(report.getId(), resume.getContent()));
         resumeAnalysisRepository.save(report);
 
         // ★ 워커 직접 호출 대신 이벤트를 발행하여 Queue Producer에게 넘김
@@ -73,12 +76,15 @@ public class AnalysisService {
 
         return report.getId();
     }
+
     @Transactional
     public Long requestMatchAnalysis(Long resumeId, Long memberId, Long jobPostingId) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
-        if (!resume.getMemberId().equals(memberId)) throw new BusinessException(ErrorCode.COMMON_403);
+        if (!resume.getMemberId().equals(memberId)) {
+            throw new BusinessException(ErrorCode.COMMON_403);
+        }
 
         JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.JOB_POSTING_NOT_FOUND));
