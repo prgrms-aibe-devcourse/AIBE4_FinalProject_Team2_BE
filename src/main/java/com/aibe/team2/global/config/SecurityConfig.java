@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -65,7 +66,6 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/h2-console/**",
                                 "/swagger-ui.html",
                                 "/api-docs/**",
                                 "/api-docs",
@@ -96,7 +96,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService) // 이 부분!
+                                .userService(customOAuth2UserService)
                         )
                         .successHandler(oAuth2SuccessHandler)
                 )
@@ -107,7 +107,6 @@ public class SecurityConfig {
                             response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"인증이 필요하거나 유효하지 않은 요청입니다.\"}");
                         })
                 )
-                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .httpBasic(basic -> basic.disable())
                 .formLogin(login -> login.disable());
 
