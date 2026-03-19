@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -19,6 +20,7 @@ public class EmailService {
     private final StringRedisTemplate redisTemplate; // Redis 사용
     private final MemberRepository memberRepository;
 
+    @Async
     public void sendVerificationCode(String email) {
         // 0. 이메일 중복 확인
         if (memberRepository.existsByEmail(email)) {
