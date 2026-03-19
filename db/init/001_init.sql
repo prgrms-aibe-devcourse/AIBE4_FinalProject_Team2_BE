@@ -92,7 +92,7 @@ CREATE TABLE analysis_report (
                                  analysis_type VARCHAR(20) NOT NULL
                                      CHECK (analysis_type IN ('GENERAL', 'JOB_MATCHING')),
                                  status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
-                                     CHECK (status IN ('PENDING', 'PROCESSING', 'DELAYED', 'COMPLETED', 'FAILED')),
+                                     CHECK (status IN ('PENDING', 'PROCESSING', 'DELAYED', 'COMPLETED', 'FAILED', 'CANCELLED')),
                                  overall_feedback TEXT,
                                  sentence_corrections JSONB,
                                  generated_subtitle JSONB,
@@ -271,3 +271,27 @@ CREATE TABLE operation_metric_daily (
                                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                         CONSTRAINT uk_operation_metric_daily UNIQUE (metric_date, service_type)
 );
+
+-- 15) operation_metric_hourly
+CREATE TABLE operation_metric_hourly (
+                                         id BIGSERIAL PRIMARY KEY,
+                                         metric_date DATE NOT NULL,
+                                         metric_hour INT NOT NULL,
+                                         service_type VARCHAR(50) NOT NULL,
+                                         total_log_count BIGINT NOT NULL DEFAULT 0,
+                                         total_token_usage BIGINT NOT NULL DEFAULT 0,
+                                         queue_enqueued_count BIGINT NOT NULL DEFAULT 0,
+                                         queue_success_count BIGINT NOT NULL DEFAULT 0,
+                                         queue_failed_count BIGINT NOT NULL DEFAULT 0,
+                                         error_count BIGINT NOT NULL DEFAULT 0,
+                                         failure_rate DOUBLE PRECISION NOT NULL DEFAULT 0,
+                                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                         CONSTRAINT uk_operation_metric_hourly UNIQUE (metric_date, metric_hour, service_type)
+);
+
+CREATE INDEX idx_operation_metric_hourly_date_hour
+    ON operation_metric_hourly(metric_date, metric_hour);
+
+CREATE INDEX idx_operation_metric_hourly_service
+    ON operation_metric_hourly(service_type);
