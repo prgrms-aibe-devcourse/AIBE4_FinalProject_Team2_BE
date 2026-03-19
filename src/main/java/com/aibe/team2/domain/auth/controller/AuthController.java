@@ -171,11 +171,6 @@ public class AuthController {
         // 1. 요청의 쿠키에서 accessToken 추출
         Cookie[] cookies = request.getCookies();
 
-        // 디버깅용 로그: 쿠키가 아예 안 넘어오는지 확인
-        if (cookies == null) {
-            System.out.println("No cookies found in request");
-        }
-
         String token = null;
         if (cookies != null) {
             token = Arrays.stream(cookies)

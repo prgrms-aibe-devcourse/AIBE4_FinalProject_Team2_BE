@@ -33,8 +33,8 @@ public enum ErrorCode {
     AUTH_SOCIAL_LOGIN_FAILED(HttpStatus.BAD_REQUEST, "AUTH_006", "소셜 로그인에 실패했습니다."),
     AUTH_DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "AUTH_007", "이미 사용중인 닉네임입니다."),
     AUTH_DUPLICATE_EMAIL(HttpStatus.CONFLICT, "AUTH_008", "이미 사용중인 이메일입니다."),
-    AUTH_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH_008", "이메일이 입력되지 않았습니다."),
-    AUTH_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "AUTH_008", "인증 번호가 일치하지 않거나 만료되었습니다."),
+    AUTH_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH_009", "이메일이 입력되지 않았습니다."),
+    AUTH_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "AUTH_010", "인증 번호가 일치하지 않거나 만료되었습니다."),
 
     // User (회원)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_001", "존재하지 않는 사용자입니다."),

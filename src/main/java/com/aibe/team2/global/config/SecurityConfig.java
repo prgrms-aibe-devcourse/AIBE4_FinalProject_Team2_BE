@@ -84,7 +84,7 @@ public class SecurityConfig {
                         // [FR-INT-04] 외부 Retell AI Webhook 수신을 위한 권한 예외 처리 추가
                         .requestMatchers("/api/webhooks/**").permitAll()
                         // [NFR-LOG-01] 구조화 로그 설정(테스트를 위해 permitAll()로 변경)
-                        .requestMatchers("/api/v1/admin/logs/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/logs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // LoggingFilter를 JwtFilter보다 먼저 실행되도록 등록

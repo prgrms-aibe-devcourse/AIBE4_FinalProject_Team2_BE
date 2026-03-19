@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -33,9 +34,6 @@ public class LoggingFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // [강제 디버깅용] 콘솔에 무조건 찍혀야 함
-        System.out.println("========== LoggingFilter 진입: " + request.getRequestURI() + " ==========");
-
         // 로그인/로그아웃 등 특정 경로는 제외하고 싶다면 shouldNotFilter 활용
         ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
         ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
@@ -48,14 +46,13 @@ public class LoggingFilter extends OncePerRequestFilter {
             filterChain.doFilter(requestWrapper, responseWrapper);
         } finally {
             long end = System.currentTimeMillis();
-            System.out.println("로그 필터 통과 완료! 저장 시도 중... URI: " + requestWrapper.getRequestURI()); // 추가
             saveLogToRedis(requestWrapper, responseWrapper, requestId, (end - start));
             responseWrapper.copyBodyToResponse();
             MDC.clear();
         }
     }
 
-//    @Async
+    @Async
     protected void saveLogToRedis(ContentCachingRequestWrapper req, ContentCachingResponseWrapper res, String id, long time) {
         try {
             String today = LocalDate.now().toString(); // yyyy-MM-dd
@@ -79,12 +76,10 @@ public class LoggingFilter extends OncePerRequestFilter {
             String logJson = dto.toJson(objectMapper);
 
             // Redis 저장 (최신 로그가 위로 오게 LPUSH)
-            redisTemplate.opsForList().leftPush(redisKey, logJson);
+            Long listSize = redisTemplate.opsForList().leftPush(redisKey, logJson);
 
-            // 매번 expire를 호출하는 대신, 리스트 크기가 1일 때(새로 생성될 때)만 설정하거나
-            // 혹은 이 부분 때문에 에러가 난다면 잠시 주석 처리 후 테스트해 보세요.
-            Boolean hasKey = redisTemplate.hasKey(redisKey);
-            if (hasKey != null && !hasKey) {
+            // 리스트가 새로 생성되었을 때(첫 아이템 추가 시)만 만료 시간 설정
+            if (listSize != null && listSize == 1) {
                 redisTemplate.expire(redisKey, 30, TimeUnit.DAYS);
             }
 
