@@ -47,6 +47,17 @@ public class InterviewSession {
 
     private Integer finalScore;
 
+    // 상세 분석 결과 저장을 위한 필드들 추가
+    @Column(columnDefinition = "TEXT")
+    private String overallFeedback;
+
+    private Integer jobRelevanceScore;
+    private Integer attitudeConfidenceScore;
+    private Integer logicalStructureScore;
+    private Integer clarityScore;
+    private Integer persuasivenessScore;
+    private Integer consistencyScore;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -70,9 +81,24 @@ public class InterviewSession {
         this.status = status;
     }
 
-    // 최종 결과 업데이트 (SQS 분석 완료 시 사용)
-    public void updateResult(Integer finalScore) {
+    //AI 분석 결과인 최종 점수를 업데이트
+    public void updateFinalScore(Integer finalScore) {
         this.finalScore = finalScore;
-        this.status = InterviewSessionStatus.DONE;
+    }
+
+    //AI 분석 완료 시 7개의 지표와 총평을 한 번에 업데이트하는 메서드
+    public void updateAnalysisResult(
+            Integer finalScore, String overallFeedback, Integer jobRelevanceScore,
+            Integer attitudeConfidenceScore, Integer logicalStructureScore,
+            Integer clarityScore, Integer persuasivenessScore, Integer consistencyScore
+    ) {
+        this.finalScore = finalScore;
+        this.overallFeedback = overallFeedback;
+        this.jobRelevanceScore = jobRelevanceScore;
+        this.attitudeConfidenceScore = attitudeConfidenceScore;
+        this.logicalStructureScore = logicalStructureScore;
+        this.clarityScore = clarityScore;
+        this.persuasivenessScore = persuasivenessScore;
+        this.consistencyScore = consistencyScore;
     }
 }
