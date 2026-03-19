@@ -69,22 +69,24 @@ public class OperationMetricHourlyService {
                     ? 0.0
                     : (double) queueFailedCount / queueEnqueuedCount;
 
-            operationMetricHourlyRepository.findByMetricDateAndMetricHourAndServiceType(
+            if (operationMetricHourlyRepository.findByMetricDateAndMetricHourAndServiceType(
                     targetDate, targetHour, serviceType
-            ).orElseGet(() -> operationMetricHourlyRepository.save(
-                    OperationMetricHourly.create(
-                            targetDate,
-                            targetHour,
-                            serviceType,
-                            totalLogCount,
-                            totalTokenUsage == null ? 0L : totalTokenUsage,
-                            queueEnqueuedCount,
-                            queueSuccessCount,
-                            queueFailedCount,
-                            errorCount,
-                            failureRate
-                    )
-            ));
+            ).isEmpty()) {
+                operationMetricHourlyRepository.save(
+                        OperationMetricHourly.create(
+                                targetDate,
+                                targetHour,
+                                serviceType,
+                                totalLogCount,
+                                totalTokenUsage == null ? 0L : totalTokenUsage,
+                                queueEnqueuedCount,
+                                queueSuccessCount,
+                                queueFailedCount,
+                                errorCount,
+                                failureRate
+                        )
+                );
+            }
         }
     }
 
