@@ -57,6 +57,7 @@ public class InterviewStatisticsService {
 
         // 5. 로직 및 구조 지표 매핑
         LogicAndStructure logicAndStructure = new LogicAndStructure(
+                stats != null && stats.getLogicalStructureScore() != null ? stats.getLogicalStructureScore().intValue() : 0,
                 stats != null && stats.getAvgClarity() != null ? stats.getAvgClarity().intValue() : 0,
                 stats != null && stats.getAvgPersuasiveness() != null ? stats.getAvgPersuasiveness().intValue() : 0,
                 stats != null && stats.getAvgConsistency() != null ? stats.getAvgConsistency().intValue() : 0
@@ -68,13 +69,13 @@ public class InterviewStatisticsService {
         // 7. 턴별 스크립트 매핑 (파라미터 10개 매칭)
         List<TurnScript> turnScripts = records.stream()
                 .map(record -> new TurnScript(
-                        record.getId(),                  // 💡 [추가] 누락된 Long 타입 ID (메서드명은 엔티티에 맞게 확인 필요)
+                        record.getId(),
                         record.getTurnSequence(),
                         record.getQuestionText(),
                         record.getAnswerText(),
-                        record.getFeedbackText(),
+                        record.getFeedbackText(), // DTO의 aiFeedback에 매핑
                         record.getEvaluationScore() != null ? record.getEvaluationScore().doubleValue() : 0.0,
-                        Collections.<String>emptyList(), // 💡 [수정] List<String>으로 명시적 타입 추론 지시
+                        Collections.<String>emptyList(),
                         record.getWpm(),
                         record.getSilenceCount(),
                         record.getSttAccuracy(),
@@ -84,8 +85,8 @@ public class InterviewStatisticsService {
                 .toList();
 
         // 8. 최종 응답
-        String overallReview = (stats != null && stats.getOverallFeedback() != null)
-                ? stats.getOverallFeedback() : "";
+        String overallFeedback = (stats != null && stats.getOverallFeedback() != null)
+                ? stats.getOverallFeedback() : ""; // DTO 변수명에 맞춰 overallReview -> overallFeedback으로 이름 변경 권장
 
         String interviewType = session.getInterviewType();
         String interviewMode = convertInterviewModeToKorean(session.getInterviewMode());
@@ -95,8 +96,10 @@ public class InterviewStatisticsService {
                 interviewType,
                 interviewMode,
                 session.getCreatedAt(),
-                session.getFinalScore(),
-                overallReview,
+                session.getFinalScore(), // DTO의 totalScore에 매핑
+                overallFeedback,
+                stats != null && stats.getJobRelevanceScore() != null ? stats.getJobRelevanceScore().intValue() : 0,       // [추가됨] 직무 적합성 점수
+                stats != null && stats.getAttitudeConfidenceScore() != null ? stats.getAttitudeConfidenceScore().intValue() : 0, // [추가됨] 태도 및 자신감 점수
                 logicAndStructure,
                 speechAnalysis,
                 turnScripts
