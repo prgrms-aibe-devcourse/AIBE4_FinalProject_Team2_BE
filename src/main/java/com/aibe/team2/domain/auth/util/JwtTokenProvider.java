@@ -74,7 +74,8 @@ public class JwtTokenProvider {
         try {
             Jwts.parser()
                     .setSigningKey(key)
-                    .parseClaimsJwt(token);     // 서명이나 만료 시간에 문제가 있으면 예외 발생
+                    .parseClaimsJws(token);   // 서명이나 만료 시간에 문제가 있으면 예외 발생
+                    //.parseClaimsJwt(token); 401에러 해결을 위해 Jws로 수정함.
             return true;
         } catch (io.jsonwebtoken.security.SignatureException e) {
             System.out.println("잘못된 JWT 서명입니다.");

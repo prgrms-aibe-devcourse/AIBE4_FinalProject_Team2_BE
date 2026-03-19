@@ -1,6 +1,11 @@
 package com.aibe.team2.domain.error.controller;
 
-import com.aibe.team2.domain.error.dto.admin.*;
+import com.aibe.team2.domain.error.dto.admin.ErrorIssueDetailResponse;
+import com.aibe.team2.domain.error.dto.admin.ErrorIssueResponse;
+import com.aibe.team2.domain.error.dto.admin.ErrorIssueSearchCond;
+import com.aibe.team2.domain.error.dto.admin.ErrorIssueStatusUpdateRequest;
+import com.aibe.team2.domain.error.dto.admin.ErrorLogDetailResponse;
+import com.aibe.team2.domain.error.dto.admin.ErrorLogRowResponse;
 import com.aibe.team2.domain.error.enums.IssueStatus;
 import com.aibe.team2.domain.error.service.ErrorAdminService;
 import com.aibe.team2.global.common.response.ApiResponse;
@@ -31,7 +36,7 @@ public class ErrorAdminController {
     }
 
     @GetMapping("/{issueId}")
-    public ResponseEntity<ApiResponse<ErrorIssueResponse>> getIssueDetail(
+    public ResponseEntity<ApiResponse<ErrorIssueDetailResponse>> getIssueDetail(
             @PathVariable Long issueId
     ) {
         return ResponseEntity.ok(ApiResponse.success(

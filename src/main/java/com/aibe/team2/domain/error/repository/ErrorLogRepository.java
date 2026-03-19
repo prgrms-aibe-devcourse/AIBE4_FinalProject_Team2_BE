@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface ErrorLogRepository extends JpaRepository<ErrorLog, Long> {
 
@@ -35,6 +36,10 @@ public interface ErrorLogRepository extends JpaRepository<ErrorLog, Long> {
             LocalDateTime start,
             LocalDateTime end
     );
+
+    Optional<ErrorLog> findTopByTargetTypeAndTargetIdOrderByOccurredAtDesc(String targetType, Long targetId);
+
+    Optional<ErrorLog> findTopByIssueIdOrderByOccurredAtDesc(Long issueId);
 
     @Modifying
     @Query("delete from ErrorLog e where e.occurredAt < :threshold")

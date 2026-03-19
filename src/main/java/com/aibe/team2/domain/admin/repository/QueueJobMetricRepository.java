@@ -19,5 +19,13 @@ public interface QueueJobMetricRepository extends JpaRepository<QueueJobMetric, 
 
     long countByTargetTypeAndTargetIdAndStatus(String targetType, Long targetId, QueueJobStatus status);
 
+    long countByStatus(QueueJobStatus status);
+
+    long countByStatusAndCreatedAtBetween(
+            QueueJobStatus status,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
     Optional<QueueJobMetric> findTopByTargetTypeAndTargetIdOrderByCreatedAtDesc(String targetType, Long targetId);
 }
