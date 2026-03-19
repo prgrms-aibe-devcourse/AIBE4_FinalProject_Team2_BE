@@ -1,0 +1,104 @@
+package com.aibe.team2.domain.log.filter;
+
+import com.aibe.team2.domain.log.dto.LogDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.ContentCachingRequestWrapper;
+import org.springframework.web.util.ContentCachingResponseWrapper;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+//@Component
+@RequiredArgsConstructor
+@Slf4j
+public class LoggingFilter extends OncePerRequestFilter {
+
+    private final StringRedisTemplate redisTemplate;
+    private final ObjectMapper objectMapper;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        // [강제 디버깅용] 콘솔에 무조건 찍혀야 함
+        System.out.println("========== LoggingFilter 진입: " + request.getRequestURI() + " ==========");
+
+        // 로그인/로그아웃 등 특정 경로는 제외하고 싶다면 shouldNotFilter 활용
+        ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
+        ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
+
+        long start = System.currentTimeMillis();
+        String requestId = UUID.randomUUID().toString().substring(0, 8);
+        MDC.put("request_id", requestId);
+
+        try {
+            filterChain.doFilter(requestWrapper, responseWrapper);
+        } finally {
+            long end = System.currentTimeMillis();
+            System.out.println("로그 필터 통과 완료! 저장 시도 중... URI: " + requestWrapper.getRequestURI()); // 추가
+            saveLogToRedis(requestWrapper, responseWrapper, requestId, (end - start));
+            responseWrapper.copyBodyToResponse();
+            MDC.clear();
+        }
+    }
+
+//    @Async
+    protected void saveLogToRedis(ContentCachingRequestWrapper req, ContentCachingResponseWrapper res, String id, long time) {
+        try {
+            String today = LocalDate.now().toString(); // yyyy-MM-dd
+            String redisKey = "api:logs:" + today;
+
+            // 로그 객체 생성
+            LogDTO dto = LogDTO.builder()
+                    .timestamp(LocalDateTime.now().toString())
+                    .requestId(id)
+                    .method(req.getMethod())
+                    .uri(req.getRequestURI())
+                    .status(res.getStatus())
+                    .clientIp(req.getRemoteAddr())
+                    .userEmail(SecurityContextHolder.getContext().getAuthentication() != null ?
+                            SecurityContextHolder.getContext().getAuthentication().getName() : "guest")
+                    .elapsedTime(time)
+                    .requestBody(new String(req.getContentAsByteArray()))
+                    .responseBody(new String(res.getContentAsByteArray()))
+                    .build();
+
+            String logJson = dto.toJson(objectMapper);
+
+            // Redis 저장 (최신 로그가 위로 오게 LPUSH)
+            redisTemplate.opsForList().leftPush(redisKey, logJson);
+
+            // 매번 expire를 호출하는 대신, 리스트 크기가 1일 때(새로 생성될 때)만 설정하거나
+            // 혹은 이 부분 때문에 에러가 난다면 잠시 주석 처리 후 테스트해 보세요.
+            Boolean hasKey = redisTemplate.hasKey(redisKey);
+            if (hasKey != null && !hasKey) {
+                redisTemplate.expire(redisKey, 30, TimeUnit.DAYS);
+            }
+
+            log.info("Redis Log Saved: {}", id);
+
+        } catch (Exception e) {
+            log.error("Failed to save log to Redis", e);
+        }
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        // /error 경로나 정적 리소스는 로그 대상에서 제외하여 무한 루프 방지
+        return path.startsWith("/error") || path.startsWith("/favicon.ico") || path.startsWith("/api/v1/admin/logs");
+    }
+}
