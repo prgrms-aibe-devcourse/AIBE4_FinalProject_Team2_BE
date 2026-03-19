@@ -293,5 +293,5 @@ CREATE TABLE operation_metric_hourly (
 CREATE INDEX idx_operation_metric_hourly_date_hour
     ON operation_metric_hourly(metric_date, metric_hour);
 
-CREATE INDEX idx_operation_metric_hourly_service
-    ON operation_metric_hourly(service_type);
+CREATE INDEX idx_operation_metric_hourly_date_service
+    ON operation_metric_hourly(metric_date, service_type);

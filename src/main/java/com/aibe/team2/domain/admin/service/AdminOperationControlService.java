@@ -150,11 +150,13 @@ public class AdminOperationControlService {
                 || report.getStatus() == AnalysisStatus.DELAYED
                 || report.getStatus() == AnalysisStatus.CANCELLED;
 
-        boolean cancellable = latestMetric != null
-                && latestMetric.getStatus() != QueueJobStatus.PROCESSING
-                && latestMetric.getStatus() != QueueJobStatus.SUCCESS
-                && latestMetric.getStatus() != QueueJobStatus.FAILED
-                && latestMetric.getStatus() != QueueJobStatus.CANCELLED;
+        boolean cancellable = latestMetric != null &&
+                !java.util.EnumSet.of(
+                        QueueJobStatus.PROCESSING,
+                        QueueJobStatus.SUCCESS,
+                        QueueJobStatus.FAILED,
+                        QueueJobStatus.CANCELLED
+                ).contains(latestMetric.getStatus());
 
         return AdminOperationTargetDetailResponse.builder()
                 .targetType("ANALYSIS_REPORT")
