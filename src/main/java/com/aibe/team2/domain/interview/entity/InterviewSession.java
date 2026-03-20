@@ -12,6 +12,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import com.aibe.team2.domain.interview.dto.AnalysisResultDto;
 
 @Entity
 @Getter
@@ -81,24 +82,28 @@ public class InterviewSession {
         this.status = status;
     }
 
-    //AI 분석 결과인 최종 점수를 업데이트
+    // [기존] AI 분석 결과인 최종 점수를 업데이트
     public void updateFinalScore(Integer finalScore) {
         this.finalScore = finalScore;
     }
 
-    //AI 분석 완료 시 7개의 지표와 총평을 한 번에 업데이트하는 메서드
-    public void updateAnalysisResult(
-            Integer finalScore, String overallFeedback, Integer jobRelevanceScore,
-            Integer attitudeConfidenceScore, Integer logicalStructureScore,
-            Integer clarityScore, Integer persuasivenessScore, Integer consistencyScore
-    ) {
-        this.finalScore = finalScore;
-        this.overallFeedback = overallFeedback;
-        this.jobRelevanceScore = jobRelevanceScore;
-        this.attitudeConfidenceScore = attitudeConfidenceScore;
-        this.logicalStructureScore = logicalStructureScore;
-        this.clarityScore = clarityScore;
-        this.persuasivenessScore = persuasivenessScore;
-        this.consistencyScore = consistencyScore;
+    // [PR 리뷰 반영] AI 분석 완료 시 DTO를 통째로 전달받아 7개의 지표와 총평을 업데이트
+    public void updateAnalysisResult(AnalysisResultDto analysisResult) {
+        this.finalScore = analysisResult.getTotalScore();
+        this.overallFeedback = analysisResult.getOverallFeedback();
+        this.jobRelevanceScore = analysisResult.getJobRelevanceScore();
+        this.attitudeConfidenceScore = analysisResult.getAttitudeConfidenceScore();
+
+        if (analysisResult.getLogicAndStructure() != null) {
+            this.logicalStructureScore = analysisResult.getLogicAndStructure().getLogicalStructureScore();
+            this.clarityScore = analysisResult.getLogicAndStructure().getClarityScore();
+            this.persuasivenessScore = analysisResult.getLogicAndStructure().getPersuasivenessScore();
+            this.consistencyScore = analysisResult.getLogicAndStructure().getConsistencyScore();
+        } else {
+            this.logicalStructureScore = 0;
+            this.clarityScore = 0;
+            this.persuasivenessScore = 0;
+            this.consistencyScore = 0;
+        }
     }
 }

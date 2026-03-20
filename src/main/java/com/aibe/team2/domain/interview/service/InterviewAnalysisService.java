@@ -25,7 +25,7 @@ public class InterviewAnalysisService {
     private final GeminiAnalysisService geminiAnalysisService;
     private final ObjectMapper objectMapper;
 
-    //면접이 종료된 세션을 대상으로 AI 분석을 수행
+    // 면접이 종료된 세션을 대상으로 AI 분석을 수행
     @Async
     @Transactional
     public void analyzeSession(Long sessionId) {
@@ -55,19 +55,9 @@ public class InterviewAnalysisService {
             String jsonResult = geminiAnalysisService.analyzeInterviewSync(promptBuilder.toString());
             AnalysisResultDto analysisResult = objectMapper.readValue(jsonResult, AnalysisResultDto.class);
 
-            // 모든 상세 지표를 DB에 함께 저장
-            // Null-safe 처리를 통해 DTO의 내부 객체가 null일 경우 0점으로 처리하여 NullPointerException 방지
+            // [PR 리뷰 반영] DTO 객체를 직접 전달하여 호출부를 깔끔하게 리팩토링
             if (analysisResult.getTotalScore() != null) {
-                session.updateAnalysisResult(
-                        analysisResult.getTotalScore(),
-                        analysisResult.getOverallFeedback(),
-                        analysisResult.getJobRelevanceScore(),
-                        analysisResult.getAttitudeConfidenceScore(),
-                        analysisResult.getLogicAndStructure() != null ? analysisResult.getLogicAndStructure().getLogicalStructureScore() : 0,
-                        analysisResult.getLogicAndStructure() != null ? analysisResult.getLogicAndStructure().getClarityScore() : 0,
-                        analysisResult.getLogicAndStructure() != null ? analysisResult.getLogicAndStructure().getPersuasivenessScore() : 0,
-                        analysisResult.getLogicAndStructure() != null ? analysisResult.getLogicAndStructure().getConsistencyScore() : 0
-                );
+                session.updateAnalysisResult(analysisResult);
             }
 
             // 개별 질문/답변에 대한 턴별 AI 피드백 저장
@@ -86,7 +76,8 @@ public class InterviewAnalysisService {
             log.info("✅ 분석 결과 전체 저장 완료 - SessionID: {}, 총점: {}", sessionId, analysisResult.getTotalScore());
 
         } catch (Exception e) {
-            log.error("❌ 면접 분석 중 오류 발생 - SessionID: {}. 오류 내용: {}", sessionId, e.getMessage());
+            // [PR 리뷰 반영] e.getMessage() 대신 e 전체를 넘겨 스택 트레이스를 로깅하도록 수정
+            log.error("❌ 면접 분석 중 오류 발생 - SessionID: {}", sessionId, e);
         }
     }
 }
