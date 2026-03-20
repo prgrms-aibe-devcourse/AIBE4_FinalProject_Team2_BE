@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 
 @Slf4j
@@ -33,7 +34,7 @@ public class EmailService {
         }
 
         // 1. 6자리 난수 생성
-        String code = String.valueOf((int) (Math.random() * 899999) + 100000);
+        String code = String.valueOf(new SecureRandom().nextInt(900000) + 100000);
 
         try {
 
@@ -77,14 +78,13 @@ public class EmailService {
 
         } catch (MessagingException e) {
             // 이메일 설정 오류나 서버 연결 실패 시 발생
-            // [핵심] 발송 실패 시 Redis 데이터 삭제 (Rollback)
             redisTemplate.delete(email);
             log.error("메일 발송 실패로 인해 Redis 데이터를 롤백합니다. 대상: {}, 사유: {}", email, e.getMessage());
-            log.error("메일 전송 중 오류 발생: {}", e.getMessage());
             throw new BusinessException(ErrorCode.AUTH_EMAIL_SEND_ERROR);
         } catch (Exception e) {
             // 그 외 예상치 못한 시스템 오류
-            log.error("서버 내부 오류: {}", e.getMessage());
+            redisTemplate.delete(email);
+            log.error("서버 내부 오류로 인해 Redis 데이터를 롤백합니다. 대상: {}, 사유: {}", email, e.getMessage());
             throw new BusinessException(ErrorCode.COMMON_500);
         }
     }
