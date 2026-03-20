@@ -82,7 +82,7 @@ cors:
 
 app:
   frontend:
-    oauth-redirect-uri: http://localhost:5173/AIBE4_FinalProject_Team2_FE/oauth/callback
+    oauth-redirect-uri: http://localhost:5173/oauth/callback
   error:
     alert:
       occurrence-threshold: 10

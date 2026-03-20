@@ -23,7 +23,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class JobPostingParsingService {
-
+    //
     private final ObjectMapper objectMapper;
     private final JobPostingCrawlerService jobPostingCrawlerService;
     private final RestTemplate restTemplate;
