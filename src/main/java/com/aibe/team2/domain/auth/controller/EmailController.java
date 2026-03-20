@@ -3,6 +3,7 @@ package com.aibe.team2.domain.auth.controller;
 import com.aibe.team2.domain.auth.dto.EmailRequest;
 import com.aibe.team2.domain.auth.dto.EmailVerifyRequest;
 import com.aibe.team2.domain.auth.service.EmailService;
+import com.aibe.team2.domain.mypage.service.MemberService;
 import com.aibe.team2.global.common.response.ApiResponse;
 import com.aibe.team2.global.common.response.ErrorResponse;
 import com.aibe.team2.global.error.ErrorCode;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EmailController {
 
     private final EmailService emailService;
+    private final MemberService memberService;
 
     /**
      * 1. 인증 번호 발송
@@ -29,6 +31,10 @@ public class EmailController {
         String email = request.getEmail();
         if (email == null || email.isBlank()) {
             return ErrorResponse.toResponseEntity(ErrorCode.AUTH_EMAIL_NOT_FOUND);
+        }
+
+        if (memberService.isEmailExists(email)) {
+            return ErrorResponse.toResponseEntity(ErrorCode.AUTH_DUPLICATE_EMAIL);
         }
 
         emailService.sendVerificationCode(email);

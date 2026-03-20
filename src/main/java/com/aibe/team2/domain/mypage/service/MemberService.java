@@ -173,6 +173,10 @@ public class MemberService {
                 .getNickname();
     }
 
+    public boolean isEmailExists(String email) {
+        return memberRepository.existsByEmail(email);
+    }
+
     @Transactional
     public void join(MemberDTO request) {
         validateSignup(request); // 가입 전 검증 수행
