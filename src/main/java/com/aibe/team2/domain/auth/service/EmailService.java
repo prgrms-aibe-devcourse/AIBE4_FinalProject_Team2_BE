@@ -27,11 +27,6 @@ public class EmailService {
 
     @Async
     public void sendVerificationCode(String email) {
-        // 0. 이메일 중복 확인
-        if (memberRepository.existsByEmail(email)) {
-            // 커스텀 예외를 던지거나, 간단하게 RuntimeException 활용
-            throw new BusinessException(ErrorCode.AUTH_DUPLICATE_EMAIL);
-        }
 
         // 1. 6자리 난수 생성
         String code = String.valueOf(new SecureRandom().nextInt(900000) + 100000);
