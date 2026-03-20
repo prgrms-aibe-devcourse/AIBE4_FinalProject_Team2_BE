@@ -55,10 +55,8 @@ public class InterviewAnalysisService {
             String jsonResult = geminiAnalysisService.analyzeInterviewSync(promptBuilder.toString());
             AnalysisResultDto analysisResult = objectMapper.readValue(jsonResult, AnalysisResultDto.class);
 
-            // [PR 리뷰 반영] DTO 객체를 직접 전달하여 호출부를 깔끔하게 리팩토링
-            if (analysisResult.getTotalScore() != null) {
-                session.updateAnalysisResult(analysisResult);
-            }
+            // [PR 리뷰 반영] 불필요한 null 체크를 제거하고 DTO 객체 전체를 전달
+            session.updateAnalysisResult(analysisResult);
 
             // 개별 질문/답변에 대한 턴별 AI 피드백 저장
             if (analysisResult.getTurnScripts() != null) {

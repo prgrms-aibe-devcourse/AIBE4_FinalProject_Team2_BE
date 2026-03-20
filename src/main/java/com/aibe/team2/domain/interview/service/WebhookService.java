@@ -43,7 +43,7 @@ public class WebhookService {
             interviewManager.advanceStatus(sessionId, InterviewSessionStatus.DONE);
 
         } catch (Exception e) {
-            log.error("❌ Webhook 처리 중 예외 발생: {}", e.getMessage());
+            log.error("❌ Webhook 처리 중 예외 발생", e);
         }
     }
 }

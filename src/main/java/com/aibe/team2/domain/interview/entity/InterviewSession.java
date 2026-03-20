@@ -48,7 +48,6 @@ public class InterviewSession {
 
     private Integer finalScore;
 
-    // 상세 분석 결과 저장을 위한 필드들 추가
     @Column(columnDefinition = "TEXT")
     private String overallFeedback;
 
@@ -82,23 +81,26 @@ public class InterviewSession {
         this.status = status;
     }
 
-    // [기존] AI 분석 결과인 최종 점수를 업데이트
+    // AI 분석 결과인 최종 점수를 업데이트
     public void updateFinalScore(Integer finalScore) {
         this.finalScore = finalScore;
     }
 
     // [PR 리뷰 반영] AI 분석 완료 시 DTO를 통째로 전달받아 7개의 지표와 총평을 업데이트
     public void updateAnalysisResult(AnalysisResultDto analysisResult) {
+        if (analysisResult == null) return;
+
         this.finalScore = analysisResult.getTotalScore();
         this.overallFeedback = analysisResult.getOverallFeedback();
         this.jobRelevanceScore = analysisResult.getJobRelevanceScore();
         this.attitudeConfidenceScore = analysisResult.getAttitudeConfidenceScore();
 
-        if (analysisResult.getLogicAndStructure() != null) {
-            this.logicalStructureScore = analysisResult.getLogicAndStructure().getLogicalStructureScore();
-            this.clarityScore = analysisResult.getLogicAndStructure().getClarityScore();
-            this.persuasivenessScore = analysisResult.getLogicAndStructure().getPersuasivenessScore();
-            this.consistencyScore = analysisResult.getLogicAndStructure().getConsistencyScore();
+        AnalysisResultDto.LogicAndStructure logic = analysisResult.getLogicAndStructure();
+        if (logic != null) {
+            this.logicalStructureScore = logic.getLogicalStructureScore();
+            this.clarityScore = logic.getClarityScore();
+            this.persuasivenessScore = logic.getPersuasivenessScore();
+            this.consistencyScore = logic.getConsistencyScore();
         } else {
             this.logicalStructureScore = 0;
             this.clarityScore = 0;
