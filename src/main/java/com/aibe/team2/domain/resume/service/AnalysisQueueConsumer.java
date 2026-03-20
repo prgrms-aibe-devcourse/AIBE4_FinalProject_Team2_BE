@@ -20,13 +20,13 @@ public class AnalysisQueueConsumer {
 
     private static final String QUEUE_KEY = "resume:analysis:queue";
     private static final int MAX_BATCH_SIZE = 3;
-    @Scheduled(fixedDelay = 2000) // 2초마다 큐 확인
+
+    @Scheduled(fixedDelay = 2000)
     public void consumeQueue() {
 
         for (int i = 0; i < MAX_BATCH_SIZE; i++) {
             Object jsonMessage = redisTemplate.opsForList().leftPop(QUEUE_KEY);
 
-            // 큐가 비어있으면 즉시 스케줄러 루프 탈출
             if (jsonMessage == null) {
                 break;
             }
@@ -34,15 +34,19 @@ public class AnalysisQueueConsumer {
             try {
                 AnalysisMessage message = objectMapper.readValue(jsonMessage.toString(), AnalysisMessage.class);
 
-                queueJobMetricService.markProcessing(message.getQueueJobMetricId());
-
-                log.info("🚀 [QueueConsumer] Redis 큐 추출 성공 - Report ID: {}, QueueMetricId: {}",
-                        message.getReportId(), message.getQueueJobMetricId());
+                // 🔥 추가된 방어 로직: null 체크
+                if (message.getQueueJobMetricId() != null) {
+                    queueJobMetricService.markProcessing(message.getQueueJobMetricId());
+                    log.info("🚀 [QueueConsumer] Redis 큐 추출 성공 - Report ID: {}, QueueMetricId: {}",
+                            message.getReportId(), message.getQueueJobMetricId());
+                } else {
+                    log.warn("⚠️ [QueueConsumer] 과거 메시지 감지(MetricId 없음). 그냥 처리 진행 - Report ID: {}", message.getReportId());
+                }
 
                 asyncWorker.processAiAnalysisAsync(
                         message.getReportId(),
                         message.getResumeContent(),
-                        message.getQueueJobMetricId()
+                        message.getQueueJobMetricId() // null이어도 워커 내부에서 처리되도록 넘김
                 );
 
             } catch (Exception e) {
