@@ -12,6 +12,8 @@ import com.aibe.team2.domain.resume.repository.ResumeRepository;
 import com.aibe.team2.domain.statistics.entity.InterviewRecord;
 import com.aibe.team2.domain.statistics.repository.interview.InterviewRecordRepository;
 import com.aibe.team2.global.redis.lock.DistributedLock;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
@@ -31,12 +35,18 @@ public class ConversationManager {
 
     private final ResumeRepository resumeRepository; // [FR-INT-06] 이력서 조회를 위한 의존성 추가
     private final JobPostingRepository jobPostingRepository; //  [FR-INT-07] 채용 공고 조회를 위한 의존성 추가
+    private final InterviewRecordRepository recordRepository; // 대화 기록을 DB에 저장하기 위한 Repository 주입
 
-    // 대화 기록을 DB에 저장하기 위한 Repository 주입
-    private final InterviewRecordRepository recordRepository;
+    // JSON 파싱을 위해 ObjectMapper 주입
+    private final ObjectMapper objectMapper;
+
+    // 각 세션별로 이전 턴의 AI 질문을 기억하기 위한 스레드 안전한 인메모리 캐시 도입
+    private final Map<Long, String> previousQuestionCache = new ConcurrentHashMap<>();
 
     @DistributedLock(key = "text-streaming", waitTime = 1, leaseTime = 20)
     public void startTextStreaming(InterviewSession session, String answer, String modelVariant, InterviewMode interviewMode, SseEmitter emitter) {
+        // 캐시에서 이전 질문을 가져오기(최초 1번째 턴일 경우 프론트엔드와 동일하게 기본 인사말 세팅)
+        String previousQuestion = previousQuestionCache.getOrDefault(session.getId(), "반갑습니다! 준비되셨다면 자기소개를 부탁드립니다.");
 
         // [FR-INT-06] 자기소개서 내용 안전하게 조회 및 추출
         String resumeContent = null;
@@ -57,14 +67,20 @@ public class ConversationManager {
         // DTO 생성 시 추출한 이력서 및 공고 데이터 모두 포함
         InterviewRequestDto request = new InterviewRequestDto(answer, modelVariant, interviewMode, resumeContent, jobDescription);
 
-        // [추가] AI 응답을 DB에 저장하기 위해 전체 문장을 담을 버퍼 생성
-        StringBuilder fullAiResponse = new StringBuilder();
+        // 원본 JSON 문자열 누적 대신, 파싱된 순수 텍스트만 누적하도록 변경
+        StringBuilder cleanAiResponse = new StringBuilder();
 
         geminiService.streamQuestion(String.valueOf(session.getId()), request).subscribe(
                 data -> {
                     try {
-                        fullAiResponse.append(data); // [추가] 스트리밍 데이터 누적
+                        // 프론트엔드로는 원본 데이터 전송 (기존 스트리밍 작동 유지)
                         emitter.send(SseEmitter.event().name("message").data(data));
+
+                        // DB 저장을 위해 JSON 청크에서 텍스트만 추출하여 누적
+                        String parsedText = extractTextFromChunk(data);
+                        if (parsedText != null && !parsedText.isEmpty()) {
+                            cleanAiResponse.append(parsedText);
+                        }
                     } catch (IOException e) {
                         emitter.completeWithError(e);
                     }
@@ -76,15 +92,37 @@ public class ConversationManager {
                     emitter.completeWithError(error);
                 },
                 () -> {
-                    // [추가] 스트리밍이 정상적으로 완료되면 누적된 데이터를 DB에 저장 (이후 리포트 분석에 사용)
-                    saveTextConversation(session, answer, fullAiResponse.toString());
+                    // 완료 시 정제된 순수 텍스트(cleanAiResponse)만 DB에 저장
+                    saveTextConversation(session, previousQuestion, answer);
+                    // 이번 스트리밍을 통해 새롭게 생성된 AI의 질문은 다음 턴을 위해 캐시에 임시 저장
+                    previousQuestionCache.put(session.getId(), cleanAiResponse.toString());
                     emitter.complete();
                 }
         );
     }
 
+    //스트리밍되는 JSON 청크 데이터에서 순수 텍스트만 안전하게 추출하는 헬퍼 메서드
+    private String extractTextFromChunk(String data) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(data);
+            JsonNode candidates = rootNode.path("candidates");
+            if (candidates.isArray() && candidates.size() > 0) {
+                JsonNode parts = candidates.get(0).path("content").path("parts");
+                if (parts.isArray() && parts.size() > 0) {
+                    return parts.get(0).path("text").asText("");
+                }
+            }
+            if (rootNode.has("text")) {
+                return rootNode.get("text").asText("");
+            }
+        } catch (Exception e) {
+        // 파싱 실패 시 원본 데이터가 깨진 청크일 수 있으므로 조용히 무시합니다.
+        }
+        return "";
+    }
+
     // 지원자의 답변과 AI의 다음 질문을 하나의 InterviewRecord로 묶어 저장
-    private void saveTextConversation(InterviewSession session, String userAnswer, String aiQuestion) {
+    private void saveTextConversation(InterviewSession session, String question, String answer) {
         try {
             // 현재 세션의 기존 기록 개수를 확인하여 순서 결정
             List<InterviewRecord> existingRecords = recordRepository.findAllByInterviewSessionIdOrderByTurnSequenceAsc(session.getId());
@@ -93,8 +131,8 @@ public class ConversationManager {
             InterviewRecord record = InterviewRecord.builder()
                     .interviewSession(session)
                     .turnSequence(nextTurn)
-                    .questionText(aiQuestion)
-                    .answerText(userAnswer)
+                    .questionText(question) // 정상적으로 짝이 맞춰진 질문
+                    .answerText(answer) // 사용자의 해당 답변
                     .build();
 
             recordRepository.save(record);
