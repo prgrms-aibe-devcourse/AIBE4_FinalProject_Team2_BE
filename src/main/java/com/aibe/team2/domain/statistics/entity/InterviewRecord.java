@@ -79,6 +79,11 @@ public class InterviewRecord {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    public void updateAIAnalysis(Float score, String feedback) {
+        this.evaluationScore = score;
+        this.feedbackText = feedback;
+    }
+
     @Builder
     public InterviewRecord(
             InterviewSession interviewSession, Integer turnSequence, String questionText,
