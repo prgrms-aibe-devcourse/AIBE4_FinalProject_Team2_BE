@@ -99,6 +99,6 @@ public class LoggingFilter extends OncePerRequestFilter {
         return path.startsWith("/error") ||
                 path.startsWith("/favicon.ico") ||
                 path.startsWith("/api/v1/admin/logs") ||
-                path.contains("/stream"); // 작성자 최원준
+                path.endsWith("/stream");
     }
 }
