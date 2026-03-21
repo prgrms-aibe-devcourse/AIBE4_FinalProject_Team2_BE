@@ -295,3 +295,101 @@ CREATE INDEX idx_operation_metric_hourly_date_hour
 
 CREATE INDEX idx_operation_metric_hourly_date_service
     ON operation_metric_hourly(metric_date, service_type);
+
+-- 16) error_issue
+CREATE TABLE error_issue (
+                             id BIGSERIAL PRIMARY KEY,
+                             fingerprint VARCHAR(255) NOT NULL UNIQUE,
+                             title VARCHAR(255) NOT NULL,
+                             error_code VARCHAR(100),
+                             severity VARCHAR(30) NOT NULL,
+                             status VARCHAR(30) NOT NULL,
+                             error_domain VARCHAR(50) NOT NULL,
+                             occurrence_count BIGINT NOT NULL DEFAULT 0,
+                             first_occurred_at TIMESTAMP NOT NULL,
+                             last_occurred_at TIMESTAMP NOT NULL,
+                             last_error_log_id BIGINT,
+                             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                             updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                             CONSTRAINT chk_error_issue_severity
+                                 CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+                             CONSTRAINT chk_error_issue_status
+                                 CHECK (status IN ('OPEN', 'RESOLVED', 'IGNORED')),
+                             CONSTRAINT chk_error_issue_domain
+                                 CHECK (error_domain IN (
+                                                         'COMMON',
+                                                         'AUTH',
+                                                         'RESUME',
+                                                         'INTERVIEW',
+                                                         'JOB_POSTING',
+                                                         'STATISTICS',
+                                                         'ADMIN',
+                                                         'QUEUE',
+                                                         'EXTERNAL_API',
+                                                         'SYSTEM'
+                                     ))
+);
+
+CREATE UNIQUE INDEX idx_error_issue_fingerprint
+    ON error_issue(fingerprint);
+
+CREATE INDEX idx_error_issue_status
+    ON error_issue(status);
+
+CREATE INDEX idx_error_issue_severity
+    ON error_issue(severity);
+
+CREATE INDEX idx_error_issue_last_occurred_at
+    ON error_issue(last_occurred_at);
+
+
+-- 17) error_log
+CREATE TABLE error_log (
+                           id BIGSERIAL PRIMARY KEY,
+                           issue_id BIGINT,
+                           member_id BIGINT,
+                           error_code VARCHAR(100),
+                           exception_type VARCHAR(255) NOT NULL,
+                           message VARCHAR(1000) NOT NULL,
+                           normalized_message VARCHAR(1000),
+                           fingerprint VARCHAR(255) NOT NULL,
+                           severity VARCHAR(30) NOT NULL,
+                           error_domain VARCHAR(50) NOT NULL,
+                           request_trace_id VARCHAR(100),
+                           target_type VARCHAR(100),
+                           target_id BIGINT,
+                           stack_trace TEXT,
+                           occurred_at TIMESTAMP NOT NULL,
+                           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                           CONSTRAINT fk_error_log_issue
+                               FOREIGN KEY (issue_id) REFERENCES error_issue(id),
+                           CONSTRAINT fk_error_log_member
+                               FOREIGN KEY (member_id) REFERENCES member(id),
+                           CONSTRAINT chk_error_log_severity
+                               CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+                           CONSTRAINT chk_error_log_domain
+                               CHECK (error_domain IN (
+                                                       'COMMON',
+                                                       'AUTH',
+                                                       'RESUME',
+                                                       'INTERVIEW',
+                                                       'JOB_POSTING',
+                                                       'STATISTICS',
+                                                       'ADMIN',
+                                                       'QUEUE',
+                                                       'EXTERNAL_API',
+                                                       'SYSTEM'
+                                   ))
+);
+
+CREATE INDEX idx_error_log_issue
+    ON error_log(issue_id);
+
+CREATE INDEX idx_error_log_fingerprint
+    ON error_log(fingerprint);
+
+CREATE INDEX idx_error_log_occurred_at
+    ON error_log(occurred_at);
+
+CREATE INDEX idx_error_log_error_code
+    ON error_log(error_code);

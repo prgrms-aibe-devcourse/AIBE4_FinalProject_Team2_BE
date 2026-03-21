@@ -30,6 +30,7 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(name = "password_hash")
     private String password;
 
     @Column(nullable = false, length = 50)
