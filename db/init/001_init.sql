@@ -48,7 +48,7 @@ CREATE TABLE resume (
                         title VARCHAR(255) NOT NULL,
                         s3_file_url VARCHAR(500),
                         content TEXT,
-                        embedding VECTOR(384),
+                        embedding VECTOR(768),
                         is_analyzed BOOLEAN DEFAULT FALSE,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -64,7 +64,7 @@ CREATE TABLE job_posting (
                              job_title VARCHAR(100) NOT NULL,
                              posting_url TEXT,
                              job_description TEXT,
-                             embedding VECTOR(384),
+                             embedding VECTOR(768),
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                              CONSTRAINT fk_job_member
