@@ -23,8 +23,9 @@ public class AnalysisController {
 
     // 1. 일반 자기소개서 첨삭 요청
     @PostMapping("/{resumeId}/analyze/normal")
-    public ResponseEntity<ApiResponse<Long>> analyzeNormalResume(@PathVariable Long resumeId) {
-        Long memberId = 1L; // 임시 하드코딩 (테스트용)
+    public ResponseEntity<ApiResponse<Long>> analyzeNormalResume(
+            @PathVariable Long resumeId,
+            @LoginMemberId Long memberId) {
         Long reportId = analysisService.requestNormalAnalysis(resumeId, memberId);
         return ResponseEntity.ok(ApiResponse.success(reportId));
     }
@@ -33,8 +34,8 @@ public class AnalysisController {
     @PostMapping("/{resumeId}/analyze/match")
     public ResponseEntity<ApiResponse<Long>> analyzeMatchResume(
             @PathVariable Long resumeId,
-            @RequestBody AnalysisMatchRequest request) {
-        Long memberId = 1L; // 임시 하드코딩 (테스트용)
+            @RequestBody AnalysisMatchRequest request,
+            @LoginMemberId Long memberId) {
         Long reportId = analysisService.requestMatchAnalysis(resumeId, memberId, request.jobPostingId());
         return ResponseEntity.ok(ApiResponse.success(reportId));
     }
@@ -43,10 +44,10 @@ public class AnalysisController {
     @GetMapping("/{resumeId}/reports/{reportId}")
     public ResponseEntity<ApiResponse<AnalysisResponse>> getAnalysisReport(
             @PathVariable Long resumeId,
-            @PathVariable Long reportId) {
+            @PathVariable Long reportId,
+            @LoginMemberId Long memberId) {
 
         log.info("자기소개서 ID: {} 에 대한 분석 결과 원본 상세 조회 요청 - 리포트 ID: {}", resumeId, reportId);
-        Long memberId = 1L; // 임시 하드코딩
         AnalysisResponse response = analysisService.getAnalysisResult(resumeId, reportId, memberId);
 
         return ResponseEntity.ok(ApiResponse.success(response));
