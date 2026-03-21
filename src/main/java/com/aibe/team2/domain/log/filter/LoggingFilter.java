@@ -94,6 +94,11 @@ public class LoggingFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         // /error 경로나 정적 리소스는 로그 대상에서 제외하여 무한 루프 방지
-        return path.startsWith("/error") || path.startsWith("/favicon.ico") || path.startsWith("/api/v1/admin/logs");
+        // SSE 스트리밍 요청("/stream")은 ContentCaching 필터를 타지 않도록 예외 처리
+        // 작성자 최원준 / 면접관의 답변이 프론트에만 보이지 않는 현상 수정
+        return path.startsWith("/error") ||
+                path.startsWith("/favicon.ico") ||
+                path.startsWith("/api/v1/admin/logs") ||
+                path.endsWith("/stream");
     }
 }
