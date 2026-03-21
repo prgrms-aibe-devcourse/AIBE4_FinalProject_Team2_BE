@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import com.aibe.team2.domain.auth.dto.CustomUserDetails;
 
 @RestController
 @RequestMapping("/api/interviews")
@@ -148,14 +149,18 @@ public class InterviewController {
         return session;
     }
 
-    /**
-     * UserDetails에서 MemberId 추출을 돕는 유틸 메서드
-     */
+    // UserDetails에서 MemberId 추출을 돕는 유틸 메서드
     private Long getMemberIdFromUserDetails(UserDetails userDetails) {
+        // 1. CustomUserDetails로 형변환하여 실제 Member 엔티티의 ID(PK)를 안전하게 가져옴
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getMember().getMemberId();
+        }
+
+        // 2. 예외 상황에 대한 폴백(Fallback) 처리
         try {
             return Long.valueOf(userDetails.getUsername());
         } catch (NumberFormatException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "회원 식별자를 처리할 수 없습니다.");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "회원 식별자 형식이 올바르지 않습니다.");
         }
     }
 }
