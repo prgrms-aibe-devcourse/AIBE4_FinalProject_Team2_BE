@@ -166,7 +166,7 @@ CREATE TABLE interview_record (
                                   wpm INT,
                                   stt_accuracy REAL,
                                   silence_count INT,
-                                  emotion_analysis JSONB,
+                                  emotion_analysis TEXT,
                                   feedback_text TEXT,
                                   evaluation_score REAL DEFAULT 0.0,
                                   response_time_ms INT,
