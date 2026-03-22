@@ -88,17 +88,27 @@
 
 ### 6. interview_session (면접 세션)
 
-| **컬럼명** | **타입** | **설명**               |
+| **컬럼명** | **타입** | **설명** |
 | :--- | :--- |:---------------------|
 | `id` | `BIGINT` | 세션 ID                |
 | `member_id` | `BIGINT` | 회원 ID                |
-| `resume_id` | `BIGINT` | 자기소개서 ID             |
-| `job_posting_id` | `BIGINT` | 채용 공고 ID             |
+| `resume_id` | `BIGINT` | 자기소개서 ID (선택)        |
+| `job_posting_id` | `BIGINT` | 채용 공고 ID (선택)         |
+| `job_description` | `TEXT` | 커스텀 채용 공고 본문 (일회성)   |
 | `interview_mode` | `ENUM('NORMAL', 'FOLLOW_UP', 'STRESS')` | 면접 모드 (일반, 꼬리질문, 압박) |
 | `interview_type` | `ENUM('TEXT', 'VOICE')` | 면접 방식 (텍스트, 음성)      |
+| `ai_provider` | `VARCHAR(50)` | AI 제공자 (GEMINI, RETELL 등) |
+| `model_variant` | `VARCHAR(100)` | AI 모델 정보             |
 | `status` | `ENUM('CREATED', 'IN_PROGRESS', 'DONE', 'ABORTED')` | 진행 상태 |
-| `final_score` | `INT` | 최종 점수                |
-| `created_at` | `DATETIME` | 시작 일시                |
+| `final_score` | `INT` | 종합 평가 점수             |
+| `overall_feedback`| `TEXT` | 종합 피드백               |
+| `job_relevance_score`| `INT` | 직무 적합성 점수            |
+| `attitude_confidence_score`| `INT` | 태도 및 자신감 점수           |
+| `logical_structure_score`| `INT` | 논리적 구조 점수             |
+| `clarity_score` | `INT` | 답변 명확성 점수            |
+| `persuasiveness_score`| `INT` | 설득력 점수               |
+| `consistency_score`| `INT` | 일관성 점수               |
+| `created_at` | `DATETIME` | 생성 일시                |
 | `updated_at` | `DATETIME` | 수정 일시                |
 
 ### 7. interview_record (면접 상세 기록)
