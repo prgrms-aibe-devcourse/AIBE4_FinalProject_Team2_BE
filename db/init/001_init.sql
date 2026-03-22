@@ -90,7 +90,7 @@ CREATE TABLE analysis_report (
                                  resume_id BIGINT NOT NULL,
                                  job_posting_id BIGINT,
                                  analysis_type VARCHAR(20) NOT NULL
-                                     CHECK (analysis_type IN ('GENERAL', 'JOB_MATCHING')),
+                                     CHECK (analysis_type IN ('NORMAL', 'FIT_MATCH')),
                                  status VARCHAR(20) NOT NULL DEFAULT 'PENDING'
                                      CHECK (status IN ('PENDING', 'PROCESSING', 'DELAYED', 'COMPLETED', 'FAILED', 'CANCELLED')),
                                  overall_feedback TEXT,
