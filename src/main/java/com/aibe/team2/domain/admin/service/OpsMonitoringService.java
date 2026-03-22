@@ -43,7 +43,9 @@ public class OpsMonitoringService {
         long totalDone = todayQueueSuccessCount + todayQueueFailedCount;
         double successRate = totalDone == 0 ? 0.0 : (todayQueueSuccessCount * 100.0 / totalDone);
 
-        long unresolvedIssueCount = errorIssueRepository.countByStatus(IssueStatus.OPEN);
+        long unresolvedIssueCount = errorIssueRepository.countByStatusIn(
+                List.of(IssueStatus.OPEN, IssueStatus.IN_PROGRESS)
+        );
 
         return OpsDashboardSummaryResponse.builder()
                 .todayErrorCount(todayErrorCount)
@@ -76,12 +78,15 @@ public class OpsMonitoringService {
                     .build());
         }
 
-        long openIssueCount = errorIssueRepository.countByStatus(IssueStatus.OPEN);
-        if (openIssueCount >= alertThreshold) {
+        long unresolvedIssueCount = errorIssueRepository.countByStatusIn(
+                List.of(IssueStatus.OPEN, IssueStatus.IN_PROGRESS)
+        );
+
+        if (unresolvedIssueCount >= alertThreshold) {
             alerts.add(OpsAlertResponse.builder()
-                    .alertType("OPEN_ERROR_ISSUE")
+                    .alertType("UNRESOLVED_ERROR_ISSUE")
                     .severity("MEDIUM")
-                    .message("미해결 에러 이슈가 임계치 이상입니다. openIssueCount=" + openIssueCount)
+                    .message("미해결 에러 이슈가 임계치 이상입니다. unresolvedIssueCount=" + unresolvedIssueCount)
                     .targetType("ERROR_ISSUE")
                     .targetId(null)
                     .build());

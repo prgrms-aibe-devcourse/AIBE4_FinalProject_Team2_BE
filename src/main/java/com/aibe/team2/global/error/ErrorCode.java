@@ -121,7 +121,10 @@ public enum ErrorCode {
     REDIS_CONNECTION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_001", "캐시 서버(Redis) 연결에 실패했습니다."),
     REDIS_OPERATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_002", "캐시 서버(Redis) 데이터 읽기/쓰기 작업 중 오류가 발생했습니다."),
     REDIS_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "REDIS_003", "캐시 서버(Redis) 응답 시간이 초과되었습니다."),
-    REDIS_SERIALIZATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_004", "캐시 서버(Redis) 데이터를 직렬화/역직렬화하는 중 오류가 발생했습니다.");
+    REDIS_SERIALIZATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "REDIS_004", "캐시 서버(Redis) 데이터를 직렬화/역직렬화하는 중 오류가 발생했습니다."),
+
+    // Error Issue (에러 이슈)
+    ERROR_ISSUE_NOT_FOUND(HttpStatus.NOT_FOUND, "ERROR_001", "에러 이슈를 찾을 수 없습니다.");
 
     private final HttpStatus status;
     private final String code;
