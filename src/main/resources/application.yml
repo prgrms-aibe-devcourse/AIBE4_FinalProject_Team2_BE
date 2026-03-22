@@ -76,13 +76,3 @@ aws:
     max-upload-bytes:
       resume: ${AWS_S3_MAX_UPLOAD_RESUME_BYTES:10485760}   # 10MB
       audio: ${AWS_S3_MAX_UPLOAD_AUDIO_BYTES:52428800}
-
-cors:
-  allowed-origins: "http://localhost:5173, http://localhost:3000, http://localhost:80, http://localhost, https://*.ngrok-free.app, https://*.ngrok-free.dev"
-
-app:
-  frontend:
-    oauth-redirect-uri: http://localhost:5173/oauth/callback
-  error:
-    alert:
-      occurrence-threshold: 10

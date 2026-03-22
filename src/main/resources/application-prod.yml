@@ -52,7 +52,7 @@ spring:
             client-secret: ${KAKAO_CLIENT_SECRET:}
             scope:
               - profile_nickname
-              - account_email
+#              - account_email // 카카오 개인 개발자는 해당 프로퍼티를 불러올 수 없음
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             client-name: Kakao
             authorization-grant-type: authorization_code
@@ -96,9 +96,13 @@ management:
       exposure:
         include: health,info
 
+
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  allowed-origins: "https://synctalk.it.com, https://www.stnctalk.it.com"
 
 app:
   frontend:
-    oauth-redirect-uri: ${FRONTEND_OAUTH_REDIRECT_URI}
+    oauth-redirect-uri: https://synctlk.it.com/oauth/callback
+  error:
+    alert:
+      occurrence-threshold: 10
