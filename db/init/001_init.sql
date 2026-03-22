@@ -116,17 +116,36 @@ CREATE TABLE analysis_report (
 CREATE TABLE interview_session (
                                    id BIGSERIAL PRIMARY KEY,
                                    member_id BIGINT NOT NULL,
-                                   resume_id BIGINT NOT NULL,
-                                   job_posting_id BIGINT NOT NULL,
-                                   interview_mode VARCHAR(20) NOT NULL DEFAULT 'GENERAL'
+
+                                   resume_id BIGINT,
+                                   job_posting_id BIGINT,
+
+                                   job_description TEXT,
+
+                                   interview_mode VARCHAR(20) NOT NULL DEFAULT 'NORMAL'
                                        CHECK (interview_mode IN ('NORMAL', 'FOLLOW_UP', 'STRESS')),
                                    interview_type VARCHAR(20) NOT NULL DEFAULT 'TEXT'
                                        CHECK (interview_type IN ('TEXT', 'VOICE')),
-                                   status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
+
+                                   ai_provider VARCHAR(50),
+                                   model_variant VARCHAR(100),
+
+                                   status VARCHAR(20) NOT NULL DEFAULT 'CREATED'
                                        CHECK (status IN ('CREATED', 'IN_PROGRESS', 'DONE', 'ABORTED')),
+
                                    final_score INT DEFAULT 0,
+
+                                   overall_feedback TEXT,
+                                   job_relevance_score INT DEFAULT 0,
+                                   attitude_confidence_score INT DEFAULT 0,
+                                   logical_structure_score INT DEFAULT 0,
+                                   clarity_score INT DEFAULT 0,
+                                   persuasiveness_score INT DEFAULT 0,
+                                   consistency_score INT DEFAULT 0,
+
                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
                                    CONSTRAINT fk_session_member
                                        FOREIGN KEY (member_id) REFERENCES member(id),
                                    CONSTRAINT fk_session_resume
