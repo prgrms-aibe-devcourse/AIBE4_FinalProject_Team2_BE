@@ -1,6 +1,5 @@
 package com.aibe.team2.domain.resume.service;
 
-import com.aibe.team2.domain.jobposting.entity.JobPosting;
 import com.aibe.team2.domain.jobposting.repository.JobPostingRepository;
 import com.aibe.team2.domain.resume.dto.AnalysisEvent;
 import com.aibe.team2.domain.resume.dto.AnalysisResponse;
@@ -66,10 +65,10 @@ public class AnalysisService {
                 .resume(resume)
                 .analysisType(AnalysisType.NORMAL)
                 .jobPosting(null)
+                .jobDescriptionText(null) // 🚀 일반 첨삭은 공고가 없으므로 null 전달
                 .build();
         resumeAnalysisRepository.save(report);
 
-        // ★ 워커 직접 호출 대신 이벤트를 발행하여 Queue Producer에게 넘김
         eventPublisher.publishEvent(
                 AnalysisEvent.first(report.getId(), resume.getContent())
         );
@@ -77,8 +76,9 @@ public class AnalysisService {
         return report.getId();
     }
 
+    // 2. 채용 공고 기반 매칭 및 첨삭 요청 (FIT_MATCH)
     @Transactional
-    public Long requestMatchAnalysis(Long resumeId, Long memberId, Long jobPostingId) {
+    public Long requestMatchAnalysis(Long resumeId, Long memberId, String jobDescriptionText) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESUME_NOT_FOUND));
 
@@ -86,13 +86,12 @@ public class AnalysisService {
             throw new BusinessException(ErrorCode.COMMON_403);
         }
 
-        JobPosting jobPosting = jobPostingRepository.findById(jobPostingId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.JOB_POSTING_NOT_FOUND));
-
+        // 🚀 더 이상 DB에서 JobPosting을 조회하지 않습니다. 파라미터로 받은 텍스트를 그대로 저장합니다.
         AnalyzedReport report = AnalyzedReport.builder()
                 .resume(resume)
                 .analysisType(AnalysisType.FIT_MATCH)
-                .jobPosting(jobPosting)
+                .jobPosting(null) // 기존 DB 조회 연관관계는 null
+                .jobDescriptionText(jobDescriptionText) // 🔥 프론트에서 받은 텍스트 직접 삽입
                 .build();
         resumeAnalysisRepository.save(report);
 

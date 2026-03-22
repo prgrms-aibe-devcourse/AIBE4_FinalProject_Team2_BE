@@ -82,12 +82,16 @@ public class AnalyzedReport {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String jobDescriptionText;
+
     @Builder
-    public AnalyzedReport(Resume resume, AnalysisType analysisType, JobPosting jobPosting) {
+    public AnalyzedReport(Resume resume, AnalysisType analysisType, JobPosting jobPosting, String jobDescriptionText) {
         this.resume = resume;
         this.analysisType = analysisType;
         this.jobPosting = jobPosting;
         this.status = AnalysisStatus.PENDING;
+        this.jobDescriptionText = getJobDescriptionText();
     }
 
     public void updateStatus(AnalysisStatus status) {

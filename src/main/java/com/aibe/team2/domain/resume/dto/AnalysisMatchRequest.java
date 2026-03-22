@@ -1,9 +1,9 @@
 package com.aibe.team2.domain.resume.dto;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record AnalysisMatchRequest(
-        @NotNull(message = "채용 공고 ID는 필수입니다.")
-        Long jobPostingId
+        @NotBlank(message = "채용 공고 내용은 필수입니다.")
+        String jobDescriptionText
 ) {
 }
