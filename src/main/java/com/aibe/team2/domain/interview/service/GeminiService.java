@@ -37,6 +37,12 @@ public class GeminiService {
     }
 
     public Flux<String> streamQuestion(String sessionId, InterviewRequestDto request) {
+        log.info("=================================================");
+        log.info("👀 [디버그] 전달받은 자기소개서 본문:\n{}",
+                request.getResumeContent() != null ? request.getResumeContent() : "없음 (선택 안함)");
+        log.info("👀 [디버그] 전달받은 채용 공고 본문:\n{}",
+                request.getJobDescription() != null ? request.getJobDescription() : "없음 (선택 안함)");
+        log.info("=================================================");
         String rootUrl = baseUrl.split("/v1")[0];
         if (rootUrl.endsWith("/")) rootUrl = rootUrl.substring(0, rootUrl.length() - 1);
 
@@ -60,7 +66,7 @@ public class GeminiService {
             jobContext = "\n\n[Job Posting Requirements]\n다음은 지원자가 지원한 채용 공고의 상세 내용(요구 역량 및 주요 업무)입니다. 이를 바탕으로 직무 적합성을 검증하는 질문을 생성하세요.\n" + request.getJobDescription();
         }
 
-        // 🚀 보안 리뷰 반영 (Prompt Injection 방어):
+        // 보안 리뷰 반영 (Prompt Injection 방어):
         // 1. AI가 절대적으로 따라야 할 시스템 지시사항 (분위기, 이력서, 공고, 제약조건)
         String systemPrompt = String.format("%s%s%s\n\n%s",
                 atmospherePrompt, resumeContext, jobContext, constraints);
@@ -70,7 +76,7 @@ public class GeminiService {
 
         log.info("[Gemini-Streaming] Session: {}, Mode: {}", sessionId, request.getInterviewMode());
 
-        // 🚀 JSON Payload 조립 시 systemInstruction 속성을 명시적으로 분리하여 전송
+        // JSON Payload 조립 시 systemInstruction 속성을 명시적으로 분리하여 전송
         Map<String, Object> requestBody = Map.of(
                 "systemInstruction", Map.of(
                         "parts", List.of(Map.of("text", systemPrompt))
@@ -80,6 +86,11 @@ public class GeminiService {
                                 "parts", List.of(Map.of("text", userMessage)))
                 )
         );
+
+        // [디버그용 로그 추가] Gemini API로 날아가기 직전의 최종 캡슐(JSON) 확인
+        log.info("[디버그] 제미나이에게 전송되는 최종 Payload (JSON)");
+        log.info("{}", requestBody);
+        log.info("=======================================================================");
 
         return webClient.post()
                 .uri(URI.create(fullUrl))

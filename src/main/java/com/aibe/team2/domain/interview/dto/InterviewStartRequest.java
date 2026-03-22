@@ -9,6 +9,7 @@ public class InterviewStartRequest {
     private Long memberId;
     private Long resumeId;
     private Long jobPostingId;
+    private String jobDescription;
     private String interviewMode;
     private String interviewType;
     private String aiProvider;
