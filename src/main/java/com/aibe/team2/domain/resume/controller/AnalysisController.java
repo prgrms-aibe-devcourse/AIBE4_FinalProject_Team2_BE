@@ -36,7 +36,7 @@ public class AnalysisController {
             @PathVariable Long resumeId,
             @RequestBody AnalysisMatchRequest request,
             @LoginMemberId Long memberId) {
-        Long reportId = analysisService.requestMatchAnalysis(resumeId, memberId, request.jobPostingId());
+        Long reportId = analysisService.requestMatchAnalysis(resumeId, memberId, request.jobDescriptionText());
         return ResponseEntity.ok(ApiResponse.success(reportId));
     }
 

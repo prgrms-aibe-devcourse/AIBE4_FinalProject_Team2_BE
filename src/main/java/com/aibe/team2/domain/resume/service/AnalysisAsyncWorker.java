@@ -1,8 +1,6 @@
 package com.aibe.team2.domain.resume.service;
 
 import com.aibe.team2.domain.admin.service.QueueJobMetricService;
-import com.aibe.team2.domain.jobposting.entity.JobPosting;
-import com.aibe.team2.domain.jobposting.entity.JobSkill;
 import com.aibe.team2.domain.notification.event.ResumeAnalysisCompleteEvent;
 import com.aibe.team2.domain.resume.entity.AnalysisType;
 import com.aibe.team2.domain.resume.entity.AnalyzedReport;
@@ -26,7 +24,6 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -58,29 +55,12 @@ public class AnalysisAsyncWorker {
         String jobInfoText = "";
 
         // 매칭 분석일 경우 구조화된 공고 데이터를 프롬프트용 텍스트로 조립
-        if (type == AnalysisType.FIT_MATCH && report.getJobPosting() != null) {
-            JobPosting jp = report.getJobPosting();
-
-            // 요구 역량(Skill) 리스트 추출
-            String skills = jp.getJobSkills().stream()
-                    .map(JobSkill::getSkillName)
-                    .collect(Collectors.joining(", "));
-
+        if (type == AnalysisType.FIT_MATCH) {
             jobInfoText = String.format("""
-                [채용 공고 상세 정보]
-                - 전체 설명: %s
-                - 주요 업무: %s
-                - 자격 요건: %s
-                - 우대 사항: %s
-                - 복리 후생: %s
-                - 요구 역량: %s
-                """,
-                    jp.getJobDescription() != null ? jp.getJobDescription() : "없음",
-                    jp.getMainTasks() != null ? jp.getMainTasks() : "없음",
-                    jp.getQualifications() != null ? jp.getQualifications() : "없음",
-                    jp.getPreferred() != null ? jp.getPreferred() : "없음",
-                    jp.getBenefits() != null ? jp.getBenefits() : "없음",
-                    !skills.isEmpty() ? skills : "없음"
+        [채용 공고 상세 정보]
+        %s
+        """,
+                    report.getJobDescriptionText() != null ? report.getJobDescriptionText() : "내용 없음"
             );
         }
 
@@ -153,7 +133,7 @@ public class AnalysisAsyncWorker {
                 .bodyToMono(JsonNode.class)
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(5))
                         .filter(throwable -> throwable instanceof WebClientResponseException.TooManyRequests))
-                .timeout(Duration.ofSeconds(45))
+                .timeout(Duration.ofSeconds(120)) // AI 분석 요청 (초) time
                 .block();
 
         String responseText = responseNode.get("candidates").get(0)
@@ -164,20 +144,20 @@ public class AnalysisAsyncWorker {
 
     private String buildNormalPrompt(String resumeContent) {
         return String.format("""
-                당신은 10년 차 전문 에디터입니다. 아래 [자기소개서]의 문맥, 가독성, 표현을 다듬고 첨삭해주세요.
+                당신은 10년 차 전문 인사담당자이자 에디터입니다. 아래 [자기소개서]의 문맥, 가독성, 표현을 다듬고 첨삭해주세요.
                 [자기소개서]
                 %s
                 
-                응답은 반드시 아래 JSON 형식으로 작성하세요.
+                응답은 반드시 아래 JSON 형식으로만 작성하세요. (Markdown 코드 블록(```json)이나 다른 텍스트 없이 순수 JSON 객체만 반환)
                 {
-                  "overallFeedback": "전체적인 글의 흐름은 좋으나, 성과 수치가 부족합니다.",
+                  "overallFeedback": "전체적인 글의 흐름은 좋으나, 성과 수치가 부족합니다. (전체 피드백 3줄 이상)",
                   "paragraphSummaries": [
-                    { "paragraphNumber": 1, "summary": "요약 내용" }
+                    { "paragraphNumber": 1, "summary": "첫 번째 문단 핵심 요약 내용" }
                   ],
                   "sentenceCorrections": [
-                    { "original": "원문", "corrected": "수정본", "reason": "이유" }
+                    { "original": "원문 문장", "corrected": "매끄럽게 수정된 문장", "reason": "수정 이유 및 기대 효과" }
                   ],
-                  "revisedFullContent": "전체 교정 완료된 텍스트..."
+                  "revisedFullContent": "전체 내용이 교정 및 개선된 최종 완성본 텍스트 (줄바꿈 포함)"
                 }
                 """, resumeContent);
     }
@@ -224,7 +204,7 @@ public class AnalysisAsyncWorker {
                 }
                 
                 [주의사항]
-                1. 'matchingScore'는 반드시 위 [점수 산출 기준표]의 3가지 항목 점수를 합산하여 엄격하게 계산하세요.
+                1. 'matchingScore'는 반드시 위 [점수 산출 기준표]의 3가지 항목 점수를 합산하여 엄격하게 계산하세요.  
                 2. 'keywordAnalysis' 노드에는 반드시 제공된 [채용 공고 상세 정보]를 기준으로 작성하세요.
                 """,
                 jobInfoText, resumeContent);
