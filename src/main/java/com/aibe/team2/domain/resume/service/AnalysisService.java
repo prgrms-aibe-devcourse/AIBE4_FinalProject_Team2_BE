@@ -63,7 +63,7 @@ public class AnalysisService {
 
         AnalyzedReport report = AnalyzedReport.builder()
                 .resume(resume)
-                .analysisType(AnalysisType.FIT_MATCH)
+                .analysisType(AnalysisType.NORMAL)
                 .jobPosting(null)
                 .jobDescriptionText(null) // 🚀 일반 첨삭은 공고가 없으므로 null 전달
                 .build();
