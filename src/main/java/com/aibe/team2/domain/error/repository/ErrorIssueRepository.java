@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.Optional;
 
 public interface ErrorIssueRepository extends JpaRepository<ErrorIssue, Long>, ErrorIssueRepositoryCustom {
@@ -34,4 +35,6 @@ public interface ErrorIssueRepository extends JpaRepository<ErrorIssue, Long>, E
     );
 
     long countByStatus(IssueStatus status);
+
+    long countByStatusIn(Collection<IssueStatus> statuses);
 }

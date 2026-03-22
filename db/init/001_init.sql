@@ -316,14 +316,15 @@ CREATE TABLE error_issue (
                              CONSTRAINT chk_error_issue_severity
                                  CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
                              CONSTRAINT chk_error_issue_status
-                                 CHECK (status IN ('OPEN', 'RESOLVED', 'IGNORED')),
+                                 CHECK (status IN ('OPEN', 'IN_PROGRESS', 'RESOLVED', 'IGNORED')),
                              CONSTRAINT chk_error_issue_domain
                                  CHECK (error_domain IN (
-                                                         'COMMON',
+                                                         'GLOBAL',
                                                          'AUTH',
                                                          'RESUME',
                                                          'INTERVIEW',
                                                          'JOB_POSTING',
+                                                         'FILE',
                                                          'STATISTICS',
                                                          'ADMIN',
                                                          'QUEUE',
@@ -371,11 +372,12 @@ CREATE TABLE error_log (
                                CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
                            CONSTRAINT chk_error_log_domain
                                CHECK (error_domain IN (
-                                                       'COMMON',
+                                                       'GLOBAL',
                                                        'AUTH',
                                                        'RESUME',
                                                        'INTERVIEW',
                                                        'JOB_POSTING',
+                                                       'FILE',
                                                        'STATISTICS',
                                                        'ADMIN',
                                                        'QUEUE',

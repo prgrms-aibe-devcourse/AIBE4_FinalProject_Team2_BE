@@ -4,7 +4,10 @@ import com.aibe.team2.domain.error.config.ErrorAlertProperties;
 import com.aibe.team2.domain.error.entity.ErrorIssue;
 import com.aibe.team2.domain.error.enums.ErrorDomain;
 import com.aibe.team2.domain.error.enums.ErrorSeverity;
+import com.aibe.team2.domain.error.enums.IssueStatus;
 import com.aibe.team2.domain.error.repository.ErrorIssueRepository;
+import com.aibe.team2.global.error.ErrorCode;
+import com.aibe.team2.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -69,6 +72,13 @@ public class ErrorIssueService {
     public void increaseOccurrence(ErrorIssue issue, LocalDateTime occurredAt, Long errorLogId) {
         issue.increaseOccurrence(occurredAt, errorLogId);
         checkAlertThreshold(issue);
+    }
+
+    public void updateIssueStatus(Long issueId, IssueStatus status) {
+        ErrorIssue issue = errorIssueRepository.findById(issueId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.ERROR_ISSUE_NOT_FOUND));
+
+        issue.updateStatus(status);
     }
 
     private void checkAlertThreshold(ErrorIssue issue) {
