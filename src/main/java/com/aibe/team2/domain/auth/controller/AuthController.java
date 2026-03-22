@@ -186,6 +186,10 @@ public class AuthController {
 
         // 토큰이 유효하면 유저 정보와 함께 토큰을 JSON으로 반환 (프론트가 저장할 수 있도록)
         String nickname = memberService.getNicknameByEmail(jwtTokenProvider.getEmail(token));
-        return ResponseEntity.ok(ApiResponse.success(new MeResponse(nickname, token)));
+        String role = jwtTokenProvider.getRole(token);
+
+        return ResponseEntity.ok(ApiResponse.success(
+                new MeResponse(nickname, role, token)
+        ));
     }
 }

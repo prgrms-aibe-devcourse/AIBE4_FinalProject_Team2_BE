@@ -7,5 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class MeResponse {
     private String nickname;
+    private String role;
     private String accessToken;
 }
