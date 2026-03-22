@@ -143,7 +143,7 @@
 | `wpm` | `INT` | 분당 발화 수 |
 | `stt_accuracy` | `REAL` | STT 정확도 |
 | `silence_count` | `INT` | 침묵 횟수 |
-| `emotion_analysis` | `JSONB` | 감정 분석 결과 |
+| `emotion_analysis` | `TEXT` | 감정 분석 결과 |
 | `feedback_text` | `TEXT` | 피드백 내용 |
 | `evaluation_score` | `REAL` | 답변 평가 점수 |
 | `response_time_ms` | `INT` | 응답 시간(ms) |

@@ -116,12 +116,6 @@ CREATE TABLE analysis_report (
 CREATE TABLE interview_session (
                                    id BIGSERIAL PRIMARY KEY,
                                    member_id BIGINT NOT NULL,
-<<<<<<< HEAD
-                                   resume_id BIGINT NOT NULL,
-                                   job_posting_id BIGINT NOT NULL,
-                                   interview_mode VARCHAR(20) NOT NULL DEFAULT 'NORMAL'
-                                       CHECK (interview_mode IN ('NORMAL', 'FOLLOW_UP', 'STRESS'))
-=======
 
                                    resume_id BIGINT,
                                    job_posting_id BIGINT,
@@ -130,7 +124,6 @@ CREATE TABLE interview_session (
 
                                    interview_mode VARCHAR(20) NOT NULL DEFAULT 'NORMAL'
                                        CHECK (interview_mode IN ('NORMAL', 'FOLLOW_UP', 'STRESS')),
->>>>>>> fb42fc15f19a6aa8f20cc0660b7c61725d79b896
                                    interview_type VARCHAR(20) NOT NULL DEFAULT 'TEXT'
                                        CHECK (interview_type IN ('TEXT', 'VOICE')),
 
