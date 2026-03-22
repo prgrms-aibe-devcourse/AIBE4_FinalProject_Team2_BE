@@ -68,13 +68,13 @@
 
 ## 4-1. job_skill (채용 공고 스킬)
 
-| 컬럼명 | 타입 | 설명 |
-|---|---|---|
-| `id` | `BIGSERIAL` | 스킬 ID |
-| `job_posting_id` | `BIGINT` | 채용 공고 ID (일반 첨삭 시 NULL 가능)|
-| `skill_name` | `VARCHAR(50)` | 스킬명 |
-| `created_at` | `TIMESTAMP` | 생성 일시 |
-| `updated_at` | `TIMESTAMP` | 수정 일시 |
+| 컬럼명 | 타입 | 설명       |
+|---|---|----------|
+| `id` | `BIGSERIAL` | 스킬 ID    |
+| `job_posting_id` | `BIGINT` | 채용 공고 ID |
+| `skill_name` | `VARCHAR(50)` | 스킬명      |
+| `created_at` | `TIMESTAMP` | 생성 일시    |
+| `updated_at` | `TIMESTAMP` | 수정 일시    |
 
 ---
 
@@ -84,7 +84,7 @@
 |---|---|---|
 | `id` | `BIGSERIAL` | 리포트 ID |
 | `resume_id` | `BIGINT` | 자기소개서 ID |
-| `job_posting_id` | `BIGINT` | 채용 공고 ID |
+| `job_posting_id` | `BIGINT` | 채용 공고 ID (일반 첨삭 시 NULL 가능)|
 | `analysis_type` | `VARCHAR(20)` | 분석 유형 (`NORMAL`, `FIT_MATCH`) |
 | `status` | `VARCHAR(20)` | 진행 상태 (`PENDING`, `PROCESSING`, `DELAYED`, `COMPLETED`, `FAILED`, `CANCELLED`) |
 | `overall_feedback` | `TEXT` | 전체 피드백 |

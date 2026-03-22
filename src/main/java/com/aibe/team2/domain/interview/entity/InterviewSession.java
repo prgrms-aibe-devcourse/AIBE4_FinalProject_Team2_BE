@@ -31,6 +31,9 @@ public class InterviewSession {
 
     private Long jobPostingId;
 
+    @Column(columnDefinition = "TEXT")
+    private String jobDescription;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InterviewMode interviewMode;
@@ -66,10 +69,11 @@ public class InterviewSession {
     private LocalDateTime updatedAt;
 
     @Builder
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant) {
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String jobDescription, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
+        this.jobDescription = jobDescription;
         this.interviewMode = interviewMode;
         this.interviewType = interviewType;
         this.aiProvider = aiProvider;

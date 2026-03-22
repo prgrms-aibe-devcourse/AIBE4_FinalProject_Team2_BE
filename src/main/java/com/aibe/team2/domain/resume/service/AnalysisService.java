@@ -65,7 +65,7 @@ public class AnalysisService {
                 .resume(resume)
                 .analysisType(AnalysisType.NORMAL)
                 .jobPosting(null)
-                .jobDescriptionText(null) // 🚀 일반 첨삭은 공고가 없으므로 null 전달
+                .jobDescriptionText(null) // 일반 첨삭은 공고가 없으므로 null 전달
                 .build();
 
         resumeAnalysisRepository.save(report);
@@ -87,7 +87,7 @@ public class AnalysisService {
             throw new BusinessException(ErrorCode.COMMON_403);
         }
 
-        // 🚀 더 이상 DB에서 JobPosting을 조회하지 않습니다. 파라미터로 받은 텍스트를 그대로 저장합니다.
+        // DB에서 JobPosting을 조회하지 않고 파라미터로 받은 텍스트를 그대로 저장
         AnalyzedReport report = AnalyzedReport.builder()
                 .resume(resume)
                 .analysisType(AnalysisType.FIT_MATCH)

@@ -42,6 +42,7 @@ public class InterviewController {
                     authenticatedMemberId,
                     request.getResumeId(),
                     request.getJobPostingId(),
+                    request.getJobDescription(),
                     InterviewMode.from(request.getInterviewMode()),
                     request.getInterviewType(),
                     request.getAiProvider(),
@@ -58,7 +59,7 @@ public class InterviewController {
             @PathVariable Long sessionId,
             @RequestParam String answer,
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) Long memberId, // 🚀 복구: 프론트엔드 연동 및 SSE 한계 우회용
+            @RequestParam(required = false) Long memberId,
             @RequestParam(required = false, defaultValue = "gemini-flash-latest") String modelVariant,
             @RequestParam(required = false, defaultValue = "NORMAL") String interviewMode) {
 
@@ -81,7 +82,7 @@ public class InterviewController {
     public VoiceSessionResponse startVoiceInterview(
             @PathVariable Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) Long memberId) { // 🚀 복구
+            @RequestParam(required = false) Long memberId) {
 
         InterviewSession session = validateAndGetSessionOwnership(sessionId, userDetails, memberId);
 
@@ -96,7 +97,7 @@ public class InterviewController {
     public ResponseEntity<Void> endInterview(
             @PathVariable Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) Long memberId) { // 🚀 복구
+            @RequestParam(required = false) Long memberId) {
 
         validateAndGetSessionOwnership(sessionId, userDetails, memberId);
 
@@ -108,7 +109,7 @@ public class InterviewController {
     public ResponseEntity<InterviewReportResponse> getInterviewReport(
             @PathVariable Long sessionId,
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam(required = false) Long memberId) { // 🚀 복구
+            @RequestParam(required = false) Long memberId) {
 
         InterviewSession session = validateAndGetSessionOwnership(sessionId, userDetails, memberId);
 
@@ -120,9 +121,7 @@ public class InterviewController {
         }
     }
 
-    /**
-     * 🚀 보안 리뷰 반영 및 SSE 우회: Security 인증 객체와 fallbackMemberId를 유연하게 처리
-     */
+    //보안 리뷰 반영 및 SSE 우회: Security 인증 객체와 fallbackMemberId를 유연하게 처리
     private InterviewSession validateAndGetSessionOwnership(Long sessionId, UserDetails userDetails, Long fallbackMemberId) {
         Long authenticatedMemberId;
 
