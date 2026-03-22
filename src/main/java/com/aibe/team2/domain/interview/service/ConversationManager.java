@@ -57,9 +57,11 @@ public class ConversationManager {
         }
 
         // [FR-INT-07] 채용 공고 내용 안전하게 조회 및 추출
-        String jobDescription = null;
-        if (session.getJobPostingId() != null) {
-            jobDescription = jobPostingRepository.findByIdAndMemberId(session.getJobPostingId(), session.getMemberId())
+        String jobDescription = session.getJobDescription();
+
+        // 커스텀 텍스트가 없고 기존 공고 ID가 있다면 DB에서 찾아오기
+        if (jobDescription == null && session.getJobPostingId() != null) {
+            jobDescription = jobPostingRepository.findById(session.getJobPostingId())
                     .map(JobPosting::getJobDescription)
                     .orElse(null);
         }

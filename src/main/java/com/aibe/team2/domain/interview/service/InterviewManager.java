@@ -19,13 +19,15 @@ public class InterviewManager {
 
     @Transactional
     // @DistributedLock(key = "interview-start", waitTime = 1, leaseTime = 3)
-    public InterviewSession startInterview(Long memberId, Long resumeId, Long jobPostingId,
+    public InterviewSession startInterview(Long memberId, Long resumeId,
+                                           Long jobPostingId, String jobDescription,
                                            InterviewMode interviewMode, String interviewType,
                                            String aiProvider, String modelVariant) {
         InterviewSession session = InterviewSession.builder()
                 .memberId(memberId)
                 .resumeId(resumeId)
                 .jobPostingId(jobPostingId)
+                .jobDescription(jobDescription)
                 .interviewMode(interviewMode)
                 .interviewType(interviewType)
                 .aiProvider(aiProvider)
