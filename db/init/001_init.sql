@@ -177,6 +177,33 @@ CREATE TABLE interview_record (
                                       FOREIGN KEY (interview_session_id) REFERENCES interview_session(id) ON DELETE CASCADE
 );
 
+-- 7-1) interview_result_statistics
+CREATE TABLE interview_result_statistics (
+                                             id BIGSERIAL PRIMARY KEY,
+                                             interview_session_id BIGINT NOT NULL UNIQUE,
+
+                                             avg_clarity DOUBLE PRECISION,
+                                             avg_persuasiveness DOUBLE PRECISION,
+                                             avg_consistency DOUBLE PRECISION,
+                                             job_relevance_score DOUBLE PRECISION,
+                                             logical_structure_score DOUBLE PRECISION,
+                                             attitude_confidence_score DOUBLE PRECISION,
+
+                                             overall_feedback TEXT,
+                                             speech_habits TEXT,
+
+                                             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                                             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                             CONSTRAINT fk_interview_result_statistics_session
+                                                 FOREIGN KEY (interview_session_id)
+                                                     REFERENCES interview_session(id)
+                                                     ON DELETE CASCADE
+);
+
+CREATE INDEX idx_interview_result_statistics_created_at
+    ON interview_result_statistics(created_at);
+
 -- 8) question_scrap
 CREATE TABLE question_scrap (
                                 id BIGSERIAL PRIMARY KEY,
