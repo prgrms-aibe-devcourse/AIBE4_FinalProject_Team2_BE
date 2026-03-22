@@ -98,6 +98,7 @@ CREATE TABLE analysis_report (
                                  paragraph_summaries JSONB,
                                  revised_full_content TEXT,
                                  job_description TEXT,
+                                 job_description_text TEXT,
                                  match_score INT,
                                  matching_feedback TEXT,
                                  keyword_analysis JSONB,
