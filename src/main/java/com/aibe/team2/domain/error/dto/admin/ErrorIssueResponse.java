@@ -25,7 +25,14 @@ public class ErrorIssueResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public ErrorIssueResponse(ErrorIssue issue) {
+    private final String statusHint;
+    private final boolean recentlyOccurred;
+
+    public ErrorIssueResponse(
+            ErrorIssue issue,
+            String statusHint,
+            boolean recentlyOccurred
+    ) {
         this.issueId = issue.getId();
         this.fingerprint = issue.getFingerprint();
         this.title = issue.getTitle();
@@ -39,5 +46,7 @@ public class ErrorIssueResponse {
         this.lastErrorLogId = issue.getLastErrorLogId();
         this.createdAt = issue.getCreatedAt();
         this.updatedAt = issue.getUpdatedAt();
+        this.statusHint = statusHint;
+        this.recentlyOccurred = recentlyOccurred;
     }
 }

@@ -1,13 +1,8 @@
 package com.aibe.team2.domain.error.service;
 
-import com.aibe.team2.domain.error.dto.admin.ErrorIssueDetailResponse;
-import com.aibe.team2.domain.error.dto.admin.ErrorIssueResponse;
-import com.aibe.team2.domain.error.dto.admin.ErrorIssueSearchCond;
-import com.aibe.team2.domain.error.dto.admin.ErrorLogDetailResponse;
-import com.aibe.team2.domain.error.dto.admin.ErrorLogRowResponse;
+import com.aibe.team2.domain.error.dto.admin.*;
 import com.aibe.team2.domain.error.entity.ErrorIssue;
 import com.aibe.team2.domain.error.entity.ErrorLog;
-import com.aibe.team2.domain.error.enums.IssueStatus;
 import com.aibe.team2.domain.error.repository.ErrorIssueRepository;
 import com.aibe.team2.domain.error.repository.ErrorLogRepository;
 import com.aibe.team2.domain.mypage.entity.Member;
@@ -19,6 +14,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -27,14 +24,40 @@ public class ErrorAdminService {
     private final ErrorIssueRepository errorIssueRepository;
     private final ErrorLogRepository errorLogRepository;
 
+    private String buildStatusHint(LocalDateTime lastOccurredAt) {
+        if (lastOccurredAt == null) {
+            return "발생 이력 없음";
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        if (lastOccurredAt.isAfter(now.minusHours(24))) {
+            return "최근 24시간 내 재발";
+        }
+
+        if (lastOccurredAt.isAfter(now.minusDays(3))) {
+            return "최근 3일 내 발생";
+        }
+
+        return "최근 3일 미발생";
+    }
+
+    private boolean isRecentlyOccurred(LocalDateTime lastOccurredAt) {
+        return lastOccurredAt != null && lastOccurredAt.isAfter(LocalDateTime.now().minusHours(24));
+    }
+
     public Page<ErrorIssueResponse> searchIssues(ErrorIssueSearchCond cond, Pageable pageable) {
         return errorIssueRepository.search(cond, pageable)
-                .map(ErrorIssueResponse::new);
+                .map(issue -> new ErrorIssueResponse(
+                        issue,
+                        buildStatusHint(issue.getLastOccurredAt()),
+                        isRecentlyOccurred(issue.getLastOccurredAt())
+                ));
     }
 
     public ErrorIssueDetailResponse getIssueDetail(Long issueId) {
         ErrorIssue issue = errorIssueRepository.findById(issueId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ERROR_ISSUE_NOT_FOUND));
 
         ErrorLog latestLog = errorLogRepository.findTopByIssueIdOrderByOccurredAtDesc(issueId)
                 .orElse(null);
@@ -75,15 +98,6 @@ public class ErrorAdminService {
     public ErrorLogDetailResponse getLogDetail(Long logId) {
         return errorLogRepository.findById(logId)
                 .map(ErrorLogDetailResponse::new)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
-    }
-
-    @Transactional
-    public IssueStatus updateIssueStatus(Long issueId, IssueStatus status) {
-        ErrorIssue issue = errorIssueRepository.findById(issueId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COMMON_404));
-
-        issue.updateStatus(status);
-        return issue.getStatus();
+                .orElseThrow(() -> new NotFoundException(ErrorCode.ERROR_ISSUE_NOT_FOUND));
     }
 }

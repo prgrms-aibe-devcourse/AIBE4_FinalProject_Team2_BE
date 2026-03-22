@@ -8,6 +8,7 @@ import com.aibe.team2.domain.error.dto.admin.ErrorLogDetailResponse;
 import com.aibe.team2.domain.error.dto.admin.ErrorLogRowResponse;
 import com.aibe.team2.domain.error.enums.IssueStatus;
 import com.aibe.team2.domain.error.service.ErrorAdminService;
+import com.aibe.team2.domain.error.service.ErrorIssueService;
 import com.aibe.team2.global.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class ErrorAdminController {
 
     private final ErrorAdminService errorAdminService;
+    private final ErrorIssueService errorIssueService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ErrorIssueResponse>>> searchIssues(
@@ -68,8 +70,7 @@ public class ErrorAdminController {
             @PathVariable Long issueId,
             @RequestBody @Valid ErrorIssueStatusUpdateRequest request
     ) {
-        return ResponseEntity.ok(ApiResponse.success(
-                errorAdminService.updateIssueStatus(issueId, request.getStatus())
-        ));
+        errorIssueService.updateIssueStatus(issueId, request.getStatus());
+        return ResponseEntity.ok(ApiResponse.success(request.getStatus()));
     }
 }
