@@ -64,9 +64,10 @@ public class AnalysisService {
 
         AnalyzedReport report = AnalyzedReport.builder()
                 .resume(resume)
-                .analysisType(AnalysisType.NORMAL)
+                .analysisType(AnalysisType.FIT_MATCH)
                 .jobPosting(null)
                 .build();
+
         resumeAnalysisRepository.save(report);
 
         // ★ 워커 직접 호출 대신 이벤트를 발행하여 Queue Producer에게 넘김
