@@ -126,7 +126,7 @@
 | `wpm` | `INT` | 발화 속도 (Words Per Minute) |
 | `stt_accuracy` | `FLOAT` | STT 정확도 |
 | `silence_count` | `INT` | 침묵 횟수 |
-| `emotion_analysis` | `JSON` | 감정 분석 결과 |
+| `emotion_analysis` | `TEXT` | 감정 분석 결과 |
 | `feedback_text` | `TEXT` | 피드백 내용 |
 | `evaluation_score` | `FLOAT` | 답변 평가 점수 |
 | `response_time_ms` | `INT` | 응답 소요 시간 (ms) |
