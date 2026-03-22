@@ -136,12 +136,12 @@ CREATE TABLE interview_session (
                                    final_score INT DEFAULT 0,
 
                                    overall_feedback TEXT,
-                                   job_relevance_score INT,
-                                   attitude_confidence_score INT,
-                                   logical_structure_score INT,
-                                   clarity_score INT,
-                                   persuasiveness_score INT,
-                                   consistency_score INT,
+                                   job_relevance_score INT DEFAULT 0,
+                                   attitude_confidence_score INT DEFAULT 0,
+                                   logical_structure_score INT DEFAULT 0,
+                                   clarity_score INT DEFAULT 0,
+                                   persuasiveness_score INT DEFAULT 0,
+                                   consistency_score INT DEFAULT 0,
 
                                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
