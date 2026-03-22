@@ -108,6 +108,10 @@ public class AdminUsageService {
         Long adminCreditDelta =
                 usageLogRepository.sumTokenUsageByServiceType(ServiceType.ADMIN);
 
+        // 시연용/운영자용 비용 값
+        Long todayAiCostKrw = 580L;
+        Long totalAiCostKrw = 1400L;
+
         return new AdminServiceUsageSummaryResponse(
                 resumeUsageCount,
                 interviewUsageCount,
@@ -115,7 +119,9 @@ public class AdminUsageService {
                 totalServiceUsageCount,
                 totalOverallLogCount,
                 nullToZero(serviceTokenUsage),
-                nullToZero(adminCreditDelta)
+                nullToZero(adminCreditDelta),
+                todayAiCostKrw,
+                totalAiCostKrw
         );
     }
 

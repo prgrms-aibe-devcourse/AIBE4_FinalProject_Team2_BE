@@ -19,4 +19,7 @@ public class AdminServiceUsageSummaryResponse {
     // 양 분리
     private Long serviceTokenUsage;        // 실제 서비스(RESUME, INTERVIEW) tokenUsage 합
     private Long adminCreditDelta;         // 관리자 지급/차감 합계
+
+    private Long todayAiCostKrw;   // 오늘 AI 비용(원)
+    private Long totalAiCostKrw;   // 누적 AI 비용(원)
 }
