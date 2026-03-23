@@ -27,10 +27,10 @@ public interface ResumeAnalysisRepository extends JpaRepository<AnalyzedReport, 
     );
 
     @Query(value = "SELECT r FROM AnalyzedReport r " +
-            "JOIN FETCH r.resume res " +
-            "JOIN FETCH r.jobPosting jp " +
+            "JOIN FETCH r.resume res " +           // 자기소개서는 필수이므로 Inner Join 유지 가능
+            "LEFT JOIN FETCH r.jobPosting jp " +  // 공고는 없을 수 있으므로 반드시 LEFT JOIN
             "WHERE res.memberId = :memberId",
-            countQuery = "SELECT count(r) FROM AnalyzedReport r WHERE r.resume.memberId = :memberId")
+            countQuery = "SELECT count(r) FROM AnalyzedReport r JOIN r.resume res WHERE res.memberId = :memberId")
     Page<AnalyzedReport> findByMemberIdWithDetails(@Param("memberId") Long memberId, Pageable pageable);
 
     List<AnalyzedReport> findTop5ByResume_MemberIdOrderByCreatedAtDesc(Long memberId);
