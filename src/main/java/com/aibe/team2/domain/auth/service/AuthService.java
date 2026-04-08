@@ -1,6 +1,11 @@
 package com.aibe.team2.domain.auth.service;
 
 import com.aibe.team2.domain.auth.repository.RefreshTokenRepository;
+import com.aibe.team2.domain.mypage.entity.Member;
+import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
+import com.aibe.team2.global.error.ErrorCode;
+import com.aibe.team2.global.exception.BusinessException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -13,6 +18,7 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public void logout(String username) {
@@ -32,5 +38,12 @@ public class AuthService {
             // 2. 기존 Refresh Token 삭제
             redisTemplate.delete(redisKey);
         }
+    }
+
+    @Transactional
+    public void updateLoginTime(String email) {
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+        member.updateLastLoginAt();
     }
 }
