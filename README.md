@@ -154,7 +154,7 @@ Docker Compose를 통해 PostgreSQL(pgvector 포함) 및 Redis를 실행합니�
 ```Bash
 docker-compose up -d
 ```
-*docker ps 명령어로 컨테이너 상태를 확인할 수 있습니다.
+※docker ps 명령어로 컨테이너 상태를 확인할 수 있습니다.
 
 4. 애플리케이션 빌드 및 실행
 Gradle Wrapper를 이용하여 프로젝트를 빌드하고 Spring Boot 서버를 실행합니다. IDE(IntelliJ 등)에서 실행할 경우, .env 파일을 인식할 수 있도록 EnvFile 플러그인을 사용하시거나 환경 변수를 직접 등록해 주세요.
