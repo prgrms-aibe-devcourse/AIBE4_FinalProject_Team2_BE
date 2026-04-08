@@ -11,7 +11,7 @@
 
 ##  요구 사항 
 프로젝트를 실행하기 전, 아래의 환경이 구축되어 있어야 합니다.
-* **Java 17** * **Spring Boot 3.5.0** (Gradle 기반)
+* **Java 17** **Spring Boot 3.5.0** (Gradle 기반)
 * **PostgreSQL** (`pgvector` 익스텐션 활성화 필수)
 * **Redis** (로컬 또는 Docker 환경)
 * 외부 API 키 (Google Gemini API, Retell AI API)
