@@ -9,8 +9,8 @@
 | <img src="https://avatars.githubusercontent.com/gudals2040" width="100"/> | <img src="https://avatars.githubusercontent.com/khyun722" width="100"/> | <img src="https://avatars.githubusercontent.com/sableye9" width="100"/> | <img src="https://avatars.githubusercontent.com/c-wonjun" width="100"/> | <img src="https://avatars.githubusercontent.com/dlrgus041" width="100"/> |
 | [@gudals2040](https://github.com/gudals2040) | [@khyun722](https://github.com/khyun722) | [@sableye9](https://github.com/sableye9) | [@c-wonjun](https://github.com/c-wonjun) | [@dlrgus041](https://github.com/dlrgus041) |
 
-## 프로젝트 개요
-**Sync Talk**는 채용 공고 맞춤형 자소서 분석부터 실전 AI,STT 모의 면접까지 한 번에 해결하는 취업 지원 플랫폼입니다.
+## 프로젝트 개요**Sync Talk**는 생성형 AI와 실시간 음성 스트리밍 기술을 활용한 맞춤형 모의 면접 서비스입니다. 
+단순한 텍스트 기반의 질의응답을 넘어, 실제 면접과 유사한 양방향 대화 환경을 제공하여 구직자들의 실전 감각을 극대화하는 것을 목표로 합니다.
 
 ## 시스템 아키텍쳐
 <img width="1024" alt="Image" src="https://github.com/user-attachments/assets/501c2afe-3621-4614-9b00-8c8058081b5d" />
