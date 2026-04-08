@@ -17,12 +17,14 @@
 
 ## 🛠 기술 스택 (Tech Stack)
 
+## 🛠 기술 스택
+
 | 구분 | 기술 |
 | :--- | :--- |
-| **Backend** | Java 17, Spring Boot 3.5.0, Spring Security, Spring Data JPA, PostgreSQL (pgvector), Redis, AWS SQS |
-| **External Services** | Google Gemini API, Retell AI, AWS S3, OAuth2, 청년정책 API, SSE, SMTP |
-| **Deployment** | AWS (EC2, RDS, ECR, Route 53, VPC), Nginx, Let's Encrypt |
-| **Monitoring** | Prometheus, Grafana, Loki, Promtail, Spring Boot Actuator |
+| **Backend** | <img src="https://img.shields.io/badge/Java%2017-007396?style=for-the-badge&logo=java&logoColor=white"> <img src="https://img.shields.io/badge/Spring%20Boot%203.5.0-6DB33F?style=for-the-badge&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/Spring%20Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white"> <img src="https://img.shields.io/badge/Spring%20Data%20JPA-6DB33F?style=for-the-badge&logo=spring&logoColor=white"><br><img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white"> <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20SQS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white"> |
+| **외부 서비스** | <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white"> <img src="https://img.shields.io/badge/Google%20Gemini-4285F4?style=for-the-badge&logo=googlegemini&logoColor=white"> <img src="https://img.shields.io/badge/OAuth2-3399FF?style=for-the-badge"> <img src="https://img.shields.io/badge/청년정책%20API-0055FF?style=for-the-badge"> <img src="https://img.shields.io/badge/SSE-FF8C00?style=for-the-badge"> <img src="https://img.shields.io/badge/SMTP-667788?style=for-the-badge"> <img src="https://img.shields.io/badge/Retell%20AI-5B21B6?style=for-the-badge"> |
+| **배포** | <img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20ECR-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonaws&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20Route%2053-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20VPC-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white"> <img src="https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white"> <img src="https://img.shields.io/badge/Let's%20Encrypt-003A70?style=for-the-badge&logo=letsencrypt&logoColor=white"> |
+| **모니터링** | <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white"> <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white"> <img src="https://img.shields.io/badge/Loki-F0A30A?style=for-the-badge"> <img src="https://img.shields.io/badge/Promtail-4D4D4D?style=for-the-badge"> |
 
 ## Local Dev (Docker Compose)
 
