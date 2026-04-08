@@ -17,26 +17,13 @@
 
 ## 🛠 기술 스택 (Tech Stack)
 
-### 💻 Backend
-* **Language & Framework:** Java 17, Spring Boot 3.5.0
-* **Security & Data:** Spring Security, Spring Data JPA
-* **Database:** PostgreSQL (pgvector를 활용한 Hybrid RAG 벡터 검색 지원)
-* **Cache & Queue:** Redis (API Rate Limiter 및 데이터 캐싱), AWS SQS (비동기 면접 분석을 위한 메시지 큐)
+| 구분 | 기술 |
+| :--- | :--- |
+| **Backend** | Java 17, Spring Boot 3.5.0, Spring Security, Spring Data JPA, PostgreSQL (pgvector), Redis, AWS SQS |
+| **External Services** | Google Gemini API, Retell AI, AWS S3, OAuth2, 청년정책 API, SSE, SMTP |
+| **Deployment** | AWS (EC2, RDS, ECR, Route 53, VPC), Nginx, Let's Encrypt |
+| **Monitoring** | Prometheus, Grafana, Loki, Promtail, Spring Boot Actuator |
 
-### 🔗 External Services
-* **AI & Voice:** Google Gemini API (LLM 및 텍스트 임베딩), Retell AI (클라이언트 실시간 음성 스트리밍)
-* **Storage & API:** AWS S3 (음성 파일 및 면접 기록 아카이빙), 청년정책 API
-* **Auth & Comm:** OAuth2, SSE (클라이언트 실시간 알림), SMTP
-
-### 🚀 Infrastructure & Deployment
-* **AWS Cloud:** EC2 (API 및 Worker 서버 분리), RDS, ECR, Route 53, VPC 기반 네트워크 분리
-* **Web Server & SSL:** Nginx (리버스 프록시), Let's Encrypt
-
-### 📊 Observability & Monitoring
-* **Metrics & Dashboards:** Prometheus, Grafana, Spring Boot Actuator
-* **Log Management:** Loki, Promtail
-
-* 
 ## Local Dev (Docker Compose)
 
 ### 1. Create .env
