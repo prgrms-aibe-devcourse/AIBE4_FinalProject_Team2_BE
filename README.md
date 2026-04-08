@@ -36,6 +36,27 @@
 | **알림 및 제어** | Redis 기반 API 호출 제한(Rate Limiter), 면접 분석 완료 시 클라이언트 실시간 알림(SSE), SMTP 이메일 알림 |
 | **모니터링** | Actuator, Prometheus, Grafana를 활용한 시스템 메트릭 시각화 및 실시간 로그 모니터링 |
 
+## 관리자 및 운영 기능 (Admin & Ops)
+
+본 서비스는 운영 효율성과 안정성을 위해 관리자 기능을 제공합니다.
+
+- **관리자 대시보드**
+  - 사용자 수, 요청량, 최근 활동 로그 등 서비스 상태 요약
+
+- **회원 관리**
+  - 사용자 검색 및 상태 변경 (ACTIVE / DORMANCY / DELETE)
+
+- **사용량 및 크레딧 관리**
+  - 사용자별 사용량 조회
+  - 관리자에 의한 크레딧 수동 조정
+
+- **운영 제어 기능**
+  - 실패 작업 재시도 / 취소
+  - 특정 작업 상태 조회
+
+- **모니터링**
+  - 큐 적재량, 처리 성공/실패 수, 시간대별 통계
+  - Prometheus + Grafana 기반 시각화
 
 ## 실행 방법
 ```Bash
@@ -44,6 +65,16 @@ cd aibe4_finalproject_team2_be
 ```
 2. 환경 변수 설정 (.env)
 보안 관리를 위해 민감한 API 키와 DB 비밀번호는 Github에 올라가지 않습니다.
+본 프로젝트는 실행 환경에 따라 환경 변수를 다르게 설정합니다.
+
+- **dev (로컬 실행)**  
+  로컬 DB, Redis, 외부 API 키를 사용하여 개발 환경에서 실행
+
+- **docker (컨테이너 실행)**  
+  Docker Compose 기반으로 DB/Redis를 함께 실행
+
+- **prod (운영 환경)**  
+  AWS (EC2, S3, SQS 등)와 연동되며, 민감 정보는 서버 환경 변수로 관리
 프로젝트 최상위 디렉토리(루트)에 .env 파일을 생성하고, 아래의 템플릿을 복사하여 본인의 키값으로 채워주세요. (해당 파일은 .gitignore에 등록되어 안전합니다.)
 ```
 # ======================
@@ -131,10 +162,10 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 ## Local DB
 
 Host: localhost  
-Port: 3307  
-Database: aibe  
-Username: aibe  
-Password: aibe1234
+Port: 5432  
+Database: aibe_team2  
+Username: root  
+Password: password  
 
 ## 라이선스
 이 프로젝트는 **MIT 라이선스**를 따릅니다.
