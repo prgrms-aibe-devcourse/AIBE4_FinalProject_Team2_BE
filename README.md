@@ -143,6 +143,7 @@ RETELL_AGENT_ID=your_retell_agent_id
 RETELL_WEBHOOK_KEY=your_retell_webhook_key
 ```
 3. 인프라(DB, Cache) 실행
+Docker Compose를 통해 PostgreSQL(pgvector 포함) 및 Redis를 실행합니다.
 ```Bash
 docker-compose up -d
 ```
@@ -159,6 +160,24 @@ gradlew.bat clean build -x test
 gradlew.bat bootRun --args='--spring.profiles.active=dev'
 ```
 
+※ 기본 서버 포트: 8081 
+(application.yml 설정 기준)
+
+5. 실행 확인
+
+서버 실행 후 다음 URL로 접속하여 정상 동작을 확인합니다.
+
+- Swagger UI:
+  http://localhost:8081/swagger-ui.html
+
+- 헬스 체크:
+  http://localhost:8081/actuator/health
+
+정상 응답:
+{
+  "status": "UP"
+}
+
 ## 보안
 - **OAuth2 & JWT:** 구글/카카오 소셜 로그인 및 JWT 기반 무상태(Stateless) 인증/인가
 - **Redis 토큰 관리:** Refresh Token 저장 및 안전한 로그아웃(블랙리스트) 처리
@@ -167,7 +186,7 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 
 ## API 문서
 -   **Swagger UI**  
-    [http://localhost:8080/swagger-ui.html](http://localhost:8081/swagger-ui.html)
+    [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html)
 
 ## Local DB
 
