@@ -42,67 +42,91 @@
 git clone https://github.com/prgrms-aibe-devcourse/aibe4_finalproject_team2_be.git
 cd aibe4_finalproject_team2_be
 ```
-2. 인프라(DB, Cache) 실행
-프로젝트 루트 디렉토리에 포함된 compose.yml 파일을 사용하여 애플리케이션 구동에 필요한 외부 컴포넌트를 백그라운드에서 실행합니다.
-해당 컨테이너에는 벡터 검색을 위한 pgvector가 포함된 PostgreSQL과 API Rate Limit 및 캐싱을 위한 Redis가 포함되어 있습니다.
+2. 환경 변수 설정 (.env)
+보안 관리를 위해 민감한 API 키와 DB 비밀번호는 Github에 올라가지 않습니다.
+프로젝트 최상위 디렉토리(루트)에 .env 파일을 생성하고, 아래의 템플릿을 복사하여 본인의 키값으로 채워주세요. (해당 파일은 .gitignore에 등록되어 안전합니다.)
+```
+# ======================
+# PostgreSQL (로컬 Docker 실행 시)
+# ======================
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_DB=aibe_team2
+POSTGRES_USER=root
+POSTGRES_PASSWORD=password
 
+# ======================
+# Redis
+# ======================
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# ======================
+# JWT / Security
+# ======================
+JWT_SECRET=your_jwt_secret_key_here_must_be_long_enough
+JWT_ACCESS_TOKEN_VALIDITY=3600000
+JWT_REFRESH_TOKEN_VALIDITY=604800000
+
+# ======================
+# SMTP (이메일 알림 용도)
+# ======================
+AUTH_ID=your_google_email@gmail.com
+AUTH_PW=your_google_app_password
+
+# ======================
+# AWS (S3, SQS)
+# ======================
+# 로컬 테스트용 AWS 키
+AWS_ACCESS_KEY_ID=your_aws_access_key_id
+AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
+AWS_REGION=ap-northeast-2
+
+# ======================
+# OAuth2 (소셜 로그인)
+# ======================
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+KAKAO_CLIENT_ID=your_kakao_client_id
+KAKAO_CLIENT_SECRET=your_kakao_client_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# ======================
+# AI & External API
+# ======================
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_API_URL=[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent)
+RETELL_API_KEY=your_retell_api_key
+RETELL_AGENT_ID=your_retell_agent_id
+RETELL_WEBHOOK_KEY=your_retell_webhook_key
+```
+3. 인프라(DB, Cache) 실행
 ```Bash
 docker-compose up -d
 ```
-3. 환경 변수 및 보안 키 설정
-외부 API(Gemini, Retell AI, AWS 등) 연동을 위해 민감한 정보 설정이 필요합니다.
-src/main/resources/ 경로에 application-secret.yml 파일을 생성하고 아래 템플릿에 본인의 키를 입력해 주세요. (이 파일은 .gitignore에 등록되어 있어 Github에 푸시되지 않습니다.)
-
-YAML
-# src/main/resources/application-secret.yml
-spring:
-  datasource:
-    # docker-compose로 띄운 로컬 DB 접속 정보
-    url: jdbc:postgresql://localhost:5432/synctalk
-    username: your_db_username # compose.yml에 설정된 계정
-    password: your_db_password # compose.yml에 설정된 비밀번호
-
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: YOUR_GOOGLE_CLIENT_ID
-            client-secret: YOUR_GOOGLE_CLIENT_SECRET
-          kakao:
-            client-id: YOUR_KAKAO_CLIENT_ID
-            client-secret: YOUR_KAKAO_CLIENT_SECRET
-
-cloud:
-  aws:
-    credentials:
-      access-key: YOUR_AWS_ACCESS_KEY
-      secret-key: YOUR_AWS_SECRET_KEY
-    s3:
-      bucket: YOUR_S3_BUCKET_NAME
-    sqs:
-      queue-name: YOUR_SQS_QUEUE_NAME
-
-ai:
-  gemini:
-    api-key: YOUR_GEMINI_API_KEY
-  retell:
-    api-key: YOUR_RETELL_API_KEY
 4. 애플리케이션 빌드 및 실행
-Gradle Wrapper를 이용하여 프로젝트를 빌드하고 스프링 부트 서버를 실행합니다.
+Gradle Wrapper를 이용하여 프로젝트를 빌드하고 Spring Boot 서버를 실행합니다. IDE(IntelliJ 등)에서 실행할 경우, .env 파일을 인식할 수 있도록 EnvFile 플러그인을 사용하시거나 환경 변수를 직접 등록해 주세요.
 
-Bash
+```Bash
 # Mac / Linux
 ./gradlew clean build -x test
-./gradlew bootRun
+./gradlew bootRun --args='--spring.profiles.active=dev'
 
 # Windows (CMD / PowerShell)
 gradlew.bat clean build -x test
-gradlew.bat bootRun
-5. 실행 확인 및 API 명세서 접속
-서버가 정상적으로 실행되었다면, 브라우저를 열고 아래 주소로 접속하여 Swagger UI 기반의 API 명세서를 확인할 수 있습니다.
+gradlew.bat bootRun --args='--spring.profiles.active=dev'
+```
 
-API Documentation (Swagger): http://localhost:8080/swagger-ui/index.html (또는 설정된 포트 및 경로에 맞게 접속)
+## 보안
+- **OAuth2 & JWT:** 구글/카카오 소셜 로그인 및 JWT 기반 무상태(Stateless) 인증/인가
+- **Redis 토큰 관리:** Refresh Token 저장 및 안전한 로그아웃(블랙리스트) 처리
+- **Rate Limiting:** Redis를 활용한 API 트래픽 제어 및 외부 AI 서비스 과금 방어
+- **웹 및 인프라 보안:** Spring Security 엔드포인트 보호, CORS/XSS 방지, 환경변수(`.env`) 분리 및 전 구간 HTTPS 적용
+
+## API 문서
+-   **Swagger UI**  
+    [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ### Local DB
 
@@ -111,3 +135,10 @@ Port: 3307
 Database: aibe  
 Username: aibe  
 Password: aibe1234
+
+## 라이선스
+이 프로젝트는 **MIT 라이선스**를 따릅니다.
+
+## 개발팀
+-   Backend 개발: **LastDance Team**
+-   프로젝트 기간: 2025년 2월 2일 ~ 2025년 3월 23일
