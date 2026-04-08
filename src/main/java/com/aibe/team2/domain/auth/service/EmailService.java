@@ -89,4 +89,27 @@ public class EmailService {
         redisTemplate.delete(email);
         return code.equals(savedCode);
     }
+
+    public void sendHtmlMessage(String to, String subject, String htmlContent) {
+        MimeMessage message = mailSender.createMimeMessage();
+
+        try {
+            // true는 멀티파트 메시지를 사용하겠다는 의미 (첨부파일이나 HTML 가능)
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            // true를 설정해야 HTML 태그가 해석됨
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+            log.info("HTML 메일 발송 성공: {}", to);
+
+        } catch (MessagingException e) {
+            // 이메일 설정 오류나 서버 연결 실패 시 발생
+            redisTemplate.delete(to);
+            log.error("메일 발송 실패로 인해 Redis 데이터를 롤백합니다. 대상: {}, 사유: {}", to, e.getMessage());
+            throw new BusinessException(ErrorCode.AUTH_EMAIL_SEND_ERROR);
+        }
+    }
 }

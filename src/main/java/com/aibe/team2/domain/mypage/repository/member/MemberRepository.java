@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -44,4 +46,7 @@ public interface MemberRepository extends JpaRepository<Member,Long>, MemberRepo
 
     // 이메일 중복 확인
     boolean existsByEmail(String email);
+
+    // 상태가 ACTIVE이면서 lastLoginAt이 특정 시점보다 이전인 멤버 찾기
+    List<Member> findAllByStatusAndLastLoginAtBefore(MemberStatus status, LocalDateTime dateTime);
 }
