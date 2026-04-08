@@ -69,6 +69,7 @@
   - Prometheus + Grafana 기반 시각화
 
 ## 실행 방법
+1. 프로젝트 클론
 ```Bash
 git clone https://github.com/prgrms-aibe-devcourse/aibe4_finalproject_team2_be.git
 cd aibe4_finalproject_team2_be
@@ -86,6 +87,12 @@ cd aibe4_finalproject_team2_be
 - **prod (운영 환경)**  
   AWS (EC2, S3, SQS 등)와 연동되며, 민감 정보는 서버 환경 변수로 관리
 프로젝트 최상위 디렉토리(루트)에 .env 파일을 생성하고, 아래의 템플릿을 복사하여 본인의 키값으로 채워주세요. (해당 파일은 .gitignore에 등록되어 안전합니다.)
+
+※ PostgreSQL에는 pgvector extension이 활성화되어 있어야 합니다.
+필요 시 DB에서 `CREATE EXTENSION IF NOT EXISTS vector;` 를 실행하세요.
+
+사전 준비: Docker 및 Docker Compose(또는 Docker Compose Plugin)가 설치되어 있어야 합니다.
+
 ```
 # ======================
 # PostgreSQL (로컬 Docker 실행 시)
@@ -137,7 +144,7 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 # AI & External API
 # ======================
 GEMINI_API_KEY=your_gemini_api_key
-GEMINI_API_URL=[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent)
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 RETELL_API_KEY=your_retell_api_key
 RETELL_AGENT_ID=your_retell_agent_id
 RETELL_WEBHOOK_KEY=your_retell_webhook_key
@@ -147,6 +154,8 @@ Docker Compose를 통해 PostgreSQL(pgvector 포함) 및 Redis를 실행합니�
 ```Bash
 docker-compose up -d
 ```
+*docker ps 명령어로 컨테이너 상태를 확인할 수 있습니다.
+
 4. 애플리케이션 빌드 및 실행
 Gradle Wrapper를 이용하여 프로젝트를 빌드하고 Spring Boot 서버를 실행합니다. IDE(IntelliJ 등)에서 실행할 경우, .env 파일을 인식할 수 있도록 EnvFile 플러그인을 사용하시거나 환경 변수를 직접 등록해 주세요.
 
@@ -177,6 +186,7 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 {
   "status": "UP"
 }
+※ 외부 API 키가 없으면 AI 분석, 음성 인터뷰, S3/SQS 연동 기능은 정상 동작하지 않을 수 있습니다.
 
 ## 보안
 - **OAuth2 & JWT:** 구글/카카오 소셜 로그인 및 JWT 기반 무상태(Stateless) 인증/인가
