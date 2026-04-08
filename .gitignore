@@ -33,7 +33,7 @@ localstack/
 /src/main/generated
 
 # 모든 application 관련 설정 파일 제외
-*-dev.*
+# *-dev.*
 
 # 로그파일 제외
 *.log
