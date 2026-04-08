@@ -36,28 +36,89 @@
 | **알림 및 제어** | Redis 기반 API 호출 제한(Rate Limiter), 면접 분석 완료 시 클라이언트 실시간 알림(SSE), SMTP 이메일 알림 |
 | **모니터링** | Actuator, Prometheus, Grafana를 활용한 시스템 메트릭 시각화 및 실시간 로그 모니터링 |
 
-## Local Dev (Docker Compose)
+현재 레포지토리의 구조(compose.yml 포함)와 기술 스택을 반영하여, 다른 개발자나 평가자가 로컬 환경에서 아주 쉽고 정확하게 프로젝트를 띄울 수 있도록 시작 가이드(Getting Started) 부분을 상세하게 작성해 드립니다.
 
-### 1. Create .env
+기존에 작성했던 가이드 대신 아래 내용을 복사해서 README.md에 적용해 보세요.
 
-#### macOS / Linux
-```bash
-cp .env.example .env
-```
+🚀 시작 가이드 (Getting Started)
+프로젝트를 로컬 환경에서 실행하기 위한 상세 가이드입니다. 본 프로젝트는 편의를 위해 Docker Compose를 활용한 인프라 세팅을 지원합니다.
 
-#### Windows (PowerShell)
-```
-Copy-Item .env.example .env
-```
+📋 요구 사항 (Prerequisites)
+프로젝트를 실행하기 전, 로컬 PC에 아래 환경이 설치되어 있어야 합니다.
 
-### Run
-```bash
-docker compose up -d
-```
-### Stop
-```
-docker compose down
-```
+Java 17 (JDK 17)
+
+Docker & Docker Compose (PostgreSQL, Redis 실행 목적)
+
+Git
+
+⚙️ 로컬 환경 설정 및 실행 (Installation & Run)
+1. Repository 클론 및 이동
+
+Bash
+git clone https://github.com/prgrms-aibe-devcourse/aibe4_finalproject_team2_be.git
+cd aibe4_finalproject_team2_be
+2. 인프라(DB, Cache) 실행
+프로젝트 루트 디렉토리에 포함된 compose.yml 파일을 사용하여 애플리케이션 구동에 필요한 외부 컴포넌트를 백그라운드에서 실행합니다.
+해당 컨테이너에는 벡터 검색을 위한 pgvector가 포함된 PostgreSQL과 API Rate Limit 및 캐싱을 위한 Redis가 포함되어 있습니다.
+
+Bash
+# Docker 데몬이 실행 중인지 확인 후 아래 명령어 입력
+docker-compose up -d
+3. 환경 변수 및 보안 키 설정
+외부 API(Gemini, Retell AI, AWS 등) 연동을 위해 민감한 정보 설정이 필요합니다.
+src/main/resources/ 경로에 application-secret.yml 파일을 생성하고 아래 템플릿에 본인의 키를 입력해 주세요. (이 파일은 .gitignore에 등록되어 있어 Github에 푸시되지 않습니다.)
+
+YAML
+# src/main/resources/application-secret.yml
+spring:
+  datasource:
+    # docker-compose로 띄운 로컬 DB 접속 정보
+    url: jdbc:postgresql://localhost:5432/synctalk
+    username: your_db_username # compose.yml에 설정된 계정
+    password: your_db_password # compose.yml에 설정된 비밀번호
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+          kakao:
+            client-id: YOUR_KAKAO_CLIENT_ID
+            client-secret: YOUR_KAKAO_CLIENT_SECRET
+
+cloud:
+  aws:
+    credentials:
+      access-key: YOUR_AWS_ACCESS_KEY
+      secret-key: YOUR_AWS_SECRET_KEY
+    s3:
+      bucket: YOUR_S3_BUCKET_NAME
+    sqs:
+      queue-name: YOUR_SQS_QUEUE_NAME
+
+ai:
+  gemini:
+    api-key: YOUR_GEMINI_API_KEY
+  retell:
+    api-key: YOUR_RETELL_API_KEY
+4. 애플리케이션 빌드 및 실행
+Gradle Wrapper를 이용하여 프로젝트를 빌드하고 스프링 부트 서버를 실행합니다.
+
+Bash
+# Mac / Linux
+./gradlew clean build -x test
+./gradlew bootRun
+
+# Windows (CMD / PowerShell)
+gradlew.bat clean build -x test
+gradlew.bat bootRun
+5. 실행 확인 및 API 명세서 접속
+서버가 정상적으로 실행되었다면, 브라우저를 열고 아래 주소로 접속하여 Swagger UI 기반의 API 명세서를 확인할 수 있습니다.
+
+API Documentation (Swagger): http://localhost:8080/swagger-ui/index.html (또는 설정된 포트 및 경로에 맞게 접속)
 
 ### Local DB
 
