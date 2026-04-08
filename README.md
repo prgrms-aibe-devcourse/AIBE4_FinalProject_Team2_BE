@@ -24,6 +24,18 @@
 | **배포** | <img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white"> <img src="https://img.shields.io/badge/AWS%20VPC-FF9900?style=for-the-badge"> <img src="https://img.shields.io/badge/Let's%20Encrypt-003A70?style=for-the-badge&logo=letsencrypt&logoColor=white"> |
 | **모니터링** | <img src="https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white"> <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white"> <img src="https://img.shields.io/badge/Loki-F0A30A?style=for-the-badge"> <img src="https://img.shields.io/badge/Promtail-4D4D4D?style=for-the-badge"> |
 
+## ✨ 주요 기능 (Key Features)
+
+| 도메인 | 주요 기능 |
+| :--- | :--- |
+| **사용자 & 인증** | 소셜 로그인(OAuth2), JWT 기반 인증/인가, 마이페이지 및 면접 통계 조회 |
+| **실시간 AI 면접** | 클라이언트-서버 간 실시간 양방향 음성 스트리밍 (Retell AI 연동) |
+| **맞춤형 질문 (RAG)** | 사용자 이력서 및 직무 공고 벡터화(Gemini Embedding), 코사인 유사도 기반(pgvector) 맞춤형 면접 질문 생성 |
+| **이벤트 기반 분석** | 메시지 큐(AWS SQS)를 활용한 비동기 면접 결과(STT, 분석, 평가) 처리 및 DB 저장 |
+| **데이터 아카이빙** | 면접 종료 시 녹음된 음성 파일 및 결과 데이터 클라우드 스토리지(AWS S3) 보관 |
+| **알림 및 제어** | Redis 기반 API 호출 제한(Rate Limiter), 면접 분석 완료 시 클라이언트 실시간 알림(SSE), SMTP 이메일 알림 |
+| **모니터링** | Actuator, Prometheus, Grafana를 활용한 시스템 메트릭 시각화 및 실시간 로그 모니터링 |
+
 ## Local Dev (Docker Compose)
 
 ### 1. Create .env
