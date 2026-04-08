@@ -128,7 +128,7 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 -   **Swagger UI**  
     [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
-### Local DB
+## Local DB
 
 Host: localhost  
 Port: 3307  
