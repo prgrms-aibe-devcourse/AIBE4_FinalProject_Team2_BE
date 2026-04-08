@@ -126,7 +126,7 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 
 ## API 문서
 -   **Swagger UI**  
-    [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+    [http://localhost:8080/swagger-ui.html](http://localhost:8081/swagger-ui.html)
 
 ## Local DB
 
