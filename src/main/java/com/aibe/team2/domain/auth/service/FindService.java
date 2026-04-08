@@ -28,7 +28,9 @@ public class FindService {
         // 보안을 위해 일부 마스킹 처리 (예: user***@gmail.com)
         String email = member.getEmail();
         int atIndex = email.indexOf("@");
-        return email.substring(0, 3) + "***" + email.substring(atIndex);
+        String emailId = email.substring(0, atIndex);
+        String maskedId = emailId.length() > 3 ? emailId.substring(0, 3) + "***" : emailId.substring(0, 1) + "***";
+        return maskedId + email.substring(atIndex);
     }
 
     // 2. 비밀번호 찾기 (임시 비밀번호 발송)

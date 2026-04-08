@@ -101,15 +101,15 @@ public class EmailService {
             helper.setSubject(subject);
             // true를 설정해야 HTML 태그가 해석됨
             helper.setText(htmlContent, true);
-            // 발신자 이름 설정 (선택 사항)
-            helper.setFrom("SyncTalk <your-email@gmail.com>");
 
             mailSender.send(message);
             log.info("HTML 메일 발송 성공: {}", to);
 
         } catch (MessagingException e) {
-            log.error("메일 발송 실패: {}", e.getMessage());
-            throw new RuntimeException("메일 발송 중 오류가 발생했습니다.", e);
+            // 이메일 설정 오류나 서버 연결 실패 시 발생
+            redisTemplate.delete(to);
+            log.error("메일 발송 실패로 인해 Redis 데이터를 롤백합니다. 대상: {}, 사유: {}", to, e.getMessage());
+            throw new BusinessException(ErrorCode.AUTH_EMAIL_SEND_ERROR);
         }
     }
 }

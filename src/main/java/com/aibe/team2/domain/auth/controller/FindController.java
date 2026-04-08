@@ -22,8 +22,8 @@ public class FindController {
 
     // 비밀번호 찾기 (임시 비밀번호 발급)
     @PostMapping("/password")
-    public ResponseEntity<String> findPassword(@RequestBody Map<String, String> request) {
-        findService.sendTemporaryPassword(request.get("email"));
+    public ResponseEntity<String> findPassword(@RequestParam String email) {
+        findService.sendTemporaryPassword(email);
         return ResponseEntity.ok("입력하신 이메일로 임시 비밀번호를 전송했습니다.");
     }
 }

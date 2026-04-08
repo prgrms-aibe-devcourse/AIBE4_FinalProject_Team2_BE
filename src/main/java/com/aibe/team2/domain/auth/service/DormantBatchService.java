@@ -5,6 +5,7 @@ import com.aibe.team2.domain.mypage.entity.enums.MemberStatus;
 import com.aibe.team2.domain.mypage.repository.member.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +22,9 @@ public class DormantBatchService {
     private final MemberRepository memberRepository;
     private final EmailService emailService;
 
-    // 매일 새벽 3시에 실행 (초 분 시 일 월 요일)
+    // 매일 자정에 실행 (초 분 시 일 월 요일)
     @Scheduled(cron = "0 0 0 * * *")
+    @Async
     @Transactional
     public void convertToDormantAccounts() {
         // 기준 시간: 현재로부터 1년 전 (프로젝트 요구사항에 따라 3개월, 6개월 등으로 변경 가능)

@@ -26,13 +26,13 @@ public class AuthService {
         refreshTokenRepository.deleteById(username);
     }
 
-    public void handleSingleDeviceLogin(String nickname) {
-        String redisKey = "RT:" + nickname;
+    public void handleSingleDeviceLogin(String email) {
+        String redisKey = "RT:" + email;
         String existingToken = redisTemplate.opsForValue().get(redisKey);
 
         if (existingToken != null) {
             // 1. 기존 기기에 알림 전송 (WebSocket)
-            messagingTemplate.convertAndSend("/topic/logout/" + nickname,
+            messagingTemplate.convertAndSend("/topic/logout/" + email,
                     "새로운 기기에서 로그인했습니다. 접속을 종료합니다.");
 
             // 2. 기존 Refresh Token 삭제
