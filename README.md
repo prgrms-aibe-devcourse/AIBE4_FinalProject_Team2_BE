@@ -9,6 +9,14 @@
 | <img src="https://avatars.githubusercontent.com/gudals2040" width="100"/> | <img src="https://avatars.githubusercontent.com/khyun722" width="100"/> | <img src="https://avatars.githubusercontent.com/sableye9" width="100"/> | <img src="https://avatars.githubusercontent.com/c-wonjun" width="100"/> | <img src="https://avatars.githubusercontent.com/dlrgus041" width="100"/> |
 | [@gudals2040](https://github.com/gudals2040) | [@khyun722](https://github.com/khyun722) | [@sableye9](https://github.com/sableye9) | [@c-wonjun](https://github.com/c-wonjun) | [@dlrgus041](https://github.com/dlrgus041) |
 
+##  요구 사항 
+프로젝트를 실행하기 전, 아래의 환경이 구축되어 있어야 합니다.
+* **Java 17** * **Spring Boot 3.5.0** (Gradle 기반)
+* **PostgreSQL** (`pgvector` 익스텐션 활성화 필수)
+* **Redis** (로컬 또는 Docker 환경)
+* 외부 API 키 (Google Gemini API, Retell AI API)
+* AWS IAM 권한 (S3, SQS 접근 용도)
+
 ## 프로젝트 개요**Sync Talk**는 생성형 AI와 실시간 음성 스트리밍 기술을 활용한 맞춤형 모의 면접 서비스입니다. 
 단순한 텍스트 기반의 질의응답을 넘어, 실제 면접과 유사한 양방향 대화 환경을 제공하여 구직자들의 실전 감각을 극대화하는 것을 목표로 합니다.
 
