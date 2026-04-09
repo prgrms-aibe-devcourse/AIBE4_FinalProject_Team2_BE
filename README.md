@@ -197,6 +197,7 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 UPDATE member
 SET role = 'ADMIN'
 WHERE email = 'admin@example.com';
+```
 
 ## 보안
 - **OAuth2 & JWT:** 구글/카카오 소셜 로그인 및 JWT 기반 무상태(Stateless) 인증/인가
