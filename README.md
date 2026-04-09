@@ -188,6 +188,16 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 }
 ※ 외부 API 키가 없으면 AI 분석, 음성 인터뷰, S3/SQS 연동 기능은 정상 동작하지 않을 수 있습니다.
 
+※ 관리자 권한 부여
+
+현재 개발 환경에서는 초기 관리자 계정을 DB에서 직접 지정합니다.
+
+예시:
+```sql
+UPDATE member
+SET role = 'ADMIN'
+WHERE email = 'admin@example.com';
+
 ## 보안
 - **OAuth2 & JWT:** 구글/카카오 소셜 로그인 및 JWT 기반 무상태(Stateless) 인증/인가
 - **Redis 토큰 관리:** Refresh Token 저장 및 안전한 로그아웃(블랙리스트) 처리
@@ -197,6 +207,7 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 ## API 문서
 -   **Swagger UI**  
     [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html)
+
 
 ## Local DB
 
