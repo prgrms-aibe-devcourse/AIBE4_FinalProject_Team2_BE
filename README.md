@@ -222,5 +222,5 @@ Password: password
 이 프로젝트는 **MIT 라이선스**를 따릅니다.
 
 ## 개발팀
--   Backend 개발: **LastDance Team**
+-   Backend 개발: **Ready2Run team**
 -   프로젝트 기간: 2025년 2월 2일 ~ 2025년 3월 23일
