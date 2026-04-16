@@ -9,7 +9,17 @@
 | <img src="https://avatars.githubusercontent.com/gudals2040" width="100"/> | <img src="https://avatars.githubusercontent.com/khyun722" width="100"/> | <img src="https://avatars.githubusercontent.com/sableye9" width="100"/> | <img src="https://avatars.githubusercontent.com/c-wonjun" width="100"/> | <img src="https://avatars.githubusercontent.com/dlrgus041" width="100"/> |
 | [@gudals2040](https://github.com/gudals2040) | [@khyun722](https://github.com/khyun722) | [@sableye9](https://github.com/sableye9) | [@c-wonjun](https://github.com/c-wonjun) | [@dlrgus041](https://github.com/dlrgus041) |
 
-## 프로젝트 개요**Sync Talk**는 생성형 AI와 실시간 음성 스트리밍 기술을 활용한 맞춤형 모의 면접 서비스입니다. 
+##  요구 사항 
+프로젝트를 실행하기 전, 아래의 환경이 구축되어 있어야 합니다.
+* **Java 17** **Spring Boot 3.5.0** (Gradle 기반)
+* **PostgreSQL** (`pgvector` 익스텐션 활성화 필수)
+* **Redis** (로컬 또는 Docker 환경)
+* 외부 API 키 (Google Gemini API, Retell AI API)
+* AWS IAM 권한 (S3, SQS 접근 용도)
+
+## 프로젝트 개요
+**Sync Talk**는 생성형 AI와 실시간 음성 스트리밍 기술을 활용한 맞춤형 모의 면접 서비스입니다.
+
 단순한 텍스트 기반의 질의응답을 넘어, 실제 면접과 유사한 양방향 대화 환경을 제공하여 구직자들의 실전 감각을 극대화하는 것을 목표로 합니다.
 
 ## 시스템 아키텍쳐
@@ -36,15 +46,53 @@
 | **알림 및 제어** | Redis 기반 API 호출 제한(Rate Limiter), 면접 분석 완료 시 클라이언트 실시간 알림(SSE), SMTP 이메일 알림 |
 | **모니터링** | Actuator, Prometheus, Grafana를 활용한 시스템 메트릭 시각화 및 실시간 로그 모니터링 |
 
+## 관리자 및 운영 기능 (Admin & Ops)
+
+본 서비스는 운영 효율성과 안정성을 위해 관리자 기능을 제공합니다.
+
+- **관리자 대시보드**
+  - 사용자 수, 요청량, 최근 활동 로그 등 서비스 상태 요약
+
+- **회원 관리**
+  - 사용자 검색 및 상태 변경 (ACTIVE / DORMANCY / DELETE)
+
+- **사용량 및 크레딧 관리**
+  - 사용자별 사용량 조회
+  - 관리자에 의한 크레딧 수동 조정
+
+- **운영 제어 기능**
+  - 실패 작업 재시도 / 취소
+  - 특정 작업 상태 조회
+
+- **모니터링**
+  - 큐 적재량, 처리 성공/실패 수, 시간대별 통계
+  - Prometheus + Grafana 기반 시각화
 
 ## 실행 방법
+1. 프로젝트 클론
 ```Bash
 git clone https://github.com/prgrms-aibe-devcourse/aibe4_finalproject_team2_be.git
 cd aibe4_finalproject_team2_be
 ```
 2. 환경 변수 설정 (.env)
 보안 관리를 위해 민감한 API 키와 DB 비밀번호는 Github에 올라가지 않습니다.
+본 프로젝트는 실행 환경에 따라 환경 변수를 다르게 설정합니다.
+
+- **dev (로컬 실행)**  
+  로컬 DB, Redis, 외부 API 키를 사용하여 개발 환경에서 실행
+
+- **docker (컨테이너 실행)**  
+  Docker Compose 기반으로 DB/Redis를 함께 실행
+
+- **prod (운영 환경)**  
+  AWS (EC2, S3, SQS 등)와 연동되며, 민감 정보는 서버 환경 변수로 관리
 프로젝트 최상위 디렉토리(루트)에 .env 파일을 생성하고, 아래의 템플릿을 복사하여 본인의 키값으로 채워주세요. (해당 파일은 .gitignore에 등록되어 안전합니다.)
+
+※ PostgreSQL에는 pgvector extension이 활성화되어 있어야 합니다.
+필요 시 DB에서 `CREATE EXTENSION IF NOT EXISTS vector;` 를 실행하세요.
+
+사전 준비: Docker 및 Docker Compose(또는 Docker Compose Plugin)가 설치되어 있어야 합니다.
+
 ```
 # ======================
 # PostgreSQL (로컬 Docker 실행 시)
@@ -96,15 +144,18 @@ GITHUB_CLIENT_SECRET=your_github_client_secret
 # AI & External API
 # ======================
 GEMINI_API_KEY=your_gemini_api_key
-GEMINI_API_URL=[https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent](https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent)
+GEMINI_API_URL=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent
 RETELL_API_KEY=your_retell_api_key
 RETELL_AGENT_ID=your_retell_agent_id
 RETELL_WEBHOOK_KEY=your_retell_webhook_key
 ```
 3. 인프라(DB, Cache) 실행
+Docker Compose를 통해 PostgreSQL(pgvector 포함) 및 Redis를 실행합니다.
 ```Bash
 docker-compose up -d
 ```
+※docker ps 명령어로 컨테이너 상태를 확인할 수 있습니다.
+
 4. 애플리케이션 빌드 및 실행
 Gradle Wrapper를 이용하여 프로젝트를 빌드하고 Spring Boot 서버를 실행합니다. IDE(IntelliJ 등)에서 실행할 경우, .env 파일을 인식할 수 있도록 EnvFile 플러그인을 사용하시거나 환경 변수를 직접 등록해 주세요.
 
@@ -118,6 +169,36 @@ gradlew.bat clean build -x test
 gradlew.bat bootRun --args='--spring.profiles.active=dev'
 ```
 
+※ 기본 서버 포트: 8081 
+(application.yml 설정 기준)
+
+5. 실행 확인
+
+서버 실행 후 다음 URL로 접속하여 정상 동작을 확인합니다.
+
+- Swagger UI:
+  http://localhost:8081/swagger-ui.html
+
+- 헬스 체크:
+  http://localhost:8081/actuator/health
+
+정상 응답:
+{
+  "status": "UP"
+}
+※ 외부 API 키가 없으면 AI 분석, 음성 인터뷰, S3/SQS 연동 기능은 정상 동작하지 않을 수 있습니다.
+
+※ 관리자 권한 부여
+
+현재 개발 환경에서는 초기 관리자 계정을 DB에서 직접 지정합니다.
+
+예시:
+```sql
+UPDATE member
+SET role = 'ADMIN'
+WHERE email = 'admin@example.com';
+```
+
 ## 보안
 - **OAuth2 & JWT:** 구글/카카오 소셜 로그인 및 JWT 기반 무상태(Stateless) 인증/인가
 - **Redis 토큰 관리:** Refresh Token 저장 및 안전한 로그아웃(블랙리스트) 처리
@@ -126,19 +207,20 @@ gradlew.bat bootRun --args='--spring.profiles.active=dev'
 
 ## API 문서
 -   **Swagger UI**  
-    [http://localhost:8080/swagger-ui.html](http://localhost:8081/swagger-ui.html)
+    [http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html)
+
 
 ## Local DB
 
 Host: localhost  
-Port: 3307  
-Database: aibe  
-Username: aibe  
-Password: aibe1234
+Port: 5432  
+Database: aibe_team2  
+Username: root  
+Password: password  
 
 ## 라이선스
 이 프로젝트는 **MIT 라이선스**를 따릅니다.
 
 ## 개발팀
--   Backend 개발: **LastDance Team**
+-   Backend 개발: **Ready2Run team**
 -   프로젝트 기간: 2025년 2월 2일 ~ 2025년 3월 23일

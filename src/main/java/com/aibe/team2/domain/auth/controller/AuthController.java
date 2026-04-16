@@ -62,6 +62,10 @@ public class AuthController {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             Member member = userDetails.getMember();
 
+            // 중복 로그인 체크 및 기존 기기 강제 로그아웃 알림 (핵심!)
+            // AuthService에 작성했던 WebSocket 알림 및 Redis 삭제 로직 호출
+            authService.handleSingleDeviceLogin(member.getNickname());
+
             // 3. 토큰 생성
             String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().name());
             String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getRole().name());
@@ -144,7 +148,7 @@ public class AuthController {
     public ResponseEntity<?> logout(Authentication authentication, HttpServletResponse response) {
         // 1. Redis에서 RefreshToken 삭제 (보안 핵심)
         if (authentication != null) {
-            refreshTokenRepository.deleteById(authentication.getName());
+            authService.logout(authentication.getName());
         }
 
         // 2. AccessToken 쿠키 만료 설정

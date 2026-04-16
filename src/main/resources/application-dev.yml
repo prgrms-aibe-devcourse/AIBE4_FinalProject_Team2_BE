@@ -1,13 +1,12 @@
 server:
-  port: 8080
-  forward-headers-strategy: framework
+  port: 8081
 
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${POSTGRES_HOST:db}:${POSTGRES_PORT:5432}/${POSTGRES_DB:aibe_team2}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:aibe_team2}
+    username: ${POSTGRES_USER:root}
+    password: ${POSTGRES_PASSWORD:password}
 
   mail:
     host: smtp.gmail.com
@@ -35,7 +34,7 @@ spring:
             scope:
               - email
               - profile
-            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
             client-name: Google
 
           github:
@@ -52,7 +51,6 @@ spring:
             client-secret: ${KAKAO_CLIENT_SECRET:}
             scope:
               - profile_nickname
-              - account_email
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
             client-name: Kakao
             authorization-grant-type: authorization_code
@@ -67,15 +65,15 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
-        format_sql: false
+        format_sql: true
 
   data:
     redis:
-      host: ${REDIS_HOST:redis}
+      host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
 
   batch:
@@ -85,17 +83,11 @@ spring:
   cloud:
     aws:
       region:
-        static: ${AWS_REGION}
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-
-cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS}
-
-app:
-  frontend:
-    oauth-redirect-uri: ${FRONTEND_OAUTH_REDIRECT_URI}
+        static: ${AWS_REGION:ap-northeast-2}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:test}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:test}
+      s3:
+        endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}
+      sqs:
+        endpoint: http://${LOCALSTACK_HOST:localhost}:${LOCALSTACK_PORT:4566}

@@ -64,10 +64,6 @@ jwt:
 aws:
   region: ${AWS_REGION:ap-northeast-2}
 
-  credentials:
-    access-key: ${AWS_ACCESS_KEY_ID:test}
-    secret-key: ${AWS_SECRET_ACCESS_KEY:test}
-
   s3:
     bucket: ${AWS_S3_BUCKET:aibe-bucket}
     presign-expiration-minutes: ${AWS_S3_PRESIGN_EXPIRATION_MINUTES:10}

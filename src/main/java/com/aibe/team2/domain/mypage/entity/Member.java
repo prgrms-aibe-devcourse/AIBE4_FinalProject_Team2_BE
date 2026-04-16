@@ -71,6 +71,9 @@ public class Member {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
+    @Column(name = "last_login_at")
+    private LocalDateTime lastLoginAt;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private MemberStatus status;
@@ -117,6 +120,14 @@ public class Member {
             this.deletedAt = LocalDateTime.now();
         } else {
             this.deletedAt = null; // 복구 시 삭제 시간 제거
+        }
+    }
+
+    public void updateLastLoginAt() {
+        this.lastLoginAt = LocalDateTime.now();
+        // 만약 휴면 상태였다가 로그인한 것이라면 ACTIVE로 변경
+        if (this.status == MemberStatus.DORMANT) {
+            this.status = MemberStatus.ACTIVE;
         }
     }
 }
