@@ -33,7 +33,7 @@ public class AuthService {
     public void checkLoginLock(String email) {
         String lockKey = "lock:" + email;
         if (redisTemplate.hasKey(lockKey)) {
-            throw new RuntimeException("잦은 로그인 실패로 인해 계정이 5분간 잠겼습니다.");
+            throw new BusinessException(ErrorCode.AUTH_LOGIN_LOCKED);
         }
     }
 
@@ -43,7 +43,7 @@ public class AuthService {
         Long count = redisTemplate.opsForValue().increment(countKey);
 
         if (count != null && count >= MAX_ATTEMPTS) {
-            // 5회 실패 시 잠금 키 생성 (30분 후 자동 삭제)
+            // 5회 실패 시 잠금 키 생성 (5분 후 자동 삭제)
             redisTemplate.opsForValue().set("lock:" + email, "locked", Duration.ofMinutes(LOCK_TIME));
             redisTemplate.delete(countKey); // 실패 횟수 초기화
         }
