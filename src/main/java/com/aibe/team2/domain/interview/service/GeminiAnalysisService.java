@@ -30,21 +30,24 @@ public class GeminiAnalysisService {
 
     public String analyzeInterviewSync(String recordsText) {
         String systemPrompt = loadPromptFile("ANALYSIS");
-        String fullPrompt = systemPrompt + "\n\n" + recordsText;
 
-        // JSON 응답을 강제하기 위한 설정 (파싱 안정성 극대화)
+        // JSON 응답을 강제하기 위한 설정
         Map<String, Object> generationConfig = Map.of(
                 "responseMimeType", "application/json"
         );
 
+        // System Instruction과 User Content(대화 기록)의 분리 및 태그 적용
         Map<String, Object> requestBody = Map.of(
-                "contents", List.of(
-                        Map.of("parts", List.of(Map.of("text", fullPrompt)))
+                "systemInstruction", Map.of(
+                        "parts", List.of(Map.of("text", systemPrompt))
                 ),
-                "generationConfig", generationConfig // 설정 주입
+                "contents", List.of(
+                        Map.of("role", "user",
+                                "parts", List.of(Map.of("text", "<conversation_records>\n" + recordsText + "\n</conversation_records>")))
+                ),
+                "generationConfig", generationConfig
         );
 
-        // 최신 모델인 gemini-2.5-flash로 엔드포인트 URL 적용
         String analysisUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
         try {
@@ -56,7 +59,7 @@ public class GeminiAnalysisService {
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
-                    .block(); // 전체 JSON 응답이 올 때까지 대기 (Sync)
+                    .block();
 
             return extractText(responseJson);
         } catch (Exception e) {
@@ -65,29 +68,19 @@ public class GeminiAnalysisService {
         }
     }
 
-    // [PR 리뷰 반영] Map 대신 전용 DTO(GeminiResponseDto)를 사용하여 안전하게 파싱
     private String extractText(String responseJson) throws Exception {
-        // 1. JSON 문자열을 DTO 객체로 안전하게 매핑
         GeminiResponseDto responseDto = objectMapper.readValue(responseJson, GeminiResponseDto.class);
 
-        // 2. NullPointerException 방어를 위한 구조 검증
         if (responseDto.getCandidates() == null || responseDto.getCandidates().isEmpty() ||
                 responseDto.getCandidates().get(0).getContent() == null ||
                 responseDto.getCandidates().get(0).getContent().getParts() == null ||
                 responseDto.getCandidates().get(0).getContent().getParts().isEmpty()) {
-
-            log.error("⚠️ 예상치 못한 Gemini API 응답 구조: {}", responseJson);
             throw new RuntimeException("Gemini API 응답에서 텍스트를 추출할 수 없습니다.");
         }
 
-        // 3. 안전하게 텍스트 추출
         String text = responseDto.getCandidates().get(0).getContent().getParts().get(0).getText();
+        if (text == null) return "";
 
-        if (text == null) {
-            return "";
-        }
-
-        // Gemini가 가끔 마크다운 ```json ... ``` 으로 감싸서 보내는 것을 정리
         return text.replaceAll("(?s)^```json\\s*", "").replaceAll("(?s)\\s*```$", "").trim();
     }
 

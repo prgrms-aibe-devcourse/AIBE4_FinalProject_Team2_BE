@@ -16,4 +16,8 @@ public class InterviewRequestDto {
     // [FR-INT-06, 07] 프롬프트에 동적 주입할 컨텍스트 데이터 필드 추가
     private String resumeContent;
     private String jobDescription;
+
+    // [추가] 프롬프트에 동적 주입할 직무/연차 데이터 필드 추가
+    private String jobRole;
+    private String experience;
 }

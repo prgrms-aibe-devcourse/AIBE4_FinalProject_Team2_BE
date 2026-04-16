@@ -45,6 +45,13 @@ public class InterviewSession {
 
     private String modelVariant;
 
+    // [추가] 프론트엔드에서 넘겨받은 지원자 맞춤형 정보 저장 필드
+    @Column(name = "job_role")
+    private String jobRole;
+
+    @Column(name = "experience")
+    private String experience;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InterviewSessionStatus status;
@@ -68,8 +75,9 @@ public class InterviewSession {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    // [수정] Builder에 jobRole, experienceLevel 추가
     @Builder
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String jobDescription, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant) {
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String jobDescription, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, String jobRole, String experience) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
@@ -78,6 +86,8 @@ public class InterviewSession {
         this.interviewType = interviewType;
         this.aiProvider = aiProvider;
         this.modelVariant = modelVariant;
+        this.jobRole = jobRole;                 // 추가
+        this.experience = experience; // 추가
         this.status = InterviewSessionStatus.CREATED;
     }
 

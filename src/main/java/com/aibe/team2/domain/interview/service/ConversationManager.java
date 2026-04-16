@@ -43,10 +43,21 @@ public class ConversationManager {
     // 각 세션별로 이전 턴의 AI 질문을 기억하기 위한 스레드 안전한 인메모리 캐시 도입
     private final Map<Long, String> previousQuestionCache = new ConcurrentHashMap<>();
 
+    // 프론트엔드와 100% 동일한 동적 첫 인사말 생성 헬퍼 메서드
+    private String getInitialGreeting(InterviewMode mode) {
+        if (mode == InterviewMode.STRESS) {
+            return "바로 시작하겠습니다. 지원자님, 1분 자기소개 해보세요.";
+        } else if (mode == InterviewMode.FOLLOW_UP) {
+            return "지원해 주셔서 감사합니다. 먼저 본인의 핵심 역량을 중심으로 자기소개를 부탁드립니다.";
+        } else {
+            return "반갑습니다! 긴장 푸시고 편하게 자기소개 부탁드립니다.";
+        }
+    }
+
     @DistributedLock(key = "text-streaming", waitTime = 1, leaseTime = 20)
     public void startTextStreaming(InterviewSession session, String answer, String modelVariant, InterviewMode interviewMode, SseEmitter emitter) {
-        // 캐시에서 이전 질문을 가져오기(최초 1번째 턴일 경우 프론트엔드와 동일하게 기본 인사말 세팅)
-        String previousQuestion = previousQuestionCache.getOrDefault(session.getId(), "반갑습니다! 준비되셨다면 자기소개를 부탁드립니다.");
+        // 하드코딩된 인사말 대신, 세션의 면접 모드에 맞는 동적 인사말 가져옴
+        String previousQuestion = previousQuestionCache.getOrDefault(session.getId(), getInitialGreeting(session.getInterviewMode()));
 
         // [FR-INT-06] 자기소개서 내용 안전하게 조회 및 추출
         String resumeContent = null;
@@ -66,8 +77,11 @@ public class ConversationManager {
                     .orElse(null);
         }
 
-        // DTO 생성 시 추출한 이력서 및 공고 데이터 모두 포함
-        InterviewRequestDto request = new InterviewRequestDto(answer, modelVariant, interviewMode, resumeContent, jobDescription);
+        // [수정] DTO 생성 시 세션에 저장된 직무(jobRole)와 연차(experience)도 함께 전달
+        InterviewRequestDto request = new InterviewRequestDto(
+                answer, modelVariant, interviewMode, resumeContent, jobDescription,
+                session.getJobRole(), session.getExperience()
+        );
 
         // 원본 JSON 문자열 누적 대신, 파싱된 순수 텍스트만 누적하도록 변경
         StringBuilder cleanAiResponse = new StringBuilder();
@@ -118,7 +132,7 @@ public class ConversationManager {
                 return rootNode.get("text").asText("");
             }
         } catch (Exception e) {
-        // 파싱 실패 시 원본 데이터가 깨진 청크일 수 있으므로 조용히 무시합니다.
+            // 파싱 실패 시 원본 데이터가 깨진 청크일 수 있으므로 조용히 무시합니다.
         }
         return "";
     }

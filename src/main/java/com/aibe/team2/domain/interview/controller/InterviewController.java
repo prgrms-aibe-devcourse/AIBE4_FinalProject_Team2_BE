@@ -38,6 +38,7 @@ public class InterviewController {
         try {
             Long authenticatedMemberId = (userDetails != null) ? getMemberIdFromUserDetails(userDetails) : request.getMemberId();
 
+            // [수정] jobRole과 experience 파라미터 추가
             InterviewSession session = interviewManager.startInterview(
                     authenticatedMemberId,
                     request.getResumeId(),
@@ -46,7 +47,9 @@ public class InterviewController {
                     InterviewMode.from(request.getInterviewMode()),
                     request.getInterviewType(),
                     request.getAiProvider(),
-                    request.getModelVariant()
+                    request.getModelVariant(),
+                    request.getJobRole(),         // 추가됨
+                    request.getExperience()  // 추가됨
             );
             return ResponseEntity.ok(session);
         } catch (IllegalArgumentException e) {

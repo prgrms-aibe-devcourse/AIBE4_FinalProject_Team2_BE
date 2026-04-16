@@ -19,10 +19,12 @@ public class InterviewManager {
 
     @Transactional
     // @DistributedLock(key = "interview-start", waitTime = 1, leaseTime = 3)
+    // [수정] 파라미터에 jobRole, experience 추가
     public InterviewSession startInterview(Long memberId, Long resumeId,
                                            Long jobPostingId, String jobDescription,
                                            InterviewMode interviewMode, String interviewType,
-                                           String aiProvider, String modelVariant) {
+                                           String aiProvider, String modelVariant,
+                                           String jobRole, String experience) {
         InterviewSession session = InterviewSession.builder()
                 .memberId(memberId)
                 .resumeId(resumeId)
@@ -32,6 +34,8 @@ public class InterviewManager {
                 .interviewType(interviewType)
                 .aiProvider(aiProvider)
                 .modelVariant(modelVariant)
+                .jobRole(jobRole)                 // 🚀 추가
+                .experience(experience) // 🚀 추가
                 .build();
 
         return interviewRepository.save(session);
