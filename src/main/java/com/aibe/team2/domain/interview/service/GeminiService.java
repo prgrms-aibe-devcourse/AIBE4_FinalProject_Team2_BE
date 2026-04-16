@@ -90,7 +90,7 @@ public class GeminiService {
             };
         }
 
-        // 🚀 [수정] SystemPrompt 조립 시 동적 지시사항 병합 (순서 중요: 페르소나 -> 맞춤형 지시 -> 이력서/공고 -> 제약조건)
+        // [수정] SystemPrompt 조립 시 동적 지시사항 병합 (순서 중요: 페르소나 -> 맞춤형 지시 -> 이력서/공고 -> 제약조건)
         String systemPrompt = String.format("%s\n\n=== [지원자 맞춤형 지시사항] ===\n%s\n%s\n%s%s\n\n%s",
                 atmospherePrompt,
                 roleInstruction,

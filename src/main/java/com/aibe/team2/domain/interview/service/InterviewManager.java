@@ -34,8 +34,8 @@ public class InterviewManager {
                 .interviewType(interviewType)
                 .aiProvider(aiProvider)
                 .modelVariant(modelVariant)
-                .jobRole(jobRole)                 // 🚀 추가
-                .experience(experience) // 🚀 추가
+                .jobRole(jobRole)                 // 추가
+                .experience(experience) // 추가
                 .build();
 
         return interviewRepository.save(session);
