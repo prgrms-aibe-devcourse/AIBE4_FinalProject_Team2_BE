@@ -46,9 +46,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
+        String email = request.getEmail();
+        String password = request.getPassword();
+
+        authService.checkLoginLock(email);
+
         try {
-            String email = request.getEmail();
-            String password = request.getPassword();
 
             // 1. 인증 시도
             Authentication authentication = authenticationManager.authenticate(
@@ -63,7 +66,8 @@ public class AuthController {
             String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), member.getRole().name());
             String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), member.getRole().name());
 
-            // 4. 응답 반환
+            // 4. 응답 반환 및 로그인 시도 횟수 초기화
+            authService.resetFailureCount(member.getEmail());
             return ResponseEntity.ok(ApiResponse.success(
                     new LoginResponse(
                             accessToken,
@@ -74,6 +78,8 @@ public class AuthController {
                     )));
 
         } catch (AuthenticationException e) {
+            // 로그인 실패 시 시도 횟수 증가
+            authService.incrementFailureCount(email);
             return ErrorResponse.toResponseEntity(ErrorCode.AUTH_LOGIN_FAILED);
         }
     }

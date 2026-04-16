@@ -54,6 +54,23 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
+
+                // 보안 헤더 설정
+                .headers(headers -> headers
+                        // 클릭재킹 방지 (우리 사이트의 프레임 내에서만 렌더링 허용)
+                        .frameOptions(frame -> frame.sameOrigin())
+//                        // XSS 방어 및 스크립트 실행 제한 (CSP)
+//                        .contentSecurityPolicy(csp -> csp
+//                                .policyDirectives(
+//                                        "default-src 'self'; " +                    // 기본적으로 자신의 도메인만 허용
+//                                                "script-src 'self' https://trusted.com; " + // 스크립트는 본인과 신뢰된 도메인만
+//                                                "style-src 'self' 'unsafe-inline'; " +      // 인라인 스타일은 필요한 경우만 허용
+//                                                "img-src 'self' data: https:; " +           // 이미지 출처 제한
+//                                                "connect-src 'self' ws://localhost:8080;"   // WebSocket 연결 허용 (중요!)
+//                                )
+//                        )
+                )
+
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
