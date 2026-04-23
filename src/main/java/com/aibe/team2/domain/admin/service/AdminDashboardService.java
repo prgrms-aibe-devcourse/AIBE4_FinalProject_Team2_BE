@@ -28,7 +28,7 @@ public class AdminDashboardService {
         LocalDateTime end = today.plusDays(1).atStartOfDay();
 
         Long activeMemberCount = memberRepository.countByStatus(MemberStatus.ACTIVE);
-        Long dormancyMemberCount = memberRepository.countByStatus(MemberStatus.DORMANCY;
+        Long dormancyMemberCount = memberRepository.countByStatus(MemberStatus.DORMANCY);
         Long deletedMemberCount = memberRepository.countByStatus(MemberStatus.DELETED);
 
         Long todayUsageLogCount = usageLogRepository.countByCreatedAtBetween(start, end);
