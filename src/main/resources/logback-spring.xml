@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>timestamp</fieldName>
+                    <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
+                </timestamp>
+                <pattern>
+                    <pattern>
+                        {
+                        "level":"%level",
+                        "thread":"%thread",
+                        "logger":"%logger{36}",
+                        "trace_id":"%X{trace_id:-}",
+                        "method":"%X{method:-}",
+                        "uri":"%X{uri:-}",
+                        "message":"%message"
+                        }
+                    </pattern>
+                </pattern>
+                <stackTrace>
+                    <fieldName>stack_trace</fieldName>
+                </stackTrace>
+            </providers>
+        </encoder>
+    </appender>
+
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>http://localhost:3100/loki/api/v1/push</url>
+            <connectionTimeoutMs>5000</connectionTimeoutMs>
+            <requestTimeoutMs>5000</requestTimeoutMs>
+        </http>
+
+        <format>
+            <label>
+                <pattern>app=team2,env=local</pattern>
+            </label>
+            <message>
+                <pattern>
+                    {
+                    "timestamp":"%date{yyyy-MM-dd HH:mm:ss.SSS}",
+                    "level":"%level",
+                    "thread":"%thread",
+                    "logger":"%logger{36}",
+                    "trace_id":"%X{trace_id:-}",
+                    "method":"%X{method:-}",
+                    "uri":"%X{uri:-}",
+                    "message":"%message"
+                    }
+                </pattern>
+            </message>
+            <sortByTime>true</sortByTime>
+        </format>
+
+        <noPrettyRequestBody>true</noPrettyRequestBody>
+    </appender>
+
+    <logger name="com.github.loki4j" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="LOKI"/>
+    </root>
+
+</configuration>

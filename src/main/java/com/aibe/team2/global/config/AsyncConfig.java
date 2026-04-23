@@ -1,10 +1,12 @@
 package com.aibe.team2.global.config;
 
+import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -30,6 +32,31 @@ public class AsyncConfig {
 
         // 5. 거절 정책 (RejectedExecutionHandler)
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean(name = "errorLogExecutor")
+    public Executor errorLogExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
+        executor.setQueueCapacity(100);
+        executor.setThreadNamePrefix("error-log-");
+
+        // MDC(requestId)를 비동기 스레드에도 전파
+        executor.setTaskDecorator(runnable -> {
+            Map<String, String> mdcContext = MDC.getCopyOfContextMap();
+            return () -> {
+                if (mdcContext != null) MDC.setContextMap(mdcContext);
+                try {
+                    runnable.run();
+                } finally {
+                    MDC.clear();
+                }
+            };
+        });
 
         executor.initialize();
         return executor;

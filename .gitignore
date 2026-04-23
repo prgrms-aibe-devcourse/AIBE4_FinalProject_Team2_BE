@@ -32,9 +32,6 @@ localstack/
 # IDE의 자체 빌더가 src/main/generated에 생성할 경우 대비
 /src/main/generated
 
-# 모든 application 관련 설정 파일 제외
-# *-dev.*
-
 # 로그파일 제외
 *.log
 

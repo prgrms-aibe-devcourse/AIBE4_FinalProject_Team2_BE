@@ -22,6 +22,7 @@ CREATE TABLE member (
                         profile_image_url VARCHAR(500),
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        last_login_at TIMESTAMP DEFAULT NULL,
                         deleted_at TIMESTAMP DEFAULT NULL,
                         status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'
                             CHECK (status IN ('ACTIVE', 'DORMANCY', 'DELETED'))

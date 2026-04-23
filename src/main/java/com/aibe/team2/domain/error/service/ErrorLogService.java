@@ -8,8 +8,10 @@ import com.aibe.team2.domain.error.repository.ErrorLogRepository;
 import com.aibe.team2.domain.error.util.ErrorFingerprintGenerator;
 import com.aibe.team2.domain.error.util.ErrorSeverityResolver;
 import com.aibe.team2.domain.mypage.entity.Member;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.MDC;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +31,10 @@ public class ErrorLogService {
     private final ErrorIssueService errorIssueService;
     private final ErrorFingerprintGenerator fingerprintGenerator;
     private final ErrorSeverityResolver severityResolver;
+    private final MeterRegistry meterRegistry;
 
+    @Async("errorLogExecutor")
+    @Transactional
     public void record(
             String errorCode,
             ErrorDomain errorDomain,
@@ -93,6 +98,11 @@ public class ErrorLogService {
         );
 
         errorIssueService.increaseOccurrence(issue, occurredAt, errorLog.getId());
+
+        meterRegistry.counter("error.log.count",
+                "domain", errorDomain.name(),
+                "severity", severity.name()
+        ).increment();
     }
 
     private String resolveTraceId() {
@@ -104,7 +114,6 @@ public class ErrorLogService {
         if (throwable == null) {
             return null;
         }
-
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         throwable.printStackTrace(pw);
