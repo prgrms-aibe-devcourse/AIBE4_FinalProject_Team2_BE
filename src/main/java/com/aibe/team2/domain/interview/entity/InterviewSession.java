@@ -2,6 +2,9 @@ package com.aibe.team2.domain.interview.entity;
 
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.JobRole;
+import com.aibe.team2.domain.interview.enums.ExperienceLevel;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -45,12 +48,14 @@ public class InterviewSession {
 
     private String modelVariant;
 
-    // [추가] 프론트엔드에서 넘겨받은 지원자 맞춤형 정보 저장 필드
+    // [수정] String -> Enum 타입으로 변경 및 @Enumerated 적용
+    @Enumerated(EnumType.STRING)
     @Column(name = "job_role")
-    private String jobRole;
+    private JobRole jobRole;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "experience")
-    private String experience;
+    private ExperienceLevel experience;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -75,9 +80,9 @@ public class InterviewSession {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    // [수정] Builder에 jobRole, experienceLevel 추가
+    // [수정] Builder 파라미터도 String 대신 Enum 타입으로 변경
     @Builder
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String jobDescription, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, String jobRole, String experience) {
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String jobDescription, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, JobRole jobRole, ExperienceLevel experience) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
@@ -86,8 +91,8 @@ public class InterviewSession {
         this.interviewType = interviewType;
         this.aiProvider = aiProvider;
         this.modelVariant = modelVariant;
-        this.jobRole = jobRole;                 // 추가
-        this.experience = experience; // 추가
+        this.jobRole = jobRole;           // Enum 할당
+        this.experience = experience;     // Enum 할당
         this.status = InterviewSessionStatus.CREATED;
     }
 

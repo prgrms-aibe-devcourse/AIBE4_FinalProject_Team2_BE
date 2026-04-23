@@ -1,8 +1,10 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.entity.InterviewSession;
+import com.aibe.team2.domain.interview.enums.ExperienceLevel;
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.JobRole;
 import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +36,8 @@ public class InterviewManager {
                 .interviewType(interviewType)
                 .aiProvider(aiProvider)
                 .modelVariant(modelVariant)
-                .jobRole(jobRole)                 // 추가
-                .experience(experience) // 추가
+                .jobRole(JobRole.from(jobRole))
+                .experience(ExperienceLevel.from(experience))
                 .build();
 
         return interviewRepository.save(session);

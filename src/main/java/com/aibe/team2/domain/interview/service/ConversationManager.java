@@ -45,13 +45,11 @@ public class ConversationManager {
 
     // 프론트엔드와 100% 동일한 동적 첫 인사말 생성 헬퍼 메서드
     private String getInitialGreeting(InterviewMode mode) {
-        if (mode == InterviewMode.STRESS) {
-            return "바로 시작하겠습니다. 지원자님, 1분 자기소개 해보세요.";
-        } else if (mode == InterviewMode.FOLLOW_UP) {
-            return "지원해 주셔서 감사합니다. 먼저 본인의 핵심 역량을 중심으로 자기소개를 부탁드립니다.";
-        } else {
-            return "반갑습니다! 긴장 푸시고 편하게 자기소개 부탁드립니다.";
-        }
+        return switch (mode) {
+            case STRESS -> "바로 시작하겠습니다. 지원자님, 1분 자기소개 해보세요.";
+            case FOLLOW_UP -> "지원해 주셔서 감사합니다. 먼저 본인의 핵심 역량을 중심으로 자기소개를 부탁드립니다.";
+            default -> "반갑습니다! 긴장 푸시고 편하게 자기소개 부탁드립니다.";
+        };
     }
 
     @DistributedLock(key = "text-streaming", waitTime = 1, leaseTime = 20)
@@ -80,7 +78,8 @@ public class ConversationManager {
         // [수정] DTO 생성 시 세션에 저장된 직무(jobRole)와 연차(experience)도 함께 전달
         InterviewRequestDto request = new InterviewRequestDto(
                 answer, modelVariant, interviewMode, resumeContent, jobDescription,
-                session.getJobRole(), session.getExperience()
+                session.getJobRole() != null ? session.getJobRole().name() : null,
+                session.getExperience() != null ? session.getExperience().name() : null
         );
 
         // 원본 JSON 문자열 누적 대신, 파싱된 순수 텍스트만 누적하도록 변경
