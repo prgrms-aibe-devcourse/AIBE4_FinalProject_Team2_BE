@@ -88,8 +88,9 @@ public class ConversationManager {
         geminiService.streamQuestion(String.valueOf(session.getId()), request).subscribe(
                 data -> {
                     try {
-                        // 프론트엔드로는 원본 데이터 전송 (기존 스트리밍 작동 유지)
-                        emitter.send(SseEmitter.event().name("message").data(data));
+                        // [리뷰 반영] String을 JsonNode로 변환 후 전송하여 Spring의 이중 직렬화(Double Serialization) 방지
+                        JsonNode jsonNode = objectMapper.readTree(data);
+                        emitter.send(SseEmitter.event().name("message").data(jsonNode));
 
                         // DB 저장을 위해 JSON 청크에서 텍스트만 추출하여 누적
                         String parsedText = extractTextFromChunk(data);
