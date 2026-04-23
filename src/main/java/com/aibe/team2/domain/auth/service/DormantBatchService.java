@@ -36,7 +36,7 @@ public class DormantBatchService {
 
         for (Member member : targetMembers) {
             // 1. 상태 변경
-            member.updateStatus(MemberStatus.DORMANT);
+            member.updateStatus(MemberStatus.DORMANCY);
 
             // 2. 메일 발송
             String html = createDormantNotificationHtml(member.getNickname());

@@ -126,7 +126,7 @@ public class Member {
     public void updateLastLoginAt() {
         this.lastLoginAt = LocalDateTime.now();
         // 만약 휴면 상태였다가 로그인한 것이라면 ACTIVE로 변경
-        if (this.status == MemberStatus.DORMANT) {
+        if (this.status == MemberStatus.DORMANCY) {
             this.status = MemberStatus.ACTIVE;
         }
     }
