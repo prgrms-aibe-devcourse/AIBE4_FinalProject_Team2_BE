@@ -1,22 +1,23 @@
 ## 1. member (회원)
 
-| 컬럼명 | 타입 | 설명 |
-|---|---|---|
-| `id` | `BIGSERIAL` | 회원 고유 ID |
-| `email` | `VARCHAR(255)` | 로그인 이메일 |
-| `password_hash` | `VARCHAR(255)` | 비밀번호 해시 |
-| `nickname` | `VARCHAR(50)` | 닉네임 |
-| `role` | `VARCHAR(20)` | 권한 (`MEMBER`, `ADMIN`) |
-| `desired_job` | `VARCHAR(100)` | 희망 직무 |
-| `preferred_location` | `VARCHAR(100)` | 선호 근무 지역 |
+| 컬럼명                 | 타입 | 설명                          |
+|---------------------|---|-----------------------------|
+| `id`                | `BIGSERIAL` | 회원 고유 ID                    |
+| `email`             | `VARCHAR(255)` | 로그인 이메일                     |
+| `password_hash`     | `VARCHAR(255)` | 비밀번호 해시                     |
+| `nickname`          | `VARCHAR(50)` | 닉네임                         |
+| `role`              | `VARCHAR(20)` | 권한 (`MEMBER`, `ADMIN`)      |
+| `desired_job`       | `VARCHAR(100)` | 희망 직무                       |
+| `preferred_location` | `VARCHAR(100)` | 선호 근무 지역                    |
 | `subscription_plan` | `VARCHAR(20)` | 구독 등급 (`FREE`, `PRO`, `ENTERPRISE`) |
-| `credit_balance` | `INT` | 크레딧 잔액 |
-| `auth_provider` | `VARCHAR(20)` | 가입 경로 (`LOCAL`, `GOOGLE`, `KAKAO`) |
-| `profile_image_url` | `VARCHAR(500)` | 프로필 이미지 URL |
-| `created_at` | `TIMESTAMP` | 생성 일시 |
-| `updated_at` | `TIMESTAMP` | 수정 일시 |
-| `deleted_at` | `TIMESTAMP` | 탈퇴 일시 |
-| `status` | `VARCHAR(20)` | 유저 상태 (`ACTIVE`, `DORMANCY`, `DELETED`) |
+| `credit_balance`    | `INT` | 크레딧 잔액                      |
+| `auth_provider`     | `VARCHAR(20)` | 가입 경로 (`LOCAL`, `GOOGLE`, `KAKAO`) |
+| `profile_image_url` | `VARCHAR(500)` | 프로필 이미지 URL                 |
+| `created_at`        | `TIMESTAMP` | 생성 일시                       |
+| `updated_at`        | `TIMESTAMP` | 수정 일시                       |
+| `deleted_at`        | `TIMESTAMP` | 탈퇴 일시                       |
+| `last_login_at`     | `TIMESTAMP` | 마지막 로그인 일시                  |
+| `status`            | `VARCHAR(20)` | 유저 상태 (`ACTIVE`, `DORMANCY`, `DELETED`) |
 
 ---
 
