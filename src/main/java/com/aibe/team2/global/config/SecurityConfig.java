@@ -77,31 +77,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
-                                "/",
-                                "/index.html",
-                                "/api/interviews/**",
-                                "/actuator/**",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html",
-                                "/api-docs/**",
-                                "/api-docs",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/api/v1/mypage/**",
-                                "/api/v1/notifications/**",
-                                "/api/v1/resumes/**",
-                                "/api/v1/job-postings/**",
-                                "/resume.html",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**"
+                                "/", "/index.html", "/favicon.ico", "/css/**", "/js/**", "/images/**", "/api/v1/auth/**",
+                                "/api/webhooks/**" // [FR-INT-04] 외부 Retell AI Webhook 수신을 위한 권한 예외 처리 추가
                         ).permitAll()
-                        .requestMatchers("/api/files/**", "/api/v1/auth/**").permitAll()
-                        // [FR-INT-04] 외부 Retell AI Webhook 수신을 위한 권한 예외 처리 추가
-                        .requestMatchers("/api/webhooks/**").permitAll()
-                        // [NFR-LOG-01] 구조화 로그 설정(테스트를 위해 permitAll()로 변경)
-                        .requestMatchers("/api/v1/admin/logs/**").permitAll()
+
+                        // Swagger 등 개발 도구
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 // LoggingFilter를 JwtFilter보다 먼저 실행되도록 등록
