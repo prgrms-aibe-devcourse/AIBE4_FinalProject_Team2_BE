@@ -71,6 +71,14 @@ public class InterviewRecord {
     @Column(name = "response_time_ms")
     private Integer responseTimeMs; // 응답 소요 시간 (ms)
 
+    // [추가] AI 평가 사고 과정 (CoT) / 작성자 최원준
+    @Column(name = "evaluation_reason", columnDefinition = "TEXT")
+    private String evaluationReason;
+
+    // [추가] 모범 답변 가이드 키워드 (JSON이나 TEXT 형태로 저장) / 작성자 최원준
+    @Column(name = "recommended_guides", columnDefinition = "TEXT")
+    private String recommendedGuides;
+
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -79,18 +87,23 @@ public class InterviewRecord {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public void updateAIAnalysis(Float score, String feedback) {
+    // [수정] 평가 점수, 피드백뿐만 아니라 이유와 가이드도 함께 업데이트하도록 메서드 확장 / 작성자 최원준
+    public void updateAIAnalysis(Float score, String feedback, String reason, String guides) {
         this.evaluationScore = score;
         this.feedbackText = feedback;
+        this.evaluationReason = reason;
+        this.recommendedGuides = guides;
     }
 
+    // [수정] 빌더에 새 필드 2개 추가 / 작성자 최원준
     @Builder
     public InterviewRecord(
             InterviewSession interviewSession, Integer turnSequence, String questionText,
             String questionIntent, String answerText, Integer followUpDepth,
             String s3FileUrl, Integer wpm, Float sttAccuracy, Integer silenceCount,
             Map<String, Object> emotionAnalysis, String feedbackText,
-            Float evaluationScore, Integer responseTimeMs
+            Float evaluationScore, Integer responseTimeMs,
+            String evaluationReason, String recommendedGuides // 추가됨
     ){
         this.interviewSession = interviewSession;
         this.turnSequence = turnSequence;
@@ -106,5 +119,7 @@ public class InterviewRecord {
         this.feedbackText = feedbackText;
         this.evaluationScore = evaluationScore;
         this.responseTimeMs = responseTimeMs;
+        this.evaluationReason = evaluationReason;       // 추가됨
+        this.recommendedGuides = recommendedGuides;     // 추가됨
     }
 }
