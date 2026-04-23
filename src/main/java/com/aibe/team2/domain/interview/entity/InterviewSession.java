@@ -2,6 +2,9 @@ package com.aibe.team2.domain.interview.entity;
 
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.JobRole;
+import com.aibe.team2.domain.interview.enums.ExperienceLevel;
+
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -45,6 +48,15 @@ public class InterviewSession {
 
     private String modelVariant;
 
+    // [수정] String -> Enum 타입으로 변경 및 @Enumerated 적용
+    @Enumerated(EnumType.STRING)
+    @Column(name = "job_role")
+    private JobRole jobRole;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "experience")
+    private ExperienceLevel experience;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private InterviewSessionStatus status;
@@ -68,8 +80,9 @@ public class InterviewSession {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    // [수정] Builder 파라미터도 String 대신 Enum 타입으로 변경
     @Builder
-    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String jobDescription, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant) {
+    public InterviewSession(Long memberId, Long resumeId, Long jobPostingId, String jobDescription, InterviewMode interviewMode, String interviewType, String aiProvider, String modelVariant, JobRole jobRole, ExperienceLevel experience) {
         this.memberId = memberId;
         this.resumeId = resumeId;
         this.jobPostingId = jobPostingId;
@@ -78,6 +91,8 @@ public class InterviewSession {
         this.interviewType = interviewType;
         this.aiProvider = aiProvider;
         this.modelVariant = modelVariant;
+        this.jobRole = jobRole;           // Enum 할당
+        this.experience = experience;     // Enum 할당
         this.status = InterviewSessionStatus.CREATED;
     }
 

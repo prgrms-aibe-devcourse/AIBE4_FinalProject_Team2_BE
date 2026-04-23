@@ -1,7 +1,9 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.dto.InterviewRequestDto;
+import com.aibe.team2.domain.interview.enums.ExperienceLevel;
 import com.aibe.team2.domain.interview.enums.InterviewMode;
+import com.aibe.team2.domain.interview.enums.JobRole;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -38,9 +40,10 @@ public class GeminiService {
 
     public Flux<String> streamQuestion(String sessionId, InterviewRequestDto request) {
         log.info("=================================================");
-        log.info("👀 [디버그] 전달받은 자기소개서 본문:\n{}",
+        log.info("[디버그] 전달받은 직무: {}, 연차: {}", request.getJobRole(), request.getExperience());
+        log.info("[디버그] 전달받은 자기소개서 본문:\n{}",
                 request.getResumeContent() != null ? request.getResumeContent() : "없음 (선택 안함)");
-        log.info("👀 [디버그] 전달받은 채용 공고 본문:\n{}",
+        log.info("[디버그] 전달받은 채용 공고 본문:\n{}",
                 request.getJobDescription() != null ? request.getJobDescription() : "없음 (선택 안함)");
         log.info("=================================================");
         String rootUrl = baseUrl.split("/v1")[0];
@@ -66,17 +69,24 @@ public class GeminiService {
             jobContext = "\n\n[Job Posting Requirements]\n다음은 지원자가 지원한 채용 공고의 상세 내용(요구 역량 및 주요 업무)입니다. 이를 바탕으로 직무 적합성을 검증하는 질문을 생성하세요.\n" + request.getJobDescription();
         }
 
-        // 보안 리뷰 반영 (Prompt Injection 방어):
-        // 1. AI가 절대적으로 따라야 할 시스템 지시사항 (분위기, 이력서, 공고, 제약조건)
-        String systemPrompt = String.format("%s%s%s\n\n%s",
-                atmospherePrompt, resumeContext, jobContext, constraints);
+        // [리뷰 반영] 하드코딩된 switch문을 제거하고 Enum을 활용하여 타입 안정성 확보
+        String levelInstruction = ExperienceLevel.from(request.getExperience()).getInstruction();
+        String roleInstruction = JobRole.from(request.getJobRole()).getInstruction();
+
+        // [수정] SystemPrompt 조립 시 동적 지시사항 병합
+        String systemPrompt = String.format("%s\n\n=== [지원자 맞춤형 지시사항] ===\n%s\n%s\n%s%s\n\n%s",
+                atmospherePrompt,
+                roleInstruction,
+                levelInstruction,
+                resumeContext,
+                jobContext,
+                constraints);
 
         // 2. 순수한 사용자 입력값 분리
         String userMessage = request.getMessage();
 
         log.info("[Gemini-Streaming] Session: {}, Mode: {}", sessionId, request.getInterviewMode());
 
-        // JSON Payload 조립 시 systemInstruction 속성을 명시적으로 분리하여 전송
         Map<String, Object> requestBody = Map.of(
                 "systemInstruction", Map.of(
                         "parts", List.of(Map.of("text", systemPrompt))
@@ -87,7 +97,6 @@ public class GeminiService {
                 )
         );
 
-        // [디버그용 로그 추가] Gemini API로 날아가기 직전의 최종 캡슐(JSON) 확인
         log.info("[디버그] 제미나이에게 전송되는 최종 Payload (JSON)");
         log.info("{}", requestBody);
         log.info("=======================================================================");
@@ -106,7 +115,6 @@ public class GeminiService {
     private String loadPromptFile(String fileName) {
         final String currentFileName = fileName;
 
-        // 허용 목록 검증: Enum 상수에 있거나 'constraints'인 경우만 허용
         boolean isAllowed = Arrays.stream(InterviewMode.values())
                 .anyMatch(mode -> mode.name().equals(currentFileName)) || "constraints".equals(currentFileName);
 
@@ -124,7 +132,7 @@ public class GeminiService {
             }
             return StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            log.error("❌ 프롬프트 파일 로드 실패 [파일명: {}]: ", targetFileName, e);
+            log.error("프롬프트 파일 로드 실패 [파일명: {}]: ", targetFileName, e);
             return "면접관으로서 질문을 생성하세요.";
         }
     }

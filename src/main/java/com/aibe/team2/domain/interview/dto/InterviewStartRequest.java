@@ -15,4 +15,6 @@ public class InterviewStartRequest {
     private String aiProvider;
     private String modelVariant;
     private String personaType;
+    private String jobRole;
+    private String experience;
 }

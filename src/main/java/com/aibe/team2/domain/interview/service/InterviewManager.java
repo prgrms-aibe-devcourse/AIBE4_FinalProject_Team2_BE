@@ -1,8 +1,10 @@
 package com.aibe.team2.domain.interview.service;
 
 import com.aibe.team2.domain.interview.entity.InterviewSession;
+import com.aibe.team2.domain.interview.enums.ExperienceLevel;
 import com.aibe.team2.domain.interview.enums.InterviewMode;
 import com.aibe.team2.domain.interview.enums.InterviewSessionStatus;
+import com.aibe.team2.domain.interview.enums.JobRole;
 import com.aibe.team2.domain.interview.repository.InterviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,10 +21,12 @@ public class InterviewManager {
 
     @Transactional
     // @DistributedLock(key = "interview-start", waitTime = 1, leaseTime = 3)
+    // [수정] 파라미터에 jobRole, experience 추가
     public InterviewSession startInterview(Long memberId, Long resumeId,
                                            Long jobPostingId, String jobDescription,
                                            InterviewMode interviewMode, String interviewType,
-                                           String aiProvider, String modelVariant) {
+                                           String aiProvider, String modelVariant,
+                                           String jobRole, String experience) {
         InterviewSession session = InterviewSession.builder()
                 .memberId(memberId)
                 .resumeId(resumeId)
@@ -32,6 +36,8 @@ public class InterviewManager {
                 .interviewType(interviewType)
                 .aiProvider(aiProvider)
                 .modelVariant(modelVariant)
+                .jobRole(JobRole.from(jobRole))
+                .experience(ExperienceLevel.from(experience))
                 .build();
 
         return interviewRepository.save(session);
