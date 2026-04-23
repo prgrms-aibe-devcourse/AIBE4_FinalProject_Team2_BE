@@ -67,7 +67,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         }
-
+        // [추가] 3. 쿼리 파라미터에서 token 확인 (EventSource 등 헤더 조작이 불가능한 SSE 통신 우회용)
+        String queryToken = request.getParameter("token");
+        if (StringUtils.hasText(queryToken)) {
+            return queryToken;
+        }
         return null;
     }
 
