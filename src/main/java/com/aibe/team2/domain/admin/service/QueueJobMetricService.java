@@ -4,6 +4,7 @@ import com.aibe.team2.domain.admin.entity.QueueJobMetric;
 import com.aibe.team2.domain.admin.enums.QueueJobStatus;
 import com.aibe.team2.domain.admin.enums.QueueJobType;
 import com.aibe.team2.domain.admin.repository.QueueJobMetricRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class QueueJobMetricService {
 
     private final QueueJobMetricRepository queueJobMetricRepository;
+    private final MeterRegistry meterRegistry;
 
     @Transactional
     public Long recordEnqueued(
@@ -32,7 +34,14 @@ public class QueueJobMetricService {
                 messageId,
                 retryCount
         );
-        return queueJobMetricRepository.save(metric).getId();
+        Long savedId = queueJobMetricRepository.save(metric).getId();
+
+        meterRegistry.counter("queue.job.enqueued",
+                "jobType", jobType.name(),
+                "targetType", targetType
+        ).increment();
+
+        return savedId;
     }
 
     @Transactional
@@ -43,20 +52,35 @@ public class QueueJobMetricService {
 
     @Transactional
     public void markSuccess(Long queueJobMetricId) {
-        queueJobMetricRepository.findById(queueJobMetricId)
-                .ifPresent(QueueJobMetric::markSuccess);
+        queueJobMetricRepository.findById(queueJobMetricId).ifPresent(metric -> {
+            metric.markSuccess();
+            meterRegistry.counter("queue.job.success",
+                    "jobType", metric.getJobType().name(),
+                    "targetType", metric.getTargetType()
+            ).increment();
+        });
     }
 
     @Transactional
     public void markFailed(Long queueJobMetricId, String errorMessage) {
-        queueJobMetricRepository.findById(queueJobMetricId)
-                .ifPresent(metric -> metric.markFailed(trim(errorMessage)));
+        queueJobMetricRepository.findById(queueJobMetricId).ifPresent(metric -> {
+            metric.markFailed(trim(errorMessage));
+            meterRegistry.counter("queue.job.failed",
+                    "jobType", metric.getJobType().name(),
+                    "targetType", metric.getTargetType()
+            ).increment();
+        });
     }
 
     @Transactional
     public void markRetried(Long queueJobMetricId) {
-        queueJobMetricRepository.findById(queueJobMetricId)
-                .ifPresent(QueueJobMetric::markRetried);
+        queueJobMetricRepository.findById(queueJobMetricId).ifPresent(metric -> {
+            metric.markRetried();
+            meterRegistry.counter("queue.job.retried",
+                    "jobType", metric.getJobType().name(),
+                    "targetType", metric.getTargetType()
+            ).increment();
+        });
     }
 
     private String trim(String value) {
