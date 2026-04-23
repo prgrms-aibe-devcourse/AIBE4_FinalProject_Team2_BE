@@ -105,28 +105,30 @@
 
 ## 6. interview_session (면접 세션)
 
-| 컬럼명 | 타입 | 설명 |
-|---|---|---|
-| `id` | `BIGSERIAL` | 면접 세션 ID |
-| `member_id` | `BIGINT` | 회원 ID |
-| `resume_id` | `BIGINT` | 자기소개서 ID |
-| `job_posting_id` | `BIGINT` | 채용 공고 ID |
-| `interview_mode` | `VARCHAR(20)` | 면접 모드 (`NORMAL`, `FOLLOW_UP`, `STRESS`) |
-| `interview_type` | `VARCHAR(20)` | 면접 유형 (`TEXT`, `VOICE`) |
-| `status` | `VARCHAR(20)` | 진행 상태 (`CREATED`, `IN_PROGRESS`, `DONE`, `ABORTED`) |
-| `final_score` | `INT` | 최종 점수 |
-| `created_at` | `TIMESTAMP` | 생성 일시 |
-| `updated_at` | `TIMESTAMP` | 수정 일시 |
-| `job_description` | `TEXT` | 면접 시 참고한 채용 공고/JD 내용 |
-| `ai_provider` | `VARCHAR(50)` | 사용한 AI 제공자 |
+| 컬럼명 | 타입             | 설명    |
+|---|----------------|-------|
+| `id` | `BIGSERIAL`    | 면접 세션 ID |
+| `member_id` | `BIGINT`       | 회원 ID |
+| `resume_id` | `BIGINT`       | 자기소개서 ID |
+| `job_posting_id` | `BIGINT`       | 채용 공고 ID |
+| `interview_mode` | `VARCHAR(20)`  | 면접 모드 (`NORMAL`, `FOLLOW_UP`, `STRESS`) |
+| `interview_type` | `VARCHAR(20)`  | 면접 유형 (`TEXT`, `VOICE`) |
+| `job_role` | `VARCHAR(50)`  | 희망 직무 (`BACKEND`, `FRONTEND` 등) |
+| `experience` | `VARCHAR(50)`  | 경력 연차 (`NEWBIE`, `JUNIOR` 등) |
+| `status` | `VARCHAR(20)`  | 진행 상태 (`CREATED`, `IN_PROGRESS`, `DONE`, `ABORTED`) |
+| `final_score` | `INT`          | 최종 점수 |
+| `created_at` | `TIMESTAMP`    | 생성 일시 |
+| `updated_at` | `TIMESTAMP`    | 수정 일시 |
+| `job_description` | `TEXT`         | 면접 시 참고한 채용 공고/JD 내용 |
+| `ai_provider` | `VARCHAR(50)`  | 사용한 AI 제공자 |
 | `model_variant` | `VARCHAR(100)` | 사용한 모델 버전/이름 |
-| `overall_feedback` | `TEXT` | 면접 전체 종합 피드백 |
-| `job_relevance_score` | `INT` | 직무 적합성 점수 |
-| `attitude_confidence_score` | `INT` | 태도 및 자신감 점수 |
-| `logical_structure_score` | `INT` | 답변 논리 구조 점수 |
-| `clarity_score` | `INT` | 답변 명확성 점수 |
-| `persuasiveness_score` | `INT` | 답변 설득력 점수 |
-| `consistency_score` | `INT` | 답변 일관성 점수 |
+| `overall_feedback` | `TEXT`         | 면접 전체 종합 피드백 |
+| `job_relevance_score` | `INT`          | 직무 적합성 점수 |
+| `attitude_confidence_score` | `INT`          | 태도 및 자신감 점수 |
+| `logical_structure_score` | `INT`          | 답변 논리 구조 점수 |
+| `clarity_score` | `INT`          | 답변 명확성 점수 |
+| `persuasiveness_score` | `INT`          | 답변 설득력 점수 |
+| `consistency_score` | `INT`          | 답변 일관성 점수 |
 
 ---
 
@@ -145,7 +147,9 @@
 | `stt_accuracy` | `REAL` | STT 정확도 |
 | `silence_count` | `INT` | 침묵 횟수 |
 | `emotion_analysis` | `TEXT` | 감정 분석 결과 |
+| `evaluation_reason` | `TEXT` | AI 평가 사고 과정 (CoT) |
 | `feedback_text` | `TEXT` | 피드백 내용 |
+| `recommended_guides` | `TEXT` | 모범 답변 가이드 키워드 |
 | `evaluation_score` | `REAL` | 답변 평가 점수 |
 | `response_time_ms` | `INT` | 응답 시간(ms) |
 | `turn_sequence` | `INT` | 대화 순서 |

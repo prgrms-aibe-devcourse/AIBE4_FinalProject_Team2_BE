@@ -66,7 +66,18 @@ public class InterviewAnalysisService {
                             .findFirst()
                             .ifPresent(r -> {
                                 float score = ra.getEvaluationScore() != null ? ra.getEvaluationScore().floatValue() : 0f;
-                                r.updateAIAnalysis(score, ra.getAiFeedback());
+
+                                // 1. DTO(ra)에서 평가 이유 꺼내기
+                                String reason = ra.getEvaluationReason();
+
+                                // 2. DTO(ra)에서 추천 가이드 리스트를 꺼내서, DB에 넣기 좋게 하나의 문자열로 합치기
+                                String guidesString = null;
+                                if (ra.getRecommendedGuides() != null && !ra.getRecommendedGuides().isEmpty()) {
+                                    guidesString = "- " + String.join("\n- ", ra.getRecommendedGuides());
+                                }
+
+                                // 3. 파라미터 4개를 모두 넣어서 업데이트
+                                r.updateAIAnalysis(score, ra.getAiFeedback(), reason, guidesString);
                             });
                 }
             }

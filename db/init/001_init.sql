@@ -128,6 +128,9 @@ CREATE TABLE interview_session (
                                    interview_type VARCHAR(20) NOT NULL DEFAULT 'TEXT'
                                        CHECK (interview_type IN ('TEXT', 'VOICE')),
 
+                                   job_role VARCHAR(50),
+                                   experience VARCHAR(50),
+
                                    ai_provider VARCHAR(50),
                                    model_variant VARCHAR(100),
 
@@ -159,21 +162,29 @@ CREATE TABLE interview_session (
 CREATE TABLE interview_record (
                                   id BIGSERIAL PRIMARY KEY,
                                   interview_session_id BIGINT NOT NULL,
+
                                   question_text TEXT NOT NULL,
                                   question_intent TEXT,
                                   answer_text TEXT,
                                   follow_up_depth INT DEFAULT 0,
+
                                   s3_file_url VARCHAR(500),
                                   wpm INT,
                                   stt_accuracy REAL,
                                   silence_count INT,
                                   emotion_analysis TEXT,
+
+                                  evaluation_reason TEXT,
                                   feedback_text TEXT,
+                                  recommended_guides TEXT,
+
                                   evaluation_score REAL DEFAULT 0.0,
                                   response_time_ms INT,
                                   turn_sequence INT NOT NULL,
+
                                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                                   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
                                   CONSTRAINT fk_record_session
                                       FOREIGN KEY (interview_session_id) REFERENCES interview_session(id) ON DELETE CASCADE
 );
