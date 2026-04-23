@@ -71,11 +71,11 @@ public class InterviewRecord {
     @Column(name = "response_time_ms")
     private Integer responseTimeMs; // 응답 소요 시간 (ms)
 
-    // [추가] AI 평가 사고 과정 (CoT) / 작성자 최원준
+    // [추가] AI 평가 사고 과정 (CoT)
     @Column(name = "evaluation_reason", columnDefinition = "TEXT")
     private String evaluationReason;
 
-    // [추가] 모범 답변 가이드 키워드 (JSON이나 TEXT 형태로 저장) / 작성자 최원준
+    // [추가] 모범 답변 가이드 키워드 (JSON이나 TEXT 형태로 저장)
     @Column(name = "recommended_guides", columnDefinition = "TEXT")
     private String recommendedGuides;
 
@@ -87,7 +87,7 @@ public class InterviewRecord {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // [수정] 평가 점수, 피드백뿐만 아니라 이유와 가이드도 함께 업데이트하도록 메서드 확장 / 작성자 최원준
+    // [수정] 평가 점수, 피드백뿐만 아니라 이유와 가이드도 함께 업데이트하도록 메서드 확장
     public void updateAIAnalysis(Float score, String feedback, String reason, String guides) {
         this.evaluationScore = score;
         this.feedbackText = feedback;
@@ -95,7 +95,7 @@ public class InterviewRecord {
         this.recommendedGuides = guides;
     }
 
-    // [수정] 빌더에 새 필드 2개 추가 / 작성자 최원준
+    // [수정] 빌더에 새 필드 2개 추가
     @Builder
     public InterviewRecord(
             InterviewSession interviewSession, Integer turnSequence, String questionText,
