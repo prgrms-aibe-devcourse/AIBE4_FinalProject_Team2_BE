@@ -36,6 +36,7 @@ public enum ErrorCode {
     AUTH_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH_009", "이메일이 입력되지 않았습니다."),
     AUTH_VERIFICATION_FAILED(HttpStatus.BAD_REQUEST, "AUTH_010", "인증 번호가 일치하지 않거나 만료되었습니다."),
     AUTH_EMAIL_SEND_ERROR(HttpStatus.BAD_REQUEST, "AUTH_011", "인증 메일 전송 중 오류가 발생했습니다"),
+    AUTH_LOGIN_LOCKED(HttpStatus.LOCKED, "AUTH_012", "잦은 로그인 실패로 인해 계정이 5분간 잠겼습니다."),
 
     // User (회원)
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_001", "존재하지 않는 사용자입니다."),
