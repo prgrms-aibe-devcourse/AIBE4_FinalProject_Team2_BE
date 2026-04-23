@@ -177,10 +177,6 @@ CREATE TABLE interview_record (
                                   feedback_text TEXT,
                                   recommended_guides TEXT,
 
-                                  evaluation_reason TEXT,
-                                  feedback_text TEXT,
-                                  recommended_guides TEXT,
-
                                   evaluation_score REAL DEFAULT 0.0,
                                   response_time_ms INT,
                                   turn_sequence INT NOT NULL,
